@@ -1,0 +1,15 @@
+.DS_Store
+*.swp
+*.swo
+node_modules
+npm-debug.log
+static
+README.html
+OVERVIEW.html
+yarn-error.log
+artifacts
+dist
+junit.xml
+.vscode/launch.json
+.idea
+.npmrc

@@ -1,0 +1,35 @@
+{
+  "name": "@folio/stripes-hub",
+  "version": "1.0.0",
+  "description": "Orchestrate UI modules in a module-federation setup",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/folio-org/stripes-hub.git"
+  },
+  "publishConfig": {
+    "registry": "https://repository.folio.org/repository/npm-folio/"
+  },
+  "scripts": {
+    "start": "stripes serve",
+    "test": "jest --ci --coverage --colors",
+    "lint": "eslint . "
+  },
+  "stripes": {
+    "okapiInterfaces": {
+    },
+    "optionalOkapiInterfaces": {
+    },
+    "permissionSets": [
+    ]
+  },
+  "devDependencies": {
+    "@folio/eslint-config-stripes": "^8.0.0",
+    "@folio/jest-config-stripes": "^3.0.0",
+    "@folio/stripes-cli": "^4.0.0"
+  },
+  "dependencies": {
+  },
+  "peerDependencies": {
+  }
+}
