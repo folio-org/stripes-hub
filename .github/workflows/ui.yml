@@ -11,4 +11,7 @@ jobs:
     secrets: inherit
     with:
       jest-enabled: true
+      generate-module-descriptor: false
+      publish-module-descriptor: false
+      compile-translations: false
 
