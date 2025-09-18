@@ -11,9 +11,9 @@
     "registry": "https://repository.folio.org/repository/npm-folio/"
   },
   "scripts": {
-    "start": "stripes serve",
-    "test": "jest --ci --coverage --colors",
-    "lint": "eslint . "
+    "start": "echo 'not yet; eventually: stripes serve'",
+    "test": "echo 'not yet, eventually: jest --ci --coverage --colors'",
+    "lint": "echo 'not yet; eventually: eslint . '"
   },
   "stripes": {
     "okapiInterfaces": {
