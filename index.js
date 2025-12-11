@@ -1,6 +1,20 @@
 /** name for the session key in local storage */
 const SESSION_NAME = 'okapiSess';
 
+/** key for the logging out action */
+const IS_LOGGING_OUT = '@folio/stripes/core::Logout';
+
+/**
+ * dispatched if the session is idle (without activity) for too long
+ */
+const RTR_TIMEOUT_EVENT = '@folio/stripes/core::RTRIdleSessionTimeout';
+
+/** key for storing tenant info in local storage */
+const TENANT_LOCAL_STORAGE_KEY = 'tenant';
+
+/** key for login response in local storage */
+const LOGIN_RESPONSE = 'loginResponse';
+
 /** path to users API call */
 const USERS_PATH = 'users-keycloak';
 
@@ -33,6 +47,27 @@ class StripesHub {
     // Selecting first for now until selection dropdown is added for multiple tenants
     return tenants[0];
   }
+
+  /**
+   * storeLogoutTenant
+   * Store the tenant ID in local storage for use during logout.
+   * 
+   * @param {string} tenantId the tenant ID
+   */
+  storeLogoutTenant = (tenantId) => {
+    localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ tenantId }));
+  };
+
+  /**
+   * getLogoutTenant
+   * Retrieve the tenant ID from local storage for use during logout.
+   * 
+   * @returns {object|undefined} tenant info object or undefined if not found
+   */
+  getLogoutTenant = () => {
+    const storedTenant = localStorage.getItem(TENANT_LOCAL_STORAGE_KEY);
+    return storedTenant ? JSON.parse(storedTenant) : undefined;
+  };
 
   /**
    * getOIDCRedirectUri
@@ -124,8 +159,58 @@ class StripesHub {
    * logout
    * Redirect to login URL to initiate logout process.
    */
-  logout = () => {
+  logout = async () => {
     window.location.href = this.getLoginUrl();
+
+    // check the private-storage sentinel: if logout has already started
+    // in this window, we don't want to start it again.
+    if (sessionStorage.getItem(IS_LOGGING_OUT)) {
+      return;
+    }
+
+    // check the shared-storage sentinel: if logout has already started
+    // in another window, we don't want to invoke shared functions again
+    // (like calling /authn/logout, which can only be called once)
+    // BUT we DO want to clear private storage such as session storage
+    // and redux, which are not shared across tabs/windows.
+    if (localStorage.getItem(SESSION_NAME)) {
+      await fetch(`${okapiUrl}/authn/logout`, {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'include',
+        // Since the tenant in the x-okapi-token and the x-okapi-tenant header
+        // on logout should match, switching affiliations updates
+        // store.okapi.tenant, leading to mismatched tenant names from the token.
+        // Use the tenant name stored during login to ensure they match.
+        headers: this.getHeaders(this.getLogoutTenant()?.tenantId),
+      });
+    }
+
+    try {
+      // clear private-storage
+      //
+      // set the private-storage sentinel to indicate logout is in-progress
+      sessionStorage.setItem(IS_LOGGING_OUT, 'true');
+
+      // localStorage events emit across tabs so we can use it like a
+      // BroadcastChannel to communicate with all tabs/windows
+      localStorage.removeItem(SESSION_NAME);
+      localStorage.removeItem(RTR_TIMEOUT_EVENT);
+      localStorage.removeItem(TENANT_LOCAL_STORAGE_KEY);
+
+      // clear shared storage
+      await localforage.removeItem(SESSION_NAME);
+      await localforage.removeItem(LOGIN_RESPONSE);
+    } catch (e) {
+      console.error('error during logout', e); // eslint-disable-line no-console
+    }
+
+    // clear the console unless config asks to preserve it
+    if (!config.preserveConsole) {
+      console.clear(); // eslint-disable-line no-console
+    }
+    // clear the storage sentinel
+    sessionStorage.removeItem(IS_LOGGING_OUT);
   }
 
   /**
