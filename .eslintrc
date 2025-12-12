@@ -3,15 +3,14 @@
   "parser": "@babel/eslint-parser",
   "overrides": [
     {
-      "files": [ "*.test.*" ],
-      "rules": {
-        "no-unused-vars": "off",
-        "no-undef": "off"
-      }
+      "files": [ "*.test.*" ]
     }
   ],
   "env": {
     "jest": true
+  },
+  "globals": {
+    "localforage": "true"
   },
   "settings": {
     "import/resolver": {

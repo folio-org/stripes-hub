@@ -18,6 +18,7 @@ const LOGIN_RESPONSE = 'loginResponse';
 /** path to users API call */
 const USERS_PATH = 'users-keycloak';
 
+// eslint-disable-next-line no-unused-vars
 class StripesHub {
   constructor(stripes, config) {
     this.stripes = stripes;
