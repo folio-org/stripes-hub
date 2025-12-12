@@ -15,14 +15,6 @@
     "test": "jest --ci --coverage --colors",
     "lint": "eslint . "
   },
-  "stripes": {
-    "okapiInterfaces": {
-    },
-    "optionalOkapiInterfaces": {
-    },
-    "permissionSets": [
-    ]
-  },
   "devDependencies": {
     "@folio/eslint-config-stripes": "^8.0.0",
     "@folio/jest-config-stripes": "^3.0.0",
