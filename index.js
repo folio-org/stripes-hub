@@ -38,7 +38,7 @@ class StripesHub {
   /**
    * getCurrentTenant
    * Get the current tenant info from global config.
-   * 
+   *
    * @returns {object} tenant info object
    */
   getCurrentTenant = () => {
@@ -51,7 +51,7 @@ class StripesHub {
   /**
    * storeLogoutTenant
    * Store the tenant ID in local storage for use during logout.
-   * 
+   *
    * @param {string} tenantId the tenant ID
    */
   storeLogoutTenant = (tenantId) => {
@@ -61,7 +61,7 @@ class StripesHub {
   /**
    * getLogoutTenant
    * Retrieve the tenant ID from local storage for use during logout.
-   * 
+   *
    * @returns {object|undefined} tenant info object or undefined if not found
    */
   getLogoutTenant = () => {
@@ -72,7 +72,7 @@ class StripesHub {
   /**
    * getOIDCRedirectUri
    * Construct OIDC redirect URI based on current location, tenant, and client ID.
-   * 
+   *
    * @param {string} tenant - the tenant name
    * @param {string} clientId - the client ID
    * @returns {string} encoded redirect URI
@@ -85,7 +85,7 @@ class StripesHub {
   /**
    * getLoginUrl
    * Construct login URL based on Okapi config and current tenant info.
-   * 
+   *
    * @returns {string} login URL
    */
   getLoginUrl = () => {
@@ -98,7 +98,7 @@ class StripesHub {
   /**
    * getHeaders
    * Construct headers for FOLIO requests.
-   * 
+   *
    * @param {*} tenant the tenant name
    * @param {*} token the auth token
    * @returns {object} headers for FOLIO requests
@@ -141,8 +141,8 @@ class StripesHub {
       });
       if (resp.ok) {
         const data = await resp.json();
-        
-        //TODO: load Stripes here
+
+        // TODO: load Stripes here
         return data;
       } else {
         const text = await resp.text();
@@ -174,7 +174,7 @@ class StripesHub {
     // BUT we DO want to clear private storage such as session storage
     // and redux, which are not shared across tabs/windows.
     if (localStorage.getItem(SESSION_NAME)) {
-      await fetch(`${okapiUrl}/authn/logout`, {
+      await fetch(`${this.stripes.url}/authn/logout`, {
         method: 'POST',
         mode: 'cors',
         credentials: 'include',
@@ -206,7 +206,7 @@ class StripesHub {
     }
 
     // clear the console unless config asks to preserve it
-    if (!config.preserveConsole) {
+    if (!this.config.preserveConsole) {
       console.clear(); // eslint-disable-line no-console
     }
     // clear the storage sentinel
