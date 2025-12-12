@@ -31,7 +31,7 @@ class StripesHub {
    *
    * @returns {object} Session object from localforage
   */
-  getSession = async () => {
+  getSession = () => {
     return localforage.getItem(SESSION_NAME);
   };
 
