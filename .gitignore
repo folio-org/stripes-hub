@@ -13,3 +13,4 @@ junit.xml
 .vscode/launch.json
 .idea
 .npmrc
+coverage/
