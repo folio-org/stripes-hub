@@ -113,10 +113,6 @@ class Utils {
       clientId ||= stripesConfig.tenantOptions[key]?.clientId;
     }
 
-    // default to stripes.config.js::okapi
-    tenant ||= stripesOkapi?.tenant;
-    clientId ||= stripesOkapi?.clientId;
-
     return {
       tenant,
       clientId,
