@@ -1,40 +1,12 @@
-/** name for the session key in local storage */
-const SESSION_NAME = 'okapiSess';
 
-/** key for the logging out action */
-const IS_LOGGING_OUT = '@folio/stripes/core::Logout';
-
-/**
- * dispatched if the session is idle (without activity) for too long
- */
-const RTR_TIMEOUT_EVENT = '@folio/stripes/core::RTRIdleSessionTimeout';
-
-/** key for storing tenant info in local storage */
-const TENANT_LOCAL_STORAGE_KEY = 'tenant';
-
-/** key for login response in local storage */
-const LOGIN_RESPONSE = 'loginResponse';
-
-/** path to users API call */
-const USERS_PATH = 'users-keycloak';
 
 // eslint-disable-next-line no-unused-vars
 class StripesHub {
-  constructor(stripes, config) {
+  constructor(stripes, config, utils) {
     this.stripes = stripes;
     this.config = config;
+    this.utils = utils;
   }
-
-  /**
-   * getSession
-   * simple wrapper around access to values stored in localforage
-   * to insulate RTR functions from that API.
-   *
-   * @returns {object} Session object from localforage
-  */
-  getSession = () => {
-    return localforage.getItem(SESSION_NAME);
-  };
 
   /**
    * getCurrentTenant
@@ -47,27 +19,6 @@ class StripesHub {
 
     // Selecting first for now until selection dropdown is added for multiple tenants
     return tenants[0];
-  }
-
-  /**
-   * storeLogoutTenant
-   * Store the tenant ID in local storage for use during logout.
-   *
-   * @param {string} tenantId the tenant ID
-   */
-  storeLogoutTenant = (tenantId) => {
-    localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ tenantId }));
-  };
-
-  /**
-   * getLogoutTenant
-   * Retrieve the tenant ID from local storage for use during logout.
-   *
-   * @returns {object|undefined} tenant info object or undefined if not found
-   */
-  getLogoutTenant = () => {
-    const storedTenant = localStorage.getItem(TENANT_LOCAL_STORAGE_KEY);
-    return storedTenant ? JSON.parse(storedTenant) : undefined;
   };
 
   /**
@@ -80,7 +31,7 @@ class StripesHub {
    */
   getOIDCRedirectUri = (tenant, clientId) => {
     // we need to use `encodeURIComponent` to separate `redirect_uri` URL parameters from the rest of URL parameters that `redirect_uri` itself is part of
-    return encodeURIComponent(`${window.location.protocol}//${window.location.host}/oidc-landing?tenant=${tenant}&client_id=${clientId}`);
+    return encodeURIComponent(`${window.location.protocol}//${window.location.host}/oidc-landing.html?tenant=${tenant}&client_id=${clientId}`);
   };
 
   /**
@@ -97,23 +48,7 @@ class StripesHub {
   };
 
   /**
-   * getHeaders
-   * Construct headers for FOLIO requests.
-   *
-   * @param {*} tenant the tenant name
-   * @param {*} token the auth token
-   * @returns {object} headers for FOLIO requests
-   */
-  getHeaders = (tenant, token) => {
-    return {
-      'X-Okapi-Tenant': tenant,
-      'Content-Type': 'application/json',
-      ...(token && { 'X-Okapi-Token': token }),
-    };
-  }
-
-  /**
-   * validateUser
+   * validateSession
    * Data in localstorage has led us to believe a session is active. To confirm,
    * fetch from .../_self and dispatch the results, allowing any changes to authz
    * since that session data was persisted to take effect immediately.
@@ -136,7 +71,7 @@ class StripesHub {
       const { token, tenant: sessionTenant = tenant } = session;
 
       const resp = await fetch(`${this.stripes.url}/${USERS_PATH}/_self?expandPermissions=true`, {
-        headers: this.getHeaders(sessionTenant, token),
+        headers: this.utils.getHeaders(sessionTenant, token),
         credentials: 'include',
         mode: 'cors',
       });
@@ -154,7 +89,7 @@ class StripesHub {
       console.error(error); // eslint-disable-line no-console
       return handleError ? handleError() : Promise.resolve();
     }
-  }
+  };
 
   /**
    * logout
@@ -183,7 +118,7 @@ class StripesHub {
         // on logout should match, switching affiliations updates
         // store.okapi.tenant, leading to mismatched tenant names from the token.
         // Use the tenant name stored during login to ensure they match.
-        headers: this.getHeaders(this.getLogoutTenant()?.tenantId),
+        headers: this.utils.getHeaders(this.utils.getLogoutTenant()?.tenantId),
       });
     }
 
@@ -212,7 +147,7 @@ class StripesHub {
     }
     // clear the storage sentinel
     sessionStorage.removeItem(IS_LOGGING_OUT);
-  }
+  };
 
   /**
    * init
@@ -225,9 +160,9 @@ class StripesHub {
    * @returns {Promise} resolves when session validation is complete
    */
   init = async () => {
-    const session = await this.getSession();
+    const session = await this.utils.getSession();
     const handleError = () => this.logout();
 
     return session?.user?.id ? this.validateSession(session, handleError) : handleError();
-  }
+  };
 }

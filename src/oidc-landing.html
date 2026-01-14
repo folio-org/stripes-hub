@@ -11,7 +11,7 @@
         integrity="sha384-MTDrIlFOzEqpmOxY6UIA/1Zkh0a64UlmJ6R0UrZXqXCPx99siPGi8EmtQjIeCcTH"
         crossorigin="anonymous"></script>
       <script src="utils.js"></script>
-      <script src="index.js"></script>
+      <script src="oidcLanding.js"></script>
       <script lang="js">
         const stripes = {
           url: 'https://folio-etesting-snapshot-kong.ci.folio.org',
@@ -25,9 +25,10 @@
           },
           preserveConsole: true
         };
+
         const utils = new Utils(stripes, config);
-        const hub = new StripesHub(stripes, config, utils);
-        hub.init();
+        const oidcLanding = new OidcLanding(stripes, config, utils);
+        oidcLanding.init();
       </script>
   </head>
   <body>
