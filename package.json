@@ -21,7 +21,7 @@
     "@folio/stripes-cli": "^4.0.0"
   },
   "dependencies": {
+    "serve": "^14.2.5"
   },
-  "peerDependencies": {
-  }
+  "peerDependencies": {}
 }
