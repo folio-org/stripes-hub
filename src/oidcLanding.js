@@ -45,6 +45,7 @@ class OidcLanding {
       `${serverUrl}/users-keycloak/_self?expandPermissions=true&fullPermissions=true&overrideUser=true`,
       {
         headers: this.utils.getHeaders(tenant, token),
+        credentials: "include",
         rtrIgnore,
       },
     );
@@ -310,7 +311,7 @@ class OidcLanding {
           return this.utils.storeLogoutTenant(loginTenant.tenant);
         })
         .then(() => {
-          return this.requestUserWithPerms(this.stripes.url, loginTenant.tenant, this.utils.getCookie(FOLIO_ACCESS_TOKEN));
+          return this.requestUserWithPerms(this.stripes.url, loginTenant.tenant);
         });
     }
   };
@@ -328,7 +329,8 @@ class OidcLanding {
         params.append("redirect-uri", `${window.location.protocol}//${window.location.host}/oidc-landing.html?tenant=${loginTenant.name}&client_id=${loginTenant.clientId}`);
 
         const response = await fetch(`${this.stripes.url}/authn/token?${params}`, {
-          headers: this.utils.getHeaders(loginTenant.name)
+          headers: this.utils.getHeaders(loginTenant.name),
+          credentials: "include"
         });
 
         if (response.ok === false) {
@@ -336,7 +338,6 @@ class OidcLanding {
         }
 
         json = await response.json();
-        await this.utils.setCookieFromHttpResponse(response);
         // note: initSession is expected to execute an unawaited promise.
         // initSession calls .../_self and other functions in order to
         // populate the session, eventually dispatching redux actions

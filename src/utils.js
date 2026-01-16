@@ -1,9 +1,6 @@
 /** name for the session key in local storage */
 const SESSION_NAME = 'okapiSess';
 
-/** name for the folio access token cookie */
-const FOLIO_ACCESS_TOKEN = 'folioAccessToken';
-
 /** key for the logging out action */
 const IS_LOGGING_OUT = '@folio/stripes/core::Logout';
 
@@ -42,37 +39,6 @@ class Utils {
       'Content-Type': 'application/json',
       ...(token && { 'X-Okapi-Token': token }),
     };
-  };
-
-  /**
-   * getCookie
-   * Retrieve a cookie value by name.
-   * Based on code from https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie
-   * 
-   * @param {string} name 
-   */
-  getCookie = (name) => {
-    document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(`${name}=`))
-    ?.split("=")[1];
-  };
-
-  /**
-   * setCookieFromHttpResponse
-   * Set cookies from the response headers.
-   *
-   * @param {Response} response the fetch response object
-   */
-  setCookieFromHttpResponse = (response) => {
-    for (const entry of response.headers.entries()) {
-      //const rawCookies = response.headers.getSetCookie();
-      if (entry[0].toLowerCase() === 'set-cookie') {
-        entry[1].split(',').forEach(cookieStr => {
-          document.cookie = cookieStr;
-        });
-      }
-    }
   };
 
   /**
