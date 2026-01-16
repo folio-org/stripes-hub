@@ -11,17 +11,16 @@
     "registry": "https://repository.folio.org/repository/npm-folio/"
   },
   "scripts": {
-    "start": "stripes serve",
+    "start": "yarn serve -C ./src -l 3001",
     "test": "jest --ci --coverage --colors",
     "lint": "eslint . "
   },
   "devDependencies": {
     "@folio/eslint-config-stripes": "^8.0.0",
     "@folio/jest-config-stripes": "^3.0.0",
-    "@folio/stripes-cli": "^4.0.0"
+    "@folio/stripes-cli": "^4.0.0",
+    "serve": "^14.2.5"
   },
-  "dependencies": {
-  },
-  "peerDependencies": {
-  }
+  "dependencies": {},
+  "peerDependencies": {}
 }
