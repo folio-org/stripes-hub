@@ -215,6 +215,51 @@ class StripesHub {
   }
 
   /**
+   * loadStripes
+   * Dynamically load Stripes core assets based on manifest.json.
+   */
+  loadStripes = async () => {
+    console.log('Loading Stripes...'); // eslint-disable-line no-console
+
+    const stripesCoreLocation = 'http://localhost:3000'; // or procured from entitlement response...
+
+    // store the location for stripes to pick up when it loads.
+    await localforage.setItem('hostLocation', stripesCoreLocation);
+
+    const manifestJSON = await fetch(`${stripesCoreLocation}/manifest.json`);
+    const manifest = await manifestJSON.json();
+
+    // collect imports...
+    const JSimports = new Set();
+    const CSSimports = new Set();
+    Object.keys(manifest.entrypoints).forEach((entry) => {
+      manifest.entrypoints[entry].imports.forEach((imp) => {
+        if (imp.endsWith('.js')) {
+          JSimports.add(imp);
+        } else if (imp.endsWith('.css')) {
+          CSSimports.add(imp);
+        }
+      });
+    });
+
+    CSSimports.forEach((cssRef) => {
+      const cssFile = manifest.assets[cssRef].file
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `${stripesCoreLocation}${cssFile}`;
+      document.head.appendChild(link);
+    });
+
+    JSimports.forEach((jsRef) => {
+      const jsFile = manifest.assets[jsRef].file;
+      import(`${stripesCoreLocation}${jsFile}`);
+      //   const script = document.createElement('script');
+      //   script.src = `${stripesCoreLocation}${jsFile}`;
+      //   document.body.appendChild(script);
+    });
+  }
+
+  /**
    * init
    * 1. Pull the session from local storage; if it contains a user id,
    *    validate it by fetching /_self to verify that it is still active,
@@ -225,9 +270,10 @@ class StripesHub {
    * @returns {Promise} resolves when session validation is complete
    */
   init = async () => {
-    const session = await this.getSession();
-    const handleError = () => this.logout();
+    await this.loadStripes();
+    // const session = await this.getSession();
+    // const handleError = () => this.logout();
 
-    return session?.user?.id ? this.validateSession(session, handleError) : handleError();
+    // return session?.user?.id ? this.validateSession(session, handleError) : handleError();
   }
 }
