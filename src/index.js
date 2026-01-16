@@ -1,13 +1,12 @@
+const SESSION_USER_KEY = 'okapiSess';
+const SESSION_ENTITLEMENT_KEY = '@folio/entitlement';
+const APP_MAX_COUNT = 500;
+
 /** name for the session key in local storage */
 const SESSION_NAME = 'okapiSess';
 
 /** key for the logging out action */
 const IS_LOGGING_OUT = '@folio/stripes/core::Logout';
-
-/**
- * dispatched if the session is idle (without activity) for too long
- */
-const RTR_TIMEOUT_EVENT = '@folio/stripes/core::RTRIdleSessionTimeout';
 
 /** key for storing tenant info in local storage */
 const TENANT_LOCAL_STORAGE_KEY = 'tenant';
@@ -20,8 +19,8 @@ const USERS_PATH = 'users-keycloak';
 
 // eslint-disable-next-line no-unused-vars
 class StripesHub {
-  constructor(stripes, config) {
-    this.stripes = stripes;
+  constructor(gateways, config) {
+    this.gateways = gateways;
     this.config = config;
   }
 
@@ -32,9 +31,15 @@ class StripesHub {
    *
    * @returns {object} Session object from localforage
   */
-  getSession = () => {
-    return localforage.getItem(SESSION_NAME);
+  getSession = async () => {
+    const session = await localforage.getItem(SESSION_USER_KEY);
+    return session;
   };
+
+  sessionIsValid = (session) => {
+    // For now, just check for presence of userId
+    return !!session.user.id;
+  }
 
   /**
    * getCurrentTenant
@@ -48,27 +53,6 @@ class StripesHub {
     // Selecting first for now until selection dropdown is added for multiple tenants
     return tenants[0];
   }
-
-  /**
-   * storeLogoutTenant
-   * Store the tenant ID in local storage for use during logout.
-   *
-   * @param {string} tenantId the tenant ID
-   */
-  storeLogoutTenant = (tenantId) => {
-    localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ tenantId }));
-  };
-
-  /**
-   * getLogoutTenant
-   * Retrieve the tenant ID from local storage for use during logout.
-   *
-   * @returns {object|undefined} tenant info object or undefined if not found
-   */
-  getLogoutTenant = () => {
-    const storedTenant = localStorage.getItem(TENANT_LOCAL_STORAGE_KEY);
-    return storedTenant ? JSON.parse(storedTenant) : undefined;
-  };
 
   /**
    * getOIDCRedirectUri
@@ -93,7 +77,7 @@ class StripesHub {
     const loginTenant = this.getCurrentTenant();
 
     const redirectUri = this.getOIDCRedirectUri(loginTenant.name, loginTenant.clientId);
-    return `${this.stripes.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
+    return `${this.gateways.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
   };
 
   /**
@@ -101,117 +85,99 @@ class StripesHub {
    * Construct headers for FOLIO requests.
    *
    * @param {*} tenant the tenant name
-   * @param {*} token the auth token
    * @returns {object} headers for FOLIO requests
    */
-  getHeaders = (tenant, token) => {
+  getHeaders = (tenant) => {
     return {
       'X-Okapi-Tenant': tenant,
       'Content-Type': 'application/json',
-      ...(token && { 'X-Okapi-Token': token }),
     };
   }
 
-  /**
-   * validateUser
-   * Data in localstorage has led us to believe a session is active. To confirm,
-   * fetch from .../_self and dispatch the results, allowing any changes to authz
-   * since that session data was persisted to take effect immediately.
-   *
-   * If the fetch succeeds, dispatch the result to update the session.
-   * Otherwise, call logout() to purge redux and storage because either:
-   *   1. the session data was corrupt. yikes!
-   *   2. the session data was valid but cookies were missing. yikes!
-   * Either way, our belief that a session is active has been proven wrong, so
-   * we want to clear out all relevant storage.
-   *
-   * @param {*} session session object
-   * @param {function} handleError error-handler function; returns a Promise that returns null
-   *
-   * @returns {Promise} resolves to user data if session is valid, or the result of handleError() if not
-   */
-  validateSession = async (session, handleError) => {
-    try {
-      const tenant = this.getCurrentTenant().name;
-      const { token, tenant: sessionTenant = tenant } = session;
-
-      const resp = await fetch(`${this.stripes.url}/${USERS_PATH}/_self?expandPermissions=true`, {
-        headers: this.getHeaders(sessionTenant, token),
-        credentials: 'include',
-        mode: 'cors',
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-
-        // TODO: load Stripes here
-        return data;
-      } else {
-        const text = await resp.text();
-        throw text;
-      }
-    } catch (error) {
-      // log a warning, then call the error handler if we received one
-      console.error(error); // eslint-disable-line no-console
-      return handleError ? handleError() : Promise.resolve();
+  cacheUserData = async (tenant) => {
+    console.log('caching user data for tenant', tenant);
+    const resp = await fetch(`${this.gateways.url}/${USERS_PATH}/_self?expandPermissions=true`, {
+      headers: this.getHeaders(tenant),
+      credentials: 'include',
+      mode: 'cors',
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      await localforage.setItem(SESSION_USER_KEY, data);
+      console.log('cached!', data);
+    } else {
+      const text = await resp.text();
+      throw text;
     }
   }
 
-  /**
-   * logout
-   * Redirect to login URL to initiate logout process.
-   */
-  logout = async () => {
-    window.location.href = this.getLoginUrl();
+  cacheEntitlementData = async (tenant) => {
+    console.log('caching entitlement data for tenant', tenant);
 
-    // check the private-storage sentinel: if logout has already started
-    // in this window, we don't want to start it again.
-    if (sessionStorage.getItem(IS_LOGGING_OUT)) {
-      return;
+    const resp = await fetch(`${this.gateways.url}/entitlements/${tenant}/applications?limit=${APP_MAX_COUNT}`, {
+      headers: this.getHeaders(tenant),
+      credentials: 'include',
+      mode: 'cors',
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.totalRecords > 0) {
+        await localforage.setItem(SESSION_ENTITLEMENT_KEY, data.applicationDescriptors);
+        console.log('cached!', data.applicationDescriptors);
+      } else {
+        throw new Error(`No applications available for tenant ${tenant}`);
+      }
+    } else {
+      const text = await resp.text();
+      throw text;
+    }
+  }
+
+
+  loadStripes = async () => {
+    console.log('loading Stripes...');
+    const host = 'http://localhost:8080';
+
+    const text = await fetch(`${host}/manifest.json`).then(res => res.text());
+    const manifest = JSON.parse(text);
+
+    const styles = manifest.entrypoints.css.imports || [];
+    const scripts = manifest.entrypoints.stripesConfig.imports || [];
+    for (const entry of manifest.entrypoints.index.imports) {
+      if (entry.endsWith('.css')) {
+        styles.push(entry);
+      } else if (entry.endsWith('.js')) {
+        scripts.push(entry);
+      }
     }
 
-    // check the shared-storage sentinel: if logout has already started
-    // in another window, we don't want to invoke shared functions again
-    // (like calling /authn/logout, which can only be called once)
-    // BUT we DO want to clear private storage such as session storage
-    // and redux, which are not shared across tabs/windows.
-    if (localStorage.getItem(SESSION_NAME)) {
-      await fetch(`${this.stripes.url}/authn/logout`, {
-        method: 'POST',
-        mode: 'cors',
-        credentials: 'include',
-        // Since the tenant in the x-okapi-token and the x-okapi-tenant header
-        // on logout should match, switching affiliations updates
-        // store.okapi.tenant, leading to mismatched tenant names from the token.
-        // Use the tenant name stored during login to ensure they match.
-        headers: this.getHeaders(this.getLogoutTenant()?.tenantId),
-      });
-    }
+    const base = document.createElement('base');
+    base.href = host;
+    document.head.append(base);
 
-    try {
-      // clear private-storage
-      //
-      // set the private-storage sentinel to indicate logout is in-progress
-      sessionStorage.setItem(IS_LOGGING_OUT, 'true');
+    styles.forEach((href) => {
+      const style = document.createElement('link');
+      style.href = `${host}${manifest.assets[href].file}`;
+      style.type = 'text/css';
+      style.rel = 'stylesheet';
+      document.head.append(style);
+    });
 
-      // localStorage events emit across tabs so we can use it like a
-      // BroadcastChannel to communicate with all tabs/windows
-      localStorage.removeItem(SESSION_NAME);
-      localStorage.removeItem(RTR_TIMEOUT_EVENT);
-      localStorage.removeItem(TENANT_LOCAL_STORAGE_KEY);
+    scripts.forEach((src) => {
+      const script = document.createElement('script');
+      script.src = `${host}${manifest.assets[src].file}`;
+      document.head.appendChild(script);
+    });
+  }
 
-      // clear shared storage
-      await localforage.removeItem(SESSION_NAME);
-      await localforage.removeItem(LOGIN_RESPONSE);
-    } catch (e) {
-      console.error('error during logout', e); // eslint-disable-line no-console
-    }
+  authenticate = async () => {
+    //@@ await localforage.clear();
 
-    // clear the console unless config asks to preserve it
-    if (!this.config.preserveConsole) {
-      console.clear(); // eslint-disable-line no-console
-    }
-    // clear the storage sentinel
-    sessionStorage.removeItem(IS_LOGGING_OUT);
+    const loginTenant = this.getCurrentTenant();
+    const redirectUri = this.getOIDCRedirectUri(loginTenant.name, loginTenant.clientId);
+
+    window.location.href = `${this.gateways.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
   }
 
   /**
@@ -223,11 +189,25 @@ class StripesHub {
    * 3. dispatch set-okapi-ready.
    *
    * @returns {Promise} resolves when session validation is complete
-   */
+        */
   init = async () => {
-    const session = await this.getSession();
-    const handleError = () => this.logout();
-
-    return session?.user?.id ? this.validateSession(session, handleError) : handleError();
+    try {
+      const session = await this.getSession();
+      if (session && this.sessionIsValid(session)) {
+        console.log('session is valid')
+        const tenant = this.getCurrentTenant().name;
+        const { tenant: sessionTenant = tenant } = session;
+        // await this.cacheUserData(sessionTenant);
+        // await this.cacheEntitlementData(sessionTenant);
+        await this.loadStripes();
+      } else {
+        console.log('session is missing; authenticating');
+        document.body.innerHTML = '<h2>Redirecting to login...</h2>';
+        // this.authenticate();
+      }
+    } catch (e) {
+      console.error('error during StripesHub init', e); // eslint-disable-line no-console
+      alert(`error during StripesHub init: ${JSON.stringify(e, null, 2)}`); // eslint-disable-line no-alert
+    }
   }
 }
