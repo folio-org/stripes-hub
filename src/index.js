@@ -18,6 +18,14 @@ const LOGIN_RESPONSE = 'loginResponse';
 /** path to users API call */
 const USERS_PATH = 'users-keycloak';
 
+/** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
+const HOST_APP_NAME = 'folio_stripes';
+
+// const keys to-be-ingested by stripes-core
+const HOST_LOCATION_KEY = 'hostLocation';
+const REMOTE_LIST_KEY = 'entitlements';
+const ENTITLEMENT_URL_KEY = 'entitlementUrl';
+
 // eslint-disable-next-line no-unused-vars
 class StripesHub {
   constructor(stripes, config) {
@@ -221,10 +229,26 @@ class StripesHub {
   loadStripes = async () => {
     console.log('Loading Stripes...'); // eslint-disable-line no-console
 
-    const stripesCoreLocation = 'http://localhost:3000'; // or procured from entitlement response...
+    let stripesCoreLocation = 'http://localhost:3000'; // or procured from entitlement response...
+    const tempEntitlementUrl = 'http://localhost:3001/registry';
 
     // store the location for stripes to pick up when it loads.
-    await localforage.setItem('hostLocation', stripesCoreLocation);
+
+    await localforage.setItem(ENTITLEMENT_URL_KEY, tempEntitlementUrl);
+
+    // TODO: unsure exactly what shape is this is all going to be in
+    const entitlements = await fetch(tempEntitlementUrl);
+    const entitlementData = await entitlements.json();
+
+    // what will entitlement call the host app - stripes, stripes-core, what?
+    const hostEntitlement = entitlementData.discovery.find((entry) => entry.name === HOST_APP_NAME);
+    if (hostEntitlement) {
+      stripesCoreLocation = hostEntitlement.url;
+    }
+    await localforage.setItem(HOST_LOCATION_KEY, stripesCoreLocation);
+
+    const entitlementMinusStripes = entitlementData.discovery.filter((entry) => entry.name !== HOST_APP_NAME);
+    await localforage.setItem(REMOTE_LIST_KEY, entitlementMinusStripes);
 
     const manifestJSON = await fetch(`${stripesCoreLocation}/manifest.json`);
     const manifest = await manifestJSON.json();
