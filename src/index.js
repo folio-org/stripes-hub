@@ -16,7 +16,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 const stripes = STRIPES_GLOBAL || {};
 // eslint-disable-next-line no-undef
 const config = CONFIG_GLOBAL || {};
-const AppComponent = () => <StripesHub stripes={stripes} config={config} />;
+const StripesHubComponent = () => <StripesHub stripes={stripes} config={config} />;
 const OIDCLandingComponent = () => <CookiesProvider><OIDCLanding stripes={stripes} config={config} /></CookiesProvider>;
 
 root.render(
@@ -29,7 +29,7 @@ root.render(
             path="/"
             key="root"
             exact
-            component={AppComponent}
+            component={StripesHubComponent}
           />
           <Route
             name="oidcLanding"

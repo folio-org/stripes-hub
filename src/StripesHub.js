@@ -174,7 +174,7 @@ function StripesHub({ stripes, config }) {
   init();
 
   return (
-    <div test-id="StripesHub">
+    <div data-testid="StripesHub">
     </div>
   );
 }
