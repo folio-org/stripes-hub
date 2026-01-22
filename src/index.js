@@ -21,6 +21,11 @@ const USERS_PATH = 'users-keycloak';
 /** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
 const HOST_APP_NAME = 'folio_stripes';
 
+const ENTITLEMENT_URL = 'http://localhost:3001/registry';
+const TENNANT_NAME = 'diku';
+const MODULE_METADATA_URL = `${ENTITLEMENT_URL}/entitlements/${TENNANT_NAME}/applications`;
+const MEDATADATA_KEY = 'discovery';
+
 // const keys to-be-ingested by stripes-core
 const HOST_LOCATION_KEY = 'hostLocation';
 const REMOTE_LIST_KEY = 'entitlements';
@@ -222,6 +227,37 @@ class StripesHub {
     sessionStorage.removeItem(IS_LOGGING_OUT);
   }
 
+  /** fetchEntitlement
+   * fetches entitlement data including the name, version, and location of each remote module and the host app.
+   * @param {string} entitlementUrl the endpoing to fetch entitlement data from
+   * @returns {object} entitlement data object
+   */
+
+  fetchEntitlement = async (entitlementUrl) => {
+    const entitlements = await fetch(entitlementUrl);
+    if (!entitlements.ok) {
+      throw new Error(`Failed to fetch entitlements from ${entitlementUrl}: ${entitlements.status} ${entitlements.statusText}`);
+    }
+    const entitlementData = await entitlements.json();
+    return entitlementData;
+  };
+
+  /** fetchModuleMetadata
+   * Fetches module metadata - originally from the package.json of each module that categorizes the module
+   * @param {string} moduleMetadataUrl the URL to fetch module metadata from
+   * @returns {object} module metadata object
+   *
+  */
+
+  fetchModuleMetadata = async (moduleMetadataUrl) => {
+    const moduleMetadataResp = await fetch(moduleMetadataUrl);
+    if (!moduleMetadataResp.ok) {
+      throw new Error(`Failed to fetch module metadata from ${moduleMetadataUrl}: ${moduleMetadataResp.status} ${moduleMetadataResp.statusText}`);
+    }
+    const moduleMetadata = await moduleMetadataResp.json();
+    return moduleMetadata;
+  };
+
   /**
    * loadStripes
    * Dynamically load Stripes core assets based on manifest.json.
@@ -230,17 +266,22 @@ class StripesHub {
     console.log('Loading Stripes...'); // eslint-disable-line no-console
 
     let stripesCoreLocation = 'http://localhost:3000'; // or procured from entitlement response...
-    const tempEntitlementUrl = 'http://localhost:3001/registry';
 
     // store the location for stripes to pick up when it loads.
 
-    await localforage.setItem(ENTITLEMENT_URL_KEY, tempEntitlementUrl);
+    await localforage.setItem(ENTITLEMENT_URL_KEY, ENTITLEMENT_URL);
 
-    // TODO: unsure exactly what shape is this is all going to be in
-    const entitlements = await fetch(tempEntitlementUrl);
-    const entitlementData = await entitlements.json();
+    const entitlementData = await this.fetchEntitlement(ENTITLEMENT_URL);
 
-    // what will entitlement call the host app - stripes, stripes-core, what?
+    // fetch module metadata...
+    const moduleMetadata = await this.fetchModuleMetadata(MODULE_METADATA_URL);
+
+    moduleMetadata[MEDATADATA_KEY].forEach((module) => {
+      const entitlementEntry = entitlementData.discovery.findIndex((entry) => entry.name === module.name);
+      entitlementData.discovery[entitlementEntry].metadata = module;
+    });
+
+    // pull the host app out of the registry and store its location in localforage to pass to stripes.
     const hostEntitlement = entitlementData.discovery.find((entry) => entry.name === HOST_APP_NAME);
     if (hostEntitlement) {
       stripesCoreLocation = hostEntitlement.url;

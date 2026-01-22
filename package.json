@@ -11,7 +11,7 @@
     "registry": "https://repository.folio.org/repository/npm-folio/"
   },
   "scripts": {
-    "start": "yarn serve -C ./src -l 3001",
+    "start": "yarn serve -C ./src -l 3010",
     "test": "jest --ci --coverage --colors",
     "lint": "eslint . "
   },
