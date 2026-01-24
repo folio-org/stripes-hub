@@ -23,6 +23,114 @@ export const LOGIN_RESPONSE = 'loginResponse';
 /** path to users API call */
 export const USERS_PATH = 'users-keycloak';
 
+/** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
+const HOST_APP_NAME = 'folio_stripes';
+
+const ENTITLEMENT_URL = 'http://localhost:3001/registry';
+const TENNANT_NAME = 'diku';
+//const MODULE_METADATA_URL = `${ENTITLEMENT_URL}/entitlements/${TENNANT_NAME}/applications`;
+const MODULE_METADATA_URL = `${ENTITLEMENT_URL}`;
+const MEDATADATA_KEY = 'discovery';
+
+// const keys to-be-ingested by stripes-core
+const HOST_LOCATION_KEY = 'hostLocation';
+const REMOTE_LIST_KEY = 'entitlements';
+const ENTITLEMENT_URL_KEY = 'entitlementUrl';
+
+ /** fetchEntitlement
+   * fetches entitlement data including the name, version, and location of each remote module and the host app.
+   * @param {string} entitlementUrl the endpoing to fetch entitlement data from
+   * @returns {object} entitlement data object
+   */
+
+  const fetchEntitlement = async (entitlementUrl) => {
+    const entitlements = await fetch(entitlementUrl);
+    if (!entitlements.ok) {
+      throw new Error(`Failed to fetch entitlements from ${entitlementUrl}: ${entitlements.status} ${entitlements.statusText}`);
+    }
+    const entitlementData = await entitlements.json();
+    return entitlementData;
+  };
+
+  /** fetchModuleMetadata
+   * Fetches module metadata - originally from the package.json of each module that categorizes the module
+   * @param {string} moduleMetadataUrl the URL to fetch module metadata from
+   * @returns {object} module metadata object
+   *
+  */
+
+  const fetchModuleMetadata = async (moduleMetadataUrl) => {
+    const moduleMetadataResp = await fetch(moduleMetadataUrl);
+    if (!moduleMetadataResp.ok) {
+      throw new Error(`Failed to fetch module metadata from ${moduleMetadataUrl}: ${moduleMetadataResp.status} ${moduleMetadataResp.statusText}`);
+    }
+    const moduleMetadata = await moduleMetadataResp.json();
+    return moduleMetadata;
+  };
+
+  /**
+   * loadStripes
+   * Dynamically load Stripes core assets based on manifest.json.
+   */
+  export const loadStripes = async () => {
+    console.log('Loading Stripes...'); // eslint-disable-line no-console
+
+    let stripesCoreLocation = 'http://localhost:3005'; // or procured from entitlement response...
+
+    // store the location for stripes to pick up when it loads.
+
+    await localforage.setItem(ENTITLEMENT_URL_KEY, ENTITLEMENT_URL);
+
+    const entitlementData = await fetchEntitlement(ENTITLEMENT_URL);
+
+    // fetch module metadata...
+    const moduleMetadata = await fetchModuleMetadata(MODULE_METADATA_URL);
+
+    moduleMetadata[MEDATADATA_KEY].forEach((module) => {
+      const entitlementEntry = entitlementData.discovery.findIndex((entry) => entry.name === module.name);
+      entitlementData.discovery[entitlementEntry].metadata = module;
+    });
+
+    // pull the host app out of the registry and store its location in localforage to pass to stripes.
+    const hostEntitlement = entitlementData.discovery.find((entry) => entry.name === HOST_APP_NAME);
+    if (hostEntitlement) {
+      stripesCoreLocation = hostEntitlement.url;
+    }
+    await localforage.setItem(HOST_LOCATION_KEY, stripesCoreLocation);
+
+    const entitlementMinusStripes = entitlementData.discovery.filter((entry) => entry.name !== HOST_APP_NAME);
+    await localforage.setItem(REMOTE_LIST_KEY, entitlementMinusStripes);
+
+    const manifestJSON = await fetch(`${stripesCoreLocation}/manifest.json`);
+    const manifest = await manifestJSON.json();
+
+    // collect imports...
+    const JSimports = new Set();
+    const CSSimports = new Set();
+    Object.keys(manifest.entrypoints).forEach((entry) => {
+      manifest.entrypoints[entry].imports.forEach((imp) => {
+        if (imp.endsWith('.js')) {
+          JSimports.add(imp);
+        } else if (imp.endsWith('.css')) {
+          CSSimports.add(imp);
+        }
+      });
+    });
+
+    CSSimports.forEach((cssRef) => {
+      const cssFile = manifest.assets[cssRef].file;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `${stripesCoreLocation}${cssFile}`;
+      document.head.appendChild(link);
+    });
+
+    JSimports.forEach((jsRef) => {
+      const jsFile = manifest.assets[jsRef].file;
+      import(/* webpackIgnore: true */ `${stripesCoreLocation}${jsFile}`);
+    });
+  }
+
 /**
  * getHeaders
  * Construct headers for FOLIO requests.
@@ -268,8 +376,6 @@ export const createSession = async (tenant, token, data) => {
   }
 
   await localforage.setItem(SESSION_NAME, session);
-
-  console.log('TODO: load Stripes here', session);
   //await this.loadResources(store, sessionTenant, user.id);
 };
 
@@ -302,7 +408,7 @@ export const processSession = async (tenant, resp, ssoToken) => {
     return json;
   } else {
     // handleLoginError will dispatch setAuthError, then resolve to undefined
-    return handleLoginError(resp);
+    //return handleLoginError(resp);
   }
 };
 
@@ -320,6 +426,7 @@ export const requestUserWithPerms = async (serverUrl, tenant, token) => {
 
   if (resp.ok) {
     const sessionData = await processSession(tenant, resp, token);
+    loadStripes();
     return sessionData;
   } else {
     const error = await resp.json();

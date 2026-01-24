@@ -3,6 +3,7 @@ import { noop } from 'lodash';
 import { getLoginTenant, getHeaders } from '../loginServices';
 
 const useExchangeCode = async (initSession = noop, stripes) => {
+  let response = { tokenData: null, isLoading: true, error: null };
   let json = {};
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get('code');
@@ -24,6 +25,8 @@ const useExchangeCode = async (initSession = noop, stripes) => {
       }
 
       json = await response.json();
+      response.tokenData = json;
+      response.isLoading = false;
       // note: initSession is expected to execute an unawaited promise.
       // initSession calls .../_self and other functions in order to
       // populate the session, eventually dispatching redux actions
@@ -38,10 +41,11 @@ const useExchangeCode = async (initSession = noop, stripes) => {
       // throw json from the error-response, or just rethrow
       if (fetchError?.response?.json) {
         const errorJson = await fetchError.response.json();
-        throw errorJson;
+        response.error = errorJson;
       }
 
-      throw fetchError;
+      response.error = fetchError;
+      response.isLoading = false;
     }
   } else {
 
@@ -49,7 +53,7 @@ const useExchangeCode = async (initSession = noop, stripes) => {
     throw new Error('OTP code is missing');
   }
 
-  return json;
+  return response;
 };
 
 export default useExchangeCode;

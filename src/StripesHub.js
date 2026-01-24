@@ -3,6 +3,7 @@ import localforage from 'localforage';
 import {
   getLogoutTenant,
   getSession,
+  loadStripes,
   USERS_PATH,
   IS_LOGGING_OUT,
   SESSION_NAME,
@@ -83,7 +84,7 @@ function StripesHub({ stripes, config }) {
       if (resp.ok) {
         const data = await resp.json();
 
-        // TODO: load Stripes here
+        loadStripes();
         return data;
       } else {
         const text = await resp.text();

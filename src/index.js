@@ -9,7 +9,7 @@ import { IntlProvider } from 'react-intl';
 import { CookiesProvider } from 'react-cookie';
 
 import StripesHub from './StripesHub';
-import OIDCLanding from './OIDCLanding';
+import OIDCLanding from './oidcLanding';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 // eslint-disable-next-line no-undef
@@ -17,7 +17,7 @@ const stripes = STRIPES_GLOBAL || {};
 // eslint-disable-next-line no-undef
 const config = CONFIG_GLOBAL || {};
 const StripesHubComponent = () => <StripesHub stripes={stripes} config={config} />;
-const OIDCLandingComponent = () => <CookiesProvider><OIDCLanding stripes={stripes} config={config} /></CookiesProvider>;
+const OIDCLandingComponent = () => <OIDCLanding stripes={stripes} config={config} />;
 
 root.render(
   <React.StrictMode>
