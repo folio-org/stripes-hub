@@ -17,8 +17,7 @@
     "react-cookie": "^8.0.1",
     "react-dom": "^18.0.0",
     "react-intl": "^6.8.9",
-    "react-router": "^5.2.0",
-    "react-router-dom": "^5.2.0"
+    "react-query": "^3.6.0"
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",

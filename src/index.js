@@ -1,13 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {
-  BrowserRouter,
-  Switch,
-  Route
-} from 'react-router-dom';
 import { IntlProvider } from 'react-intl';
+import { QueryClientProvider } from 'react-query';
 import { CookiesProvider } from 'react-cookie';
 
+import createReactQueryClient from './createReactQueryClient';
 import StripesHub from './StripesHub';
 import OIDCLanding from './oidcLanding';
 
@@ -17,29 +14,24 @@ const stripes = STRIPES_GLOBAL || {};
 // eslint-disable-next-line no-undef
 const config = CONFIG_GLOBAL || {};
 const StripesHubComponent = () => <StripesHub stripes={stripes} config={config} />;
-const OIDCLandingComponent = () => <OIDCLanding stripes={stripes} config={config} />;
+const OIDCLandingComponent = () => <CookiesProvider><OIDCLanding stripes={stripes} config={config} /></CookiesProvider>;
+
+const reactQueryClient = createReactQueryClient();
+
+let LandingComponent = StripesHubComponent;
+
+if (window.location.pathname === '/') {
+  LandingComponent = StripesHubComponent;
+} else if (window.location.pathname === '/oidc-landing') {
+  LandingComponent = OIDCLandingComponent;
+}
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <QueryClientProvider client={reactQueryClient}>
       <IntlProvider>
-        <Switch>
-          <Route
-            name="home"
-            path="/"
-            key="root"
-            exact
-            component={StripesHubComponent}
-          />
-          <Route
-            name="oidcLanding"
-            exact
-            path="/oidc-landing"
-            component={OIDCLandingComponent}
-            key="oidc-landing"
-          />
-        </Switch>
+        <LandingComponent />
       </IntlProvider>
-    </BrowserRouter>
+    </QueryClientProvider>
   </React.StrictMode>
 );

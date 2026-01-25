@@ -45,7 +45,10 @@ const OIDCLanding = ({ stripes, config }) => {
           return storeLogoutTenant(loginTenant.name);
         })
         .then(() => {
-          return requestUserWithPerms(stripes.url, loginTenant.name);
+          return requestUserWithPerms(stripes, loginTenant.name);
+        }).then(() => {
+          // upon successful session init, redirect to root for stripes-core to proceed with normal boot.
+          window.location.replace('/');
         });
     }
   };

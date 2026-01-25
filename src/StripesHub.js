@@ -84,7 +84,7 @@ function StripesHub({ stripes, config }) {
       if (resp.ok) {
         const data = await resp.json();
 
-        loadStripes();
+        loadStripes(stripes);
         return data;
       } else {
         const text = await resp.text();

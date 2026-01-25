@@ -26,10 +26,6 @@ export const USERS_PATH = 'users-keycloak';
 /** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
 const HOST_APP_NAME = 'folio_stripes';
 
-const ENTITLEMENT_URL = 'http://localhost:3001/registry';
-const TENNANT_NAME = 'diku';
-//const MODULE_METADATA_URL = `${ENTITLEMENT_URL}/entitlements/${TENNANT_NAME}/applications`;
-const MODULE_METADATA_URL = `${ENTITLEMENT_URL}`;
 const MEDATADATA_KEY = 'discovery';
 
 // const keys to-be-ingested by stripes-core
@@ -72,19 +68,22 @@ const ENTITLEMENT_URL_KEY = 'entitlementUrl';
    * loadStripes
    * Dynamically load Stripes core assets based on manifest.json.
    */
-  export const loadStripes = async () => {
+  export const loadStripes = async (stripes) => {
     console.log('Loading Stripes...'); // eslint-disable-line no-console
 
-    let stripesCoreLocation = 'http://localhost:3005'; // or procured from entitlement response...
+    //TODO: make these dynamic based on config for deployed tenants, for now it is the same as entitlementUrl
+    //const moduleMetadataUrl = `${ENTITLEMENT_URL}/entitlements/${TENANT_NAME}/applications`;
+    const moduleMetadataUrl = stripes.entitlementUrl;
+    const stripesCoreLocation = stripes.stripesCoreUrl; // or procured from entitlement response...
 
     // store the location for stripes to pick up when it loads.
 
-    await localforage.setItem(ENTITLEMENT_URL_KEY, ENTITLEMENT_URL);
+    await localforage.setItem(ENTITLEMENT_URL_KEY, stripes.entitlementUrl);
 
-    const entitlementData = await fetchEntitlement(ENTITLEMENT_URL);
+    const entitlementData = await fetchEntitlement(stripes.entitlementUrl);
 
     // fetch module metadata...
-    const moduleMetadata = await fetchModuleMetadata(MODULE_METADATA_URL);
+    const moduleMetadata = await fetchModuleMetadata(moduleMetadataUrl);
 
     moduleMetadata[MEDATADATA_KEY].forEach((module) => {
       const entitlementEntry = entitlementData.discovery.findIndex((entry) => entry.name === module.name);
@@ -311,7 +310,7 @@ export const setTokenExpiry = async (te) => {
  *
  * @returns {Promise} resolving to { user, tenant, perms, isAuthenticated, tokenExpiration }
  */
-export const createSession = async (tenant, token, data) => {
+export const createSession = async (tenant, token, data, stripes) => {
   const { user, perms } = spreadUserWithPerms(data);
 
   // if we can't parse tokenExpiration data, e.g. because data comes from `.../_self`
@@ -376,7 +375,7 @@ export const createSession = async (tenant, token, data) => {
   }
 
   await localforage.setItem(SESSION_NAME, session);
-  //await this.loadResources(store, sessionTenant, user.id);
+  loadStripes(stripes);
 };
 
 /**
@@ -400,33 +399,32 @@ export const createSession = async (tenant, token, data) => {
   *
   * @returns {Promise} resolving to login response body or undefined on error
   */
-export const processSession = async (tenant, resp, ssoToken) => {
+export const processSession = async (tenant, resp, ssoToken, stripes) => {
   if (resp.ok) {
     const json = await resp.json();
     const token = resp.headers.get('X-Okapi-Token') || json.access_token || ssoToken;
-    await createSession(tenant, token, json);
+    await createSession(tenant, token, json, stripes);
     return json;
   } else {
     // handleLoginError will dispatch setAuthError, then resolve to undefined
-    //return handleLoginError(resp);
+    return handleLoginError(resp);
   }
 };
 
 /**
  * requestUserWithPerms
  * retrieve currently-authenticated user, then process the result to begin a session.
- * @param {string} serverUrl
+ * @param {object} stripes
  * @param {string} tenant
  * @param {string} token
  *
  * @returns {Promise} Promise resolving to the response-body (JSON) of the request
  */
-export const requestUserWithPerms = async (serverUrl, tenant, token) => {
-  const resp = await fetchOverriddenUserWithPerms(serverUrl, tenant, token, !token);
+export const requestUserWithPerms = async (stripes, tenant, token) => {
+  const resp = await fetchOverriddenUserWithPerms(stripes.url, tenant, token, !token);
 
   if (resp.ok) {
-    const sessionData = await processSession(tenant, resp, token);
-    loadStripes();
+    const sessionData = await processSession(tenant, resp, token, stripes);
     return sessionData;
   } else {
     const error = await resp.json();
