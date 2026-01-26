@@ -1,14 +1,6 @@
 /** name for the session key in local storage */
 const SESSION_NAME = 'okapiSess';
 
-/** key for the logging out action */
-const IS_LOGGING_OUT = '@folio/stripes/core::Logout';
-
-/**
- * dispatched if the session is idle (without activity) for too long
- */
-const RTR_TIMEOUT_EVENT = '@folio/stripes/core::RTRIdleSessionTimeout';
-
 /** key for storing tenant info in local storage */
 const TENANT_LOCAL_STORAGE_KEY = 'tenant';
 
@@ -21,15 +13,10 @@ const USERS_PATH = 'users-keycloak';
 /** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
 const HOST_APP_NAME = 'folio_stripes';
 
-const ENTITLEMENT_URL = 'http://localhost:3001/registry';
-const TENNANT_NAME = 'diku';
-const MODULE_METADATA_URL = `${ENTITLEMENT_URL}/entitlements/${TENNANT_NAME}/applications`;
-const MEDATADATA_KEY = 'discovery';
-
 // const keys to-be-ingested by stripes-core
 const HOST_LOCATION_KEY = 'hostLocation';
 const REMOTE_LIST_KEY = 'entitlements';
-const ENTITLEMENT_URL_KEY = 'entitlementUrl';
+const DISCOVERY_URL_KEY = 'entitlementUrl';
 
 // eslint-disable-next-line no-unused-vars
 class StripesHub {
@@ -49,6 +36,10 @@ class StripesHub {
     return localforage.getItem(SESSION_NAME);
   };
 
+  sessionIsValid = (session) => {
+    return session && session.isAuthenticated;
+  }
+
   /**
    * getCurrentTenant
    * Get the current tenant info from global config.
@@ -60,6 +51,17 @@ class StripesHub {
 
     // Selecting first for now until selection dropdown is added for multiple tenants
     return tenants[0];
+  }
+
+  getConfigTenant = () => {
+    const tenants = Object.values(this.config.tenantOptions);
+
+    // Selecting first for now until selection dropdown is added for multiple tenants
+    return tenants[0];
+  }
+
+  getSessionTenant = (session) => {
+    return session.tenant;
   }
 
   /**
@@ -126,6 +128,31 @@ class StripesHub {
   }
 
   /**
+   * ffetch (folio-fetch)
+   * Wrapper around fetch to include Okapi headers and error handling. Throws
+   * if response is not ok.
+   *
+   * @param {string} url URL to retrieve
+   * @param {string} tenant tenant for x-okapi-tenant header
+   * @returns {Promise} resolves to the JSON response
+   */
+  ffetch = async (url, tenant) => {
+    const res = await fetch(url, {
+      headers: this.getHeaders(tenant),
+      credentials: 'include',
+      mode: 'cors',
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Fetch to ${url} failed: ${res.status} ${res.statusText} - ${text}`);
+    }
+
+    const json = await res.json();
+    return json;
+  }
+
+  /**
    * validateUser
    * Data in localstorage has led us to believe a session is active. To confirm,
    * fetch from .../_self and dispatch the results, allowing any changes to authz
@@ -155,159 +182,135 @@ class StripesHub {
       });
       if (resp.ok) {
         const data = await resp.json();
+        await localforage.setItem(SESSION_NAME, data);
 
-        // TODO: load Stripes here
         return data;
       } else {
         const text = await resp.text();
         throw text;
       }
     } catch (error) {
-      // log a warning, then call the error handler if we received one
+      // error a warning, then call the error handler if we received one
       console.error(error); // eslint-disable-line no-console
       return handleError ? handleError() : Promise.resolve();
     }
   }
 
   /**
-   * logout
-   * Redirect to login URL to initiate logout process.
+   * fetchEntitlements
+   * Fetch entitlement data for the tenant, then coalesce UI modules across
+   * applications into a single map, keyed by module ID, including .
+   * @param {string} tenant
+   * @returns
    */
-  logout = async () => {
-    window.location.href = this.getLoginUrl();
-
-    // check the private-storage sentinel: if logout has already started
-    // in this window, we don't want to start it again.
-    if (sessionStorage.getItem(IS_LOGGING_OUT)) {
-      return;
-    }
-
-    // check the shared-storage sentinel: if logout has already started
-    // in another window, we don't want to invoke shared functions again
-    // (like calling /authn/logout, which can only be called once)
-    // BUT we DO want to clear private storage such as session storage
-    // and redux, which are not shared across tabs/windows.
-    if (localStorage.getItem(SESSION_NAME)) {
-      await fetch(`${this.stripes.url}/authn/logout`, {
-        method: 'POST',
-        mode: 'cors',
-        credentials: 'include',
-        // Since the tenant in the x-okapi-token and the x-okapi-tenant header
-        // on logout should match, switching affiliations updates
-        // store.okapi.tenant, leading to mismatched tenant names from the token.
-        // Use the tenant name stored during login to ensure they match.
-        headers: this.getHeaders(this.getLogoutTenant()?.tenantId),
+  fetchEntitlements = async (tenant) => {
+    console.log(`Fetching entitlements for tenant ${tenant}...`); // eslint-disable-line no-console
+    const uiMap = {};
+    const json = await this.ffetch(`${this.stripes.url}/entitlements/${tenant}/applications`, tenant);
+    const elist = json.applicationDescriptors;
+    elist.forEach(application => {
+      application.uiModules.forEach(module => {
+        uiMap[module.id] = module;
       });
-    }
+      application.uiModuleDescriptors.forEach(module => {
+        if (uiMap[module.id]) {
+          // console.error(`===> found module descriptor for ${module.id}`);
+          uiMap[module.id].okapiInterfaces = module.requires;
+          uiMap[module.id].optionalOkapiInterfaces = module.optional;
+          uiMap[module.id] = { ...uiMap[module.id], ...module.metadata?.stripes };
+        }
+      });
+    });
 
-    try {
-      // clear private-storage
-      //
-      // set the private-storage sentinel to indicate logout is in-progress
-      sessionStorage.setItem(IS_LOGGING_OUT, 'true');
-
-      // localStorage events emit across tabs so we can use it like a
-      // BroadcastChannel to communicate with all tabs/windows
-      localStorage.removeItem(SESSION_NAME);
-      localStorage.removeItem(RTR_TIMEOUT_EVENT);
-      localStorage.removeItem(TENANT_LOCAL_STORAGE_KEY);
-
-      // clear shared storage
-      await localforage.removeItem(SESSION_NAME);
-      await localforage.removeItem(LOGIN_RESPONSE);
-    } catch (e) {
-      console.error('error during logout', e); // eslint-disable-line no-console
-    }
-
-    // clear the console unless config asks to preserve it
-    if (!this.config.preserveConsole) {
-      console.clear(); // eslint-disable-line no-console
-    }
-    // clear the storage sentinel
-    sessionStorage.removeItem(IS_LOGGING_OUT);
-  }
-
-  /** fetchEntitlement
-   * fetches entitlement data including the name, version, and location of each remote module and the host app.
-   * @param {string} entitlementUrl the endpoing to fetch entitlement data from
-   * @returns {object} entitlement data object
-   */
-
-  fetchEntitlement = async (entitlementUrl) => {
-    const entitlements = await fetch(entitlementUrl);
-    if (!entitlements.ok) {
-      throw new Error(`Failed to fetch entitlements from ${entitlementUrl}: ${entitlements.status} ${entitlements.statusText}`);
-    }
-    const entitlementData = await entitlements.json();
-    return entitlementData;
+    return uiMap;
   };
 
-  /** fetchModuleMetadata
-   * Fetches module metadata - originally from the package.json of each module that categorizes the module
-   * @param {string} moduleMetadataUrl the URL to fetch module metadata from
-   * @returns {object} module metadata object
-   *
-  */
+  /** error-handler: do nothing */
+  handleWithNoop = () => { };
 
-  fetchModuleMetadata = async (moduleMetadataUrl) => {
-    const moduleMetadataResp = await fetch(moduleMetadataUrl);
-    if (!moduleMetadataResp.ok) {
-      throw new Error(`Failed to fetch module metadata from ${moduleMetadataUrl}: ${moduleMetadataResp.status} ${moduleMetadataResp.statusText}`);
-    }
-    const moduleMetadata = await moduleMetadataResp.json();
-    return moduleMetadata;
+  /** error-handler: log it */
+  handleWithLog = (msg) => {
+    console.error(msg); // eslint-disable-line no-console
+  };
+
+  /** error-handler: throw it */
+  handleWithThrow = (msg) => {
+    throw new Error(msg);
   };
 
   /**
+   * fetchDiscovery
+   * Fetch discovery data for the tenant and merge it with corresponding
+   * entitlement data, returning the intersection. (e.g. if discovery has
+   * entries for a, b, c and entitlement has entries for b, c, d then the
+   * returned map will have entries for b and c only.)
+   *
+   * @param {string} tenant
+   * @param {map} uiMap
+   * @param {function} handler error handler
+   * @returns
+   */
+  fetchDiscovery = async (tenant, uiMap, handler) => {
+    console.log(`Fetching discovery for tenant ${tenant}...`); // eslint-disable-line no-console
+    const map = {};
+
+    const discoveryUrl = this.stripes.discoveryUrl ?? `${this.stripes.url}/modules/discovery`;
+    const json = await this.ffetch(`${discoveryUrl}?limit=100`, tenant);
+    json.discovery.forEach(entry => {
+      if (uiMap[entry.id]) {
+        map[entry.id] = uiMap[entry.id];
+        map[entry.id].location = entry.location;
+        map[entry.id].module = `@${entry.name.replace('_', '/')}`;
+      } else {
+        handler(`No entitlement found for discovered module ID ${entry.id}`);
+      }
+    });
+
+    return map;
+  };
+
+  findStripes = async () => {
+    const disco = await localforage.getItem(REMOTE_LIST_KEY);
+    return disco.find((entry) => entry.name === HOST_APP_NAME);
+  }
+
+  /**
    * loadStripes
-   * Dynamically load Stripes core assets based on manifest.json.
+   * Dynamically load stripes CSS and JS assets using the build's manifest.json.
+   * Stripes will bootstrap itself once its JS is loaded.
    */
   loadStripes = async () => {
     console.log('Loading Stripes...'); // eslint-disable-line no-console
 
-    let stripesCoreLocation = 'http://localhost:3000'; // or procured from entitlement response...
+    // TODO: implement these actions in terms of stripes-core since
+    // stripes does not exist in entitlement/disco data :grimace:
 
-    // store the location for stripes to pick up when it loads.
+    // pull stripes out of the registry and store its location in localforage to pass to stripes.
+    // const hostDiscovery = discoveryData.find((entry) => entry.name === HOST_APP_NAME);
+    // hosting
+    const stripesCoreLocation = await localforage.getItem(HOST_LOCATION_KEY);
 
-    await localforage.setItem(ENTITLEMENT_URL_KEY, ENTITLEMENT_URL);
-
-    const entitlementData = await this.fetchEntitlement(ENTITLEMENT_URL);
-
-    // fetch module metadata...
-    const moduleMetadata = await this.fetchModuleMetadata(MODULE_METADATA_URL);
-
-    moduleMetadata[MEDATADATA_KEY].forEach((module) => {
-      const entitlementEntry = entitlementData.discovery.findIndex((entry) => entry.name === module.name);
-      entitlementData.discovery[entitlementEntry].metadata = module;
-    });
-
-    // pull the host app out of the registry and store its location in localforage to pass to stripes.
-    const hostEntitlement = entitlementData.discovery.find((entry) => entry.name === HOST_APP_NAME);
-    if (hostEntitlement) {
-      stripesCoreLocation = hostEntitlement.url;
-    }
-    await localforage.setItem(HOST_LOCATION_KEY, stripesCoreLocation);
-
-    const entitlementMinusStripes = entitlementData.discovery.filter((entry) => entry.name !== HOST_APP_NAME);
-    await localforage.setItem(REMOTE_LIST_KEY, entitlementMinusStripes);
+    // store the rest of the discovery data minus stripes itself.
+    // const discoveryMinusStripes = discoveryData.filter((entry) => entry.name !== HOST_APP_NAME);
+    // await localforage.setItem(REMOTE_LIST_KEY, discoveryMinusStripes);
 
     const manifestJSON = await fetch(`${stripesCoreLocation}/manifest.json`);
     const manifest = await manifestJSON.json();
 
     // collect imports...
-    const JSimports = new Set();
-    const CSSimports = new Set();
+    const jsImports = new Set();
+    const cssImports = new Set();
     Object.keys(manifest.entrypoints).forEach((entry) => {
       manifest.entrypoints[entry].imports.forEach((imp) => {
         if (imp.endsWith('.js')) {
-          JSimports.add(imp);
+          jsImports.add(imp);
         } else if (imp.endsWith('.css')) {
-          CSSimports.add(imp);
+          cssImports.add(imp);
         }
       });
     });
 
-    CSSimports.forEach((cssRef) => {
+    cssImports.forEach((cssRef) => {
       const cssFile = manifest.assets[cssRef].file
       const link = document.createElement('link');
       link.rel = 'stylesheet';
@@ -315,30 +318,48 @@ class StripesHub {
       document.head.appendChild(link);
     });
 
-    JSimports.forEach((jsRef) => {
+    jsImports.forEach((jsRef) => {
       const jsFile = manifest.assets[jsRef].file;
       import(`${stripesCoreLocation}${jsFile}`);
-      //   const script = document.createElement('script');
-      //   script.src = `${stripesCoreLocation}${jsFile}`;
-      //   document.body.appendChild(script);
     });
   }
 
   /**
    * init
-   * 1. Pull the session from local storage; if it contains a user id,
-   *    validate it by fetching /_self to verify that it is still active,
-   *    dispatching load-resources actions.
-   * 2. Check if SSO (SAML) is enabled, dispatching check-sso actions
-   * 3. dispatch set-okapi-ready.
+   * 1 Investigate localstorage for a stored session.
+   * 2 Retrieve user data
+   * 3 Retrieve module entitlements
+   * 4 Retrieve module discovery
+   * 5 Load stripes, which bootstraps itself and loads remote modules.
+   *
+   * If no session is found, redirect to login.
    *
    * @returns {Promise} resolves when session validation is complete
    */
   init = async () => {
-    await this.loadStripes();
-    // const session = await this.getSession();
-    // const handleError = () => this.logout();
+    try {
+      const session = await this.getSession();
+      if (session && this.sessionIsValid(session)) {
+        const tenant = this.getSessionTenant(session);
+        const { tenant: sessionTenant = tenant } = session;
 
-    // return session?.user?.id ? this.validateSession(session, handleError) : handleError();
+        const uiMap = await this.fetchEntitlements(sessionTenant);
+        const disco = await this.fetchDiscovery(sessionTenant, uiMap, this.handleWithLog);
+
+        await localforage.setItem(DISCOVERY_URL_KEY, this.stripes.discoveryUrl ?? this.stripes.url);
+        await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
+        await localforage.setItem(HOST_LOCATION_KEY, 'http://localhost:3004');
+        await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco));
+
+        await this.loadStripes();
+      } else {
+        console.error('session is missing; authenticating');
+        document.body.innerHTML = '<h2>Redirecting to login...</h2>';
+        // this.authenticate();
+      }
+    } catch (e) {
+      console.error('error during StripesHub init', e); // eslint-disable-line no-console
+      alert(`error during StripesHub init: ${JSON.stringify(e, null, 2)}`); // eslint-disable-line no-alert
+    }
   }
 }
