@@ -1,4 +1,5 @@
 import localforage from 'localforage';
+import { useRef } from 'react';
 
 import {
   getLogoutTenant,
@@ -13,8 +14,13 @@ import {
   getHeaders,
 } from './loginServices';
 
+const DISCOVERY_URL_KEY = 'entitlementUrl';
+const HOST_APP_NAME = 'folio_stripes';
+const HOST_LOCATION_KEY = 'hostLocation';
+const REMOTE_LIST_KEY = 'entitlements';
+
 function StripesHub({ stripes, config }) {
-  let stripesCore = null;
+  const stripesCoreRef = useRef(null);
 
 
   /**
@@ -38,22 +44,22 @@ function StripesHub({ stripes, config }) {
    *
    * @returns {object} Session object from localforage
   */
-  getSession = () => {
+  const getSession = () => {
     return localforage.getItem(SESSION_NAME);
   };
 
-  sessionIsValid = (session) => {
+  const sessionIsValid = (session) => {
     return session && session.isAuthenticated;
   }
 
-  getConfigTenant = () => {
+  const getConfigTenant = () => {
     const tenants = Object.values(config.tenantOptions);
 
     // Selecting first for now until selection dropdown is added for multiple tenants
     return tenants[0];
   }
 
-  getSessionTenant = (session) => {
+  const getSessionTenant = (session) => {
     return session.tenant;
   }
 
@@ -63,7 +69,7 @@ function StripesHub({ stripes, config }) {
    *
    * @param {string} tenantId the tenant ID
    */
-  storeLogoutTenant = (tenantId) => {
+  const storeLogoutTenant = (tenantId) => {
     localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ tenantId }));
   };
 
@@ -73,25 +79,10 @@ function StripesHub({ stripes, config }) {
    *
    * @returns {object|undefined} tenant info object or undefined if not found
    */
-  getLogoutTenant = () => {
+  const getLogoutTenant = () => {
     const storedTenant = localStorage.getItem(TENANT_LOCAL_STORAGE_KEY);
     return storedTenant ? JSON.parse(storedTenant) : undefined;
   };
-
-  /**
-   * getOIDCRedirectUri
-   * Construct OIDC redirect URI based on current location, tenant, and client ID.
-   *
-   * @param {string} tenant - the tenant name
-   * @param {string} clientId - the client ID
-   * @returns {string} encoded redirect URI
-   */
-  getOIDCRedirectUri = (tenant, clientId) => {
-    // we need to use `encodeURIComponent` to separate `redirect_uri` URL parameters from the rest of URL parameters that `redirect_uri` itself is part of
-    return encodeURIComponent(`${window.location.protocol}//${window.location.host}/oidc-landing?tenant=${tenant}&client_id=${clientId}`);
-  };
-
-
 
   /**
    * getHeaders
@@ -101,7 +92,7 @@ function StripesHub({ stripes, config }) {
    * @param {*} token the auth token
    * @returns {object} headers for FOLIO requests
    */
-  getHeaders = (tenant, token) => {
+  const getHeaders = (tenant, token) => {
     return {
       'X-Okapi-Tenant': tenant,
       'Content-Type': 'application/json',
@@ -118,7 +109,7 @@ function StripesHub({ stripes, config }) {
    * @param {string} tenant tenant for x-okapi-tenant header
    * @returns {Promise} resolves to the JSON response
    */
-  ffetch = async (url, tenant) => {
+  const ffetch = async (url, tenant) => {
     const res = await fetch(url, {
       headers: getHeaders(tenant),
       credentials: 'include',
@@ -141,7 +132,7 @@ function StripesHub({ stripes, config }) {
    * @param {string} tenant
    * @returns
    */
-  fetchEntitlements = async (tenant) => {
+  const fetchEntitlements = async (tenant) => {
     console.log(`Fetching entitlements for tenant ${tenant}...`); // eslint-disable-line no-console
     const uiMap = {};
     const json = await ffetch(`${stripes.url}/entitlements/${tenant}/applications`, tenant);
@@ -164,15 +155,15 @@ function StripesHub({ stripes, config }) {
   };
 
   /** error-handler: do nothing */
-  handleWithNoop = () => { };
+  const handleWithNoop = () => { };
 
   /** error-handler: log it */
-  handleWithLog = (msg) => {
+  const handleWithLog = (msg) => {
     console.error(msg); // eslint-disable-line no-console
   };
 
   /** error-handler: throw it */
-  handleWithThrow = (msg) => {
+  const handleWithThrow = (msg) => {
     throw new Error(msg);
   };
 
@@ -188,7 +179,7 @@ function StripesHub({ stripes, config }) {
    * @param {function} handler error handler
    * @returns
    */
-  fetchDiscovery = async (tenant, uiMap, handler) => {
+  const fetchDiscovery = async (tenant, uiMap, handler) => {
     console.log(`Fetching discovery for tenant ${tenant}...`); // eslint-disable-line no-console
     const map = {};
 
@@ -206,25 +197,21 @@ function StripesHub({ stripes, config }) {
 
     // TODO: better way to handle this situation?
     // cache stripes-core location for later use
-    stripesCore = json.discovery.find((entry) => entry.name === 'folio_stripes-core');
+    stripesCoreRef.current = json.discovery.find((entry) => entry.name === 'folio_stripes-core');
+    console.log('Stripes core located at, ', stripesCoreRef.current); // eslint-disable-line no-console
 
     return map;
   };
-
-  findStripes = async () => {
-    const disco = await localforage.getItem(REMOTE_LIST_KEY);
-    return disco.find((entry) => entry.name === HOST_APP_NAME);
-  }
 
   /**
    * loadStripes
    * Dynamically load stripes CSS and JS assets using the build's manifest.json.
    * Stripes will bootstrap itself once its JS is loaded.
    */
-  loadStripes = async () => {
+  const loadStripes = async () => {
     console.log('Loading Stripes...'); // eslint-disable-line no-console
 
-    const manifestJSON = await fetch(`${stripesCore.location}/manifest.json`);
+    const manifestJSON = await fetch(`${stripesCoreRef.current.location}/manifest.json`);
     const manifest = await manifestJSON.json();
 
     // collect imports...
@@ -244,13 +231,17 @@ function StripesHub({ stripes, config }) {
       const cssFile = manifest.assets[cssRef].file
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = `${stripesCore.location}/${cssFile}`;
+      link.href = `${stripesCoreRef.current.location}${cssFile}`;
       document.head.appendChild(link);
     });
 
     jsImports.forEach((jsRef) => {
       const jsFile = manifest.assets[jsRef].file;
-      import(`${stripesCore.location}/${jsFile}`);
+      console.log(`${stripesCoreRef.current.location}${jsFile}`);
+      // import(`${stripesCoreRef.current.location}${jsFile}`);
+      const script = document.createElement('script');
+      script.src = `${stripesCoreRef.current.location}${jsFile}`;
+      document.body.appendChild(script);
     });
   }
 
@@ -413,7 +404,7 @@ function StripesHub({ stripes, config }) {
 
         await localforage.setItem(DISCOVERY_URL_KEY, stripes.discoveryUrl ?? stripes.url);
         await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
-        await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
+        await localforage.setItem(HOST_LOCATION_KEY, stripesCoreRef.current.location);
         await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco).filter(module => module.name !== 'folio_stripes-core'));
 
         await loadStripes();
