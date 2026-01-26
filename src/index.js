@@ -266,6 +266,10 @@ class StripesHub {
       }
     });
 
+    // TODO: better way to handle this situation?
+    // cache stripes-core location for later use
+    this.stripesCore = json.discovery.find((entry) => entry.name === 'folio_stripes-core');
+
     return map;
   };
 
@@ -282,19 +286,7 @@ class StripesHub {
   loadStripes = async () => {
     console.log('Loading Stripes...'); // eslint-disable-line no-console
 
-    // TODO: implement these actions in terms of stripes-core since
-    // stripes does not exist in entitlement/disco data :grimace:
-
-    // pull stripes out of the registry and store its location in localforage to pass to stripes.
-    // const hostDiscovery = discoveryData.find((entry) => entry.name === HOST_APP_NAME);
-    // hosting
-    const stripesCoreLocation = await localforage.getItem(HOST_LOCATION_KEY);
-
-    // store the rest of the discovery data minus stripes itself.
-    // const discoveryMinusStripes = discoveryData.filter((entry) => entry.name !== HOST_APP_NAME);
-    // await localforage.setItem(REMOTE_LIST_KEY, discoveryMinusStripes);
-
-    const manifestJSON = await fetch(`${stripesCoreLocation}/manifest.json`);
+    const manifestJSON = await fetch(`${this.stripesCore.location}/manifest.json`);
     const manifest = await manifestJSON.json();
 
     // collect imports...
@@ -314,13 +306,13 @@ class StripesHub {
       const cssFile = manifest.assets[cssRef].file
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = `${stripesCoreLocation}${cssFile}`;
+      link.href = `${this.stripesCore.location}/${cssFile}`;
       document.head.appendChild(link);
     });
 
     jsImports.forEach((jsRef) => {
       const jsFile = manifest.assets[jsRef].file;
-      import(`${stripesCoreLocation}${jsFile}`);
+      import(`${this.stripesCore.location}/${jsFile}`);
     });
   }
 
@@ -348,8 +340,8 @@ class StripesHub {
 
         await localforage.setItem(DISCOVERY_URL_KEY, this.stripes.discoveryUrl ?? this.stripes.url);
         await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
-        await localforage.setItem(HOST_LOCATION_KEY, 'http://localhost:3004');
-        await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco));
+        await localforage.setItem(HOST_LOCATION_KEY, this.stripesCore.location);
+        await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco).filter(module => module.name !== 'folio_stripes-core'));
 
         await this.loadStripes();
       } else {
