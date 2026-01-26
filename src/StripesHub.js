@@ -1,49 +1,36 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { IntlProvider } from 'react-intl';
-import { QueryClientProvider } from 'react-query';
-import { CookiesProvider } from 'react-cookie';
+import localforage from 'localforage';
 
-<<<<<<< HEAD
-/** key for storing tenant info in local storage */
-const TENANT_LOCAL_STORAGE_KEY = 'tenant';
-=======
-import createReactQueryClient from './createReactQueryClient';
-import StripesHub from './StripesHub';
-import OIDCLanding from './oidcLanding';
+import {
+  getLogoutTenant,
+  getSession,
+  loadStripes,
+  USERS_PATH,
+  IS_LOGGING_OUT,
+  SESSION_NAME,
+  RTR_TIMEOUT_EVENT,
+  TENANT_LOCAL_STORAGE_KEY,
+  LOGIN_RESPONSE,
+  getHeaders,
+} from './loginServices';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-// eslint-disable-next-line no-undef
-const stripes = STRIPES_GLOBAL || {};
-// eslint-disable-next-line no-undef
-const config = CONFIG_GLOBAL || {};
-const StripesHubComponent = () => <StripesHub stripes={stripes} config={config} />;
-const OIDCLandingComponent = () => <CookiesProvider><OIDCLanding stripes={stripes} config={config} /></CookiesProvider>;
+function StripesHub({ stripes, config }) {
+  let stripesCore = null;
 
-const reactQueryClient = createReactQueryClient();
->>>>>>> origin/STHUB-5-loadStripes
 
-let LandingComponent = StripesHubComponent;
+  /**
+   * getCurrentTenant
+   * Get the current tenant info from global config.
+   *
+   * @returns {object} tenant info object
+   */
+  const getCurrentTenant = () => {
+    const tenants = Object.values(config.tenantOptions);
 
-<<<<<<< HEAD
-/** path to users API call */
-const USERS_PATH = 'users-keycloak';
+    // Selecting first for now until selection dropdown is added for multiple tenants
+    return tenants[0];
+  };
 
-/** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
-const HOST_APP_NAME = 'folio_stripes';
-
-// const keys to-be-ingested by stripes-core
-const HOST_LOCATION_KEY = 'hostLocation';
-const REMOTE_LIST_KEY = 'entitlements';
-const DISCOVERY_URL_KEY = 'entitlementUrl';
-
-// eslint-disable-next-line no-unused-vars
-class StripesHub {
-  constructor(stripes, config) {
-    this.stripes = stripes;
-    this.config = config;
-  }
-
+  // ^^^^^^^^^^^^^^^^
   /**
    * getSession
    * simple wrapper around access to values stored in localforage
@@ -59,21 +46,8 @@ class StripesHub {
     return session && session.isAuthenticated;
   }
 
-  /**
-   * getCurrentTenant
-   * Get the current tenant info from global config.
-   *
-   * @returns {object} tenant info object
-   */
-  getCurrentTenant = () => {
-    const tenants = Object.values(this.config.tenantOptions);
-
-    // Selecting first for now until selection dropdown is added for multiple tenants
-    return tenants[0];
-  }
-
   getConfigTenant = () => {
-    const tenants = Object.values(this.config.tenantOptions);
+    const tenants = Object.values(config.tenantOptions);
 
     // Selecting first for now until selection dropdown is added for multiple tenants
     return tenants[0];
@@ -117,18 +91,7 @@ class StripesHub {
     return encodeURIComponent(`${window.location.protocol}//${window.location.host}/oidc-landing?tenant=${tenant}&client_id=${clientId}`);
   };
 
-  /**
-   * getLoginUrl
-   * Construct login URL based on Okapi config and current tenant info.
-   *
-   * @returns {string} login URL
-   */
-  getLoginUrl = () => {
-    const loginTenant = this.getCurrentTenant();
 
-    const redirectUri = this.getOIDCRedirectUri(loginTenant.name, loginTenant.clientId);
-    return `${this.stripes.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
-  };
 
   /**
    * getHeaders
@@ -157,7 +120,7 @@ class StripesHub {
    */
   ffetch = async (url, tenant) => {
     const res = await fetch(url, {
-      headers: this.getHeaders(tenant),
+      headers: getHeaders(tenant),
       credentials: 'include',
       mode: 'cors',
     });
@@ -172,50 +135,6 @@ class StripesHub {
   }
 
   /**
-   * validateUser
-   * Data in localstorage has led us to believe a session is active. To confirm,
-   * fetch from .../_self and dispatch the results, allowing any changes to authz
-   * since that session data was persisted to take effect immediately.
-   *
-   * If the fetch succeeds, dispatch the result to update the session.
-   * Otherwise, call logout() to purge redux and storage because either:
-   *   1. the session data was corrupt. yikes!
-   *   2. the session data was valid but cookies were missing. yikes!
-   * Either way, our belief that a session is active has been proven wrong, so
-   * we want to clear out all relevant storage.
-   *
-   * @param {*} session session object
-   * @param {function} handleError error-handler function; returns a Promise that returns null
-   *
-   * @returns {Promise} resolves to user data if session is valid, or the result of handleError() if not
-   */
-  validateSession = async (session, handleError) => {
-    try {
-      const tenant = this.getCurrentTenant().name;
-      const { token, tenant: sessionTenant = tenant } = session;
-
-      const resp = await fetch(`${this.stripes.url}/${USERS_PATH}/_self?expandPermissions=true`, {
-        headers: this.getHeaders(sessionTenant, token),
-        credentials: 'include',
-        mode: 'cors',
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        await localforage.setItem(SESSION_NAME, data);
-
-        return data;
-      } else {
-        const text = await resp.text();
-        throw text;
-      }
-    } catch (error) {
-      // error a warning, then call the error handler if we received one
-      console.error(error); // eslint-disable-line no-console
-      return handleError ? handleError() : Promise.resolve();
-    }
-  }
-
-  /**
    * fetchEntitlements
    * Fetch entitlement data for the tenant, then coalesce UI modules across
    * applications into a single map, keyed by module ID, including .
@@ -225,7 +144,7 @@ class StripesHub {
   fetchEntitlements = async (tenant) => {
     console.log(`Fetching entitlements for tenant ${tenant}...`); // eslint-disable-line no-console
     const uiMap = {};
-    const json = await this.ffetch(`${this.stripes.url}/entitlements/${tenant}/applications`, tenant);
+    const json = await ffetch(`${stripes.url}/entitlements/${tenant}/applications`, tenant);
     const elist = json.applicationDescriptors;
     elist.forEach(application => {
       application.uiModules.forEach(module => {
@@ -273,8 +192,8 @@ class StripesHub {
     console.log(`Fetching discovery for tenant ${tenant}...`); // eslint-disable-line no-console
     const map = {};
 
-    const discoveryUrl = this.stripes.discoveryUrl ?? `${this.stripes.url}/modules/discovery`;
-    const json = await this.ffetch(`${discoveryUrl}?limit=100`, tenant);
+    const discoveryUrl = stripes.discoveryUrl ?? `${stripes.url}/modules/discovery`;
+    const json = await ffetch(`${discoveryUrl}?limit=100`, tenant);
     json.discovery.forEach(entry => {
       if (uiMap[entry.id]) {
         map[entry.id] = uiMap[entry.id];
@@ -287,7 +206,7 @@ class StripesHub {
 
     // TODO: better way to handle this situation?
     // cache stripes-core location for later use
-    this.stripesCore = json.discovery.find((entry) => entry.name === 'folio_stripes-core');
+    stripesCore = json.discovery.find((entry) => entry.name === 'folio_stripes-core');
 
     return map;
   };
@@ -305,7 +224,7 @@ class StripesHub {
   loadStripes = async () => {
     console.log('Loading Stripes...'); // eslint-disable-line no-console
 
-    const manifestJSON = await fetch(`${this.stripesCore.location}/manifest.json`);
+    const manifestJSON = await fetch(`${stripesCore.location}/manifest.json`);
     const manifest = await manifestJSON.json();
 
     // collect imports...
@@ -325,15 +244,145 @@ class StripesHub {
       const cssFile = manifest.assets[cssRef].file
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = `${this.stripesCore.location}/${cssFile}`;
+      link.href = `${stripesCore.location}/${cssFile}`;
       document.head.appendChild(link);
     });
 
     jsImports.forEach((jsRef) => {
       const jsFile = manifest.assets[jsRef].file;
-      import(`${this.stripesCore.location}/${jsFile}`);
+      import(`${stripesCore.location}/${jsFile}`);
     });
   }
+
+  // //////////////////////
+
+  /**
+   * getOIDCRedirectUri
+   * Construct OIDC redirect URI based on current location, tenant, and client ID.
+   *
+   * @param {string} tenant - the tenant name
+   * @param {string} clientId - the client ID
+   * @returns {string} encoded redirect URI
+   */
+  const getOIDCRedirectUri = (tenant, clientId) => {
+    // we need to use `encodeURIComponent` to separate `redirect_uri` URL parameters from the rest of URL parameters that `redirect_uri` itself is part of
+    return encodeURIComponent(`${window.location.protocol}//${window.location.host}/oidc-landing?tenant=${tenant}&client_id=${clientId}`);
+  };
+
+  /**
+   * getLoginUrl
+   * Construct login URL based on Okapi config and current tenant info.
+   *
+   * @returns {string} login URL
+   */
+  const getLoginUrl = () => {
+    const loginTenant = getCurrentTenant();
+
+    const redirectUri = getOIDCRedirectUri(loginTenant.name, loginTenant.clientId);
+    return `${stripes.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
+  };
+
+  /**
+   * validateSession
+   * Data in localstorage has led us to believe a session is active. To confirm,
+   * fetch from .../_self and dispatch the results, allowing any changes to authz
+   * since that session data was persisted to take effect immediately.
+   *
+   * If the fetch succeeds, dispatch the result to update the session.
+   * Otherwise, call logout() to purge redux and storage because either:
+   *   1. the session data was corrupt. yikes!
+   *   2. the session data was valid but cookies were missing. yikes!
+   * Either way, our belief that a session is active has been proven wrong, so
+   * we want to clear out all relevant storage.
+   *
+   * @param {*} session session object
+   * @param {function} handleError error-handler function; returns a Promise that returns null
+   *
+   * @returns {Promise} resolves to user data if session is valid, or the result of handleError() if not
+   */
+  const validateSession = async (session, handleError) => {
+    try {
+      const tenant = getCurrentTenant().name;
+      const { token, tenant: sessionTenant = tenant } = session;
+
+      const resp = await fetch(`${stripes.url}/${USERS_PATH}/_self?expandPermissions=true`, {
+        headers: getHeaders(sessionTenant, token),
+        credentials: 'include',
+        mode: 'cors',
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+
+        loadStripes(stripes);
+        return data;
+      } else {
+        const text = await resp.text();
+        throw text;
+      }
+    } catch (error) {
+      // log a warning, then call the error handler if we received one
+      console.error(error); // eslint-disable-line no-console
+      return handleError ? handleError() : Promise.resolve();
+    }
+  };
+
+  /**
+   * logout
+   * Redirect to login URL to initiate logout process.
+   */
+  const logout = async () => {
+    window.location.href = getLoginUrl();
+
+    // check the private-storage sentinel: if logout has already started
+    // in this window, we don't want to start it again.
+    if (sessionStorage.getItem(IS_LOGGING_OUT)) {
+      return;
+    }
+
+    // check the shared-storage sentinel: if logout has already started
+    // in another window, we don't want to invoke shared functions again
+    // (like calling /authn/logout, which can only be called once)
+    // BUT we DO want to clear private storage such as session storage
+    // and redux, which are not shared across tabs/windows.
+    if (localStorage.getItem(SESSION_NAME)) {
+      await fetch(`${stripes.url}/authn/logout`, {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'include',
+        // Since the tenant in the x-okapi-token and the x-okapi-tenant header
+        // on logout should match, switching affiliations updates
+        // store.okapi.tenant, leading to mismatched tenant names from the token.
+        // Use the tenant name stored during login to ensure they match.
+        headers: getHeaders(getLogoutTenant()?.tenantId),
+      });
+    }
+
+    try {
+      // clear private-storage
+      //
+      // set the private-storage sentinel to indicate logout is in-progress
+      sessionStorage.setItem(IS_LOGGING_OUT, 'true');
+
+      // localStorage events emit across tabs so we can use it like a
+      // BroadcastChannel to communicate with all tabs/windows
+      localStorage.removeItem(SESSION_NAME);
+      localStorage.removeItem(RTR_TIMEOUT_EVENT);
+      localStorage.removeItem(TENANT_LOCAL_STORAGE_KEY);
+
+      // clear shared storage
+      await localforage.removeItem(SESSION_NAME);
+      await localforage.removeItem(LOGIN_RESPONSE);
+    } catch (e) {
+      console.error('error during logout', e); // eslint-disable-line no-console
+    }
+
+    // clear the console unless config asks to preserve it
+    if (!config.preserveConsole) {
+      console.clear(); // eslint-disable-line no-console
+    }
+    // clear the storage sentinel
+    sessionStorage.removeItem(IS_LOGGING_OUT);
+  };
 
   /**
    * init
@@ -347,23 +396,31 @@ class StripesHub {
    *
    * @returns {Promise} resolves when session validation is complete
    */
-  init = async () => {
+  const init = async () => {
     try {
-      const session = await this.getSession();
-      if (session && this.sessionIsValid(session)) {
-        const tenant = this.getSessionTenant(session);
+      const session = await getSession();
+
+      const handleError = () => logout();
+
+      session?.user?.id ? validateSession(session, handleError) : handleError();
+
+      if (session && sessionIsValid(session)) {
+        const tenant = getSessionTenant(session);
         const { tenant: sessionTenant = tenant } = session;
 
-        const uiMap = await this.fetchEntitlements(sessionTenant);
-        const disco = await this.fetchDiscovery(sessionTenant, uiMap, this.handleWithLog);
+        const uiMap = await fetchEntitlements(sessionTenant);
+        const disco = await fetchDiscovery(sessionTenant, uiMap, handleWithLog);
 
-        await localforage.setItem(DISCOVERY_URL_KEY, this.stripes.discoveryUrl ?? this.stripes.url);
+        await localforage.setItem(DISCOVERY_URL_KEY, stripes.discoveryUrl ?? stripes.url);
         await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
-        await localforage.setItem(HOST_LOCATION_KEY, this.stripesCore.location);
+        await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
         await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco).filter(module => module.name !== 'folio_stripes-core'));
 
-        await this.loadStripes();
+        await loadStripes();
       } else {
+
+        handleError();
+
         console.error('session is missing; authenticating');
         document.body.innerHTML = '<h2>Redirecting to login...</h2>';
         // this.authenticate();
@@ -372,21 +429,15 @@ class StripesHub {
       console.error('error during StripesHub init', e); // eslint-disable-line no-console
       alert(`error during StripesHub init: ${JSON.stringify(e, null, 2)}`); // eslint-disable-line no-alert
     }
-  }
-=======
-if (window.location.pathname === '/') {
-  LandingComponent = StripesHubComponent;
-} else if (window.location.pathname === '/oidc-landing') {
-  LandingComponent = OIDCLandingComponent;
->>>>>>> origin/STHUB-5-loadStripes
+
+  };
+
+  init();
+
+  return (
+    <div data-testid="StripesHub">
+    </div>
+  );
 }
 
-root.render(
-  <React.StrictMode>
-    <QueryClientProvider client={reactQueryClient}>
-      <IntlProvider>
-        <LandingComponent />
-      </IntlProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
-);
+export default StripesHub;
