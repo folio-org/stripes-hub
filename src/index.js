@@ -6,7 +6,7 @@ import { CookiesProvider } from 'react-cookie';
 
 import createReactQueryClient from './createReactQueryClient';
 import StripesHub from './StripesHub';
-import OIDCLanding from './oidcLanding';
+import OidcLanding from './OidcLanding';
 
 /** key for storing tenant info in local storage */
 const TENANT_LOCAL_STORAGE_KEY = 'tenant';
@@ -17,7 +17,7 @@ const stripes = STRIPES_GLOBAL || {};
 // eslint-disable-next-line no-undef
 const config = CONFIG_GLOBAL || {};
 const StripesHubComponent = () => <StripesHub stripes={stripes} config={config} />;
-const OIDCLandingComponent = () => <CookiesProvider><OIDCLanding stripes={stripes} config={config} /></CookiesProvider>;
+const OidcLandingComponent = () => <CookiesProvider><OidcLanding stripes={stripes} config={config} /></CookiesProvider>;
 
 const reactQueryClient = createReactQueryClient();
 
@@ -26,7 +26,7 @@ let LandingComponent = StripesHubComponent;
 if (window.location.pathname === '/') {
   LandingComponent = StripesHubComponent;
 } else if (window.location.pathname === '/oidc-landing') {
-  LandingComponent = OIDCLandingComponent;
+  LandingComponent = OidcLandingComponent;
 }
 
 root.render(

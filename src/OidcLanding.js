@@ -10,7 +10,7 @@ import {
 import useExchangeCode from './components/useExchangeCode';
 
 /**
- * OIDCLanding: un-authenticated route handler for /oidc-landing.
+ * OidcLanding: un-authenticated route handler for /oidc-landing.
  *
  * * Read one-time-code from URL params
  * * make an API call to /authn/token to exchange the OTP for cookies
@@ -20,7 +20,7 @@ import useExchangeCode from './components/useExchangeCode';
  *
  * @see RootWithIntl
  */
-const OIDCLanding = ({ stripes, config }) => {
+const OidcLanding = ({ stripes, config }) => {
   const intl = useIntl();
   //const { okapi, store } = useStripes();
 
@@ -65,4 +65,4 @@ const OIDCLanding = ({ stripes, config }) => {
   );
 };
 
-export default OIDCLanding;
+export default OidcLanding;
