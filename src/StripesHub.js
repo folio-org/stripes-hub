@@ -2,16 +2,12 @@ import localforage from 'localforage';
 import { useRef } from 'react';
 
 import {
-  getLogoutTenant,
-  getSession,
-  loadStripes,
   USERS_PATH,
   IS_LOGGING_OUT,
   SESSION_NAME,
   RTR_TIMEOUT_EVENT,
   TENANT_LOCAL_STORAGE_KEY,
   LOGIN_RESPONSE,
-  getHeaders,
 } from './loginServices';
 
 const DISCOVERY_URL_KEY = 'entitlementUrl';
@@ -21,7 +17,6 @@ const REMOTE_LIST_KEY = 'entitlements';
 
 function StripesHub({ stripes, config }) {
   const stripesCoreRef = useRef(null);
-
 
   /**
    * getCurrentTenant
@@ -50,27 +45,10 @@ function StripesHub({ stripes, config }) {
 
   const sessionIsValid = (session) => {
     return session && session.isAuthenticated;
-  }
-
-  const getConfigTenant = () => {
-    const tenants = Object.values(config.tenantOptions);
-
-    // Selecting first for now until selection dropdown is added for multiple tenants
-    return tenants[0];
-  }
+  };
 
   const getSessionTenant = (session) => {
     return session.tenant;
-  }
-
-  /**
-   * storeLogoutTenant
-   * Store the tenant ID in local storage for use during logout.
-   *
-   * @param {string} tenantId the tenant ID
-   */
-  const storeLogoutTenant = (tenantId) => {
-    localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ tenantId }));
   };
 
   /**
@@ -143,7 +121,6 @@ function StripesHub({ stripes, config }) {
       });
       application.uiModuleDescriptors.forEach(module => {
         if (uiMap[module.id]) {
-          // console.error(`===> found module descriptor for ${module.id}`);
           uiMap[module.id].okapiInterfaces = module.requires;
           uiMap[module.id].optionalOkapiInterfaces = module.optional;
           uiMap[module.id] = { ...uiMap[module.id], ...module.metadata?.stripes };
@@ -154,17 +131,9 @@ function StripesHub({ stripes, config }) {
     return uiMap;
   };
 
-  /** error-handler: do nothing */
-  const handleWithNoop = () => { };
-
   /** error-handler: log it */
   const handleWithLog = (msg) => {
     console.error(msg); // eslint-disable-line no-console
-  };
-
-  /** error-handler: throw it */
-  const handleWithThrow = (msg) => {
-    throw new Error(msg);
   };
 
   /**
@@ -195,7 +164,6 @@ function StripesHub({ stripes, config }) {
       }
     });
 
-    // TODO: better way to handle this situation?
     // cache stripes-core location for later use
     stripesCoreRef.current = json.discovery.find((entry) => entry.name === 'folio_stripes-core');
     console.log('Stripes core located at, ', stripesCoreRef.current); // eslint-disable-line no-console
@@ -238,14 +206,12 @@ function StripesHub({ stripes, config }) {
     jsImports.forEach((jsRef) => {
       const jsFile = manifest.assets[jsRef].file;
       console.log(`${stripesCoreRef.current.location}${jsFile}`);
-      // import(`${stripesCoreRef.current.location}${jsFile}`);
+
       const script = document.createElement('script');
       script.src = `${stripesCoreRef.current.location}${jsFile}`;
       document.body.appendChild(script);
     });
-  }
-
-  // //////////////////////
+  };
 
   /**
    * getOIDCRedirectUri
@@ -257,7 +223,7 @@ function StripesHub({ stripes, config }) {
    */
   const getOIDCRedirectUri = (tenant, clientId) => {
     // we need to use `encodeURIComponent` to separate `redirect_uri` URL parameters from the rest of URL parameters that `redirect_uri` itself is part of
-    return encodeURIComponent(`${window.location.protocol}//${window.location.host}/oidc-landing?tenant=${tenant}&client_id=${clientId}`);
+    return encodeURIComponent(`${globalThis.location.protocol}//${globalThis.location.host}/oidc-landing?tenant=${tenant}&client_id=${clientId}`);
   };
 
   /**
@@ -322,7 +288,7 @@ function StripesHub({ stripes, config }) {
    * Redirect to login URL to initiate logout process.
    */
   const logout = async () => {
-    window.location.href = getLoginUrl();
+    globalThis.location.href = getLoginUrl();
 
     // check the private-storage sentinel: if logout has already started
     // in this window, we don't want to start it again.
@@ -412,7 +378,6 @@ function StripesHub({ stripes, config }) {
 
         console.error('session is missing; authenticating');
         document.body.innerHTML = '<h2>Redirecting to login...</h2>';
-        // this.authenticate();
       }
     } catch (e) {
       console.error('error during StripesHub init', e); // eslint-disable-line no-console

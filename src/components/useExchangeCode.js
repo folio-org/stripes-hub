@@ -1,12 +1,12 @@
 import { useQuery } from 'react-query';
 import { useIntl } from 'react-intl';
-import { noop } from 'lodash';
+import noop from 'lodash/noop';
 
 import { getLoginTenant, getHeaders } from '../loginServices';
 
-const useExchangeCode = async (initSession = noop, stripes) => {
+const useExchangeCode = async (stripes, initSession = noop) => {
   const intl = useIntl();
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(globalThis.location.search);
   const code = urlParams.get('code');
   const loginTenant = getLoginTenant();
 
@@ -17,7 +17,7 @@ const useExchangeCode = async (initSession = noop, stripes) => {
         try {
           const params = new URLSearchParams();
           params.append("code", code);
-          params.append("redirect-uri", `${window.location.protocol}//${window.location.host}/oidc-landing?tenant=${loginTenant.name}&client_id=${loginTenant.clientId}`);
+          params.append("redirect-uri", `${globalThis.location.protocol}//${globalThis.location.host}/oidc-landing?tenant=${loginTenant.name}&client_id=${loginTenant.clientId}`);
 
           const response = await fetch(`${stripes.url}/authn/token?${params}`, {
             headers: getHeaders(loginTenant.name),

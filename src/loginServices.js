@@ -71,10 +71,8 @@ const ENTITLEMENT_URL_KEY = 'entitlementUrl';
   export const loadStripes = async (stripes) => {
     console.log('Loading Stripes...'); // eslint-disable-line no-console
 
-    //TODO: make these dynamic based on config for deployed tenants, for now it is the same as entitlementUrl
-    //const moduleMetadataUrl = `${ENTITLEMENT_URL}/entitlements/${TENANT_NAME}/applications`;
     const moduleMetadataUrl = stripes.entitlementUrl;
-    const stripesCoreLocation = stripes.stripesCoreUrl; // or procured from entitlement response...
+    let stripesCoreLocation = stripes.stripesCoreUrl; // or procured from entitlement response...
 
     // store the location for stripes to pick up when it loads.
 
@@ -174,7 +172,7 @@ export const getSession = () => {
  */
 export const getLoginTenant = (stripesConfig) => {
   // derive from the URL
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(globalThis.location.search);
   let name = urlParams.get('tenant');
   let clientId = urlParams.get('client_id');
 

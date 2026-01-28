@@ -20,9 +20,8 @@ import useExchangeCode from './components/useExchangeCode';
  *
  * @see RootWithIntl
  */
-const OidcLanding = ({ stripes, config }) => {
+const OidcLanding = ({ stripes }) => {
   const intl = useIntl();
-  //const { okapi, store } = useStripes();
 
   const atDefaultExpiration = Date.now() + (60 * 1000);
   const rtDefaultExpiration = Date.now() + (2 * 60 * 1000);
@@ -48,12 +47,12 @@ const OidcLanding = ({ stripes, config }) => {
           return requestUserWithPerms(stripes, loginTenant.name);
         }).then(() => {
           // upon successful session init, redirect to root for stripes-core to proceed with normal boot.
-          window.location.replace('/');
+          globalThis.location.replace('/');
         });
     }
   };
 
-  const { tokenData, isLoading, error } = useExchangeCode(initSession, stripes);
+  const { tokenData, isLoading } = useExchangeCode(stripes, initSession);
 
   return (
     <div data-test-saml-success>

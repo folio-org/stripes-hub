@@ -23,9 +23,9 @@ const reactQueryClient = createReactQueryClient();
 
 let LandingComponent = StripesHubComponent;
 
-if (window.location.pathname === '/') {
+if (globalThis.location.pathname === '/') {
   LandingComponent = StripesHubComponent;
-} else if (window.location.pathname === '/oidc-landing') {
+} else if (globalThis.location.pathname === '/oidc-landing') {
   LandingComponent = OidcLandingComponent;
 }
 
