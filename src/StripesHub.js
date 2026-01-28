@@ -391,9 +391,7 @@ function StripesHub({ stripes, config }) {
     try {
       const session = await getSession();
 
-      const handleError = () => logout();
-
-      session?.user?.id ? validateSession(session, handleError) : handleError();
+      session?.user?.id ? await validateSession(session, logout) : logout();
 
       if (session && sessionIsValid(session)) {
         const tenant = getSessionTenant(session);
