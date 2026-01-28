@@ -374,7 +374,7 @@ function StripesHub({ stripes, config }) {
         await loadStripes();
       } else {
 
-        handleError();
+        logout();
 
         console.error('session is missing; authenticating');
         document.body.innerHTML = '<h2>Redirecting to login...</h2>';
