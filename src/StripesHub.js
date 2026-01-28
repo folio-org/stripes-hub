@@ -2,20 +2,20 @@ import localforage from 'localforage';
 import { useRef } from 'react';
 
 import {
+  getLogoutTenant,
+  getSession,
   USERS_PATH,
   IS_LOGGING_OUT,
   SESSION_NAME,
   RTR_TIMEOUT_EVENT,
   TENANT_LOCAL_STORAGE_KEY,
   LOGIN_RESPONSE,
+  getHeaders,
+  initStripes
 } from './loginServices';
 
-const DISCOVERY_URL_KEY = 'entitlementUrl';
-const HOST_APP_NAME = 'folio_stripes';
-const HOST_LOCATION_KEY = 'hostLocation';
-const REMOTE_LIST_KEY = 'entitlements';
-
 function StripesHub({ stripes, config }) {
+  console.log('RENDER')
   const stripesCoreRef = useRef(null);
 
   /**
@@ -31,187 +31,13 @@ function StripesHub({ stripes, config }) {
     return tenants[0];
   };
 
-  // ^^^^^^^^^^^^^^^^
-  /**
-   * getSession
-   * simple wrapper around access to values stored in localforage
-   * to insulate RTR functions from that API.
-   *
-   * @returns {object} Session object from localforage
-  */
-  const getSession = () => {
-    return localforage.getItem(SESSION_NAME);
-  };
-
   const sessionIsValid = (session) => {
-    return session && session.isAuthenticated;
-  };
+    return !!session?.isAuthenticated;
+  }
 
   const getSessionTenant = (session) => {
     return session.tenant;
-  };
-
-  /**
-   * getLogoutTenant
-   * Retrieve the tenant ID from local storage for use during logout.
-   *
-   * @returns {object|undefined} tenant info object or undefined if not found
-   */
-  const getLogoutTenant = () => {
-    const storedTenant = localStorage.getItem(TENANT_LOCAL_STORAGE_KEY);
-    return storedTenant ? JSON.parse(storedTenant) : undefined;
-  };
-
-  /**
-   * getHeaders
-   * Construct headers for FOLIO requests.
-   *
-   * @param {*} tenant the tenant name
-   * @param {*} token the auth token
-   * @returns {object} headers for FOLIO requests
-   */
-  const getHeaders = (tenant, token) => {
-    return {
-      'X-Okapi-Tenant': tenant,
-      'Content-Type': 'application/json',
-      ...(token && { 'X-Okapi-Token': token }),
-    };
   }
-
-  /**
-   * ffetch (folio-fetch)
-   * Wrapper around fetch to include Okapi headers and error handling. Throws
-   * if response is not ok.
-   *
-   * @param {string} url URL to retrieve
-   * @param {string} tenant tenant for x-okapi-tenant header
-   * @returns {Promise} resolves to the JSON response
-   */
-  const ffetch = async (url, tenant) => {
-    const res = await fetch(url, {
-      headers: getHeaders(tenant),
-      credentials: 'include',
-      mode: 'cors',
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Fetch to ${url} failed: ${res.status} ${res.statusText} - ${text}`);
-    }
-
-    const json = await res.json();
-    return json;
-  }
-
-  /**
-   * fetchEntitlements
-   * Fetch entitlement data for the tenant, then coalesce UI modules across
-   * applications into a single map, keyed by module ID, including .
-   * @param {string} tenant
-   * @returns
-   */
-  const fetchEntitlements = async (tenant) => {
-    console.log(`Fetching entitlements for tenant ${tenant}...`); // eslint-disable-line no-console
-    const uiMap = {};
-    const json = await ffetch(`${stripes.url}/entitlements/${tenant}/applications`, tenant);
-    const elist = json.applicationDescriptors;
-    elist.forEach(application => {
-      application.uiModules.forEach(module => {
-        uiMap[module.id] = module;
-      });
-      application.uiModuleDescriptors.forEach(module => {
-        if (uiMap[module.id]) {
-          uiMap[module.id].okapiInterfaces = module.requires;
-          uiMap[module.id].optionalOkapiInterfaces = module.optional;
-          uiMap[module.id] = { ...uiMap[module.id], ...module.metadata?.stripes };
-        }
-      });
-    });
-
-    return uiMap;
-  };
-
-  /** error-handler: log it */
-  const handleWithLog = (msg) => {
-    console.error(msg); // eslint-disable-line no-console
-  };
-
-  /**
-   * fetchDiscovery
-   * Fetch discovery data for the tenant and merge it with corresponding
-   * entitlement data, returning the intersection. (e.g. if discovery has
-   * entries for a, b, c and entitlement has entries for b, c, d then the
-   * returned map will have entries for b and c only.)
-   *
-   * @param {string} tenant
-   * @param {map} uiMap
-   * @param {function} handler error handler
-   * @returns
-   */
-  const fetchDiscovery = async (tenant, uiMap, handler) => {
-    console.log(`Fetching discovery for tenant ${tenant}...`); // eslint-disable-line no-console
-    const map = {};
-
-    const discoveryUrl = stripes.discoveryUrl ?? `${stripes.url}/modules/discovery`;
-    const json = await ffetch(`${discoveryUrl}?limit=100`, tenant);
-    json.discovery.forEach(entry => {
-      if (uiMap[entry.id]) {
-        map[entry.id] = uiMap[entry.id];
-        map[entry.id].location = entry.location;
-        map[entry.id].module = `@${entry.name.replace('_', '/')}`;
-      } else {
-        handler(`No entitlement found for discovered module ID ${entry.id}`);
-      }
-    });
-
-    // cache stripes-core location for later use
-    stripesCoreRef.current = json.discovery.find((entry) => entry.name === 'folio_stripes-core');
-    console.log('Stripes core located at, ', stripesCoreRef.current); // eslint-disable-line no-console
-
-    return map;
-  };
-
-  /**
-   * loadStripes
-   * Dynamically load stripes CSS and JS assets using the build's manifest.json.
-   * Stripes will bootstrap itself once its JS is loaded.
-   */
-  const loadStripes = async () => {
-    console.log('Loading Stripes...'); // eslint-disable-line no-console
-
-    const manifestJSON = await fetch(`${stripesCoreRef.current.location}/manifest.json`);
-    const manifest = await manifestJSON.json();
-
-    // collect imports...
-    const jsImports = new Set();
-    const cssImports = new Set();
-    Object.keys(manifest.entrypoints).forEach((entry) => {
-      manifest.entrypoints[entry].imports.forEach((imp) => {
-        if (imp.endsWith('.js')) {
-          jsImports.add(imp);
-        } else if (imp.endsWith('.css')) {
-          cssImports.add(imp);
-        }
-      });
-    });
-
-    cssImports.forEach((cssRef) => {
-      const cssFile = manifest.assets[cssRef].file
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = `${stripesCoreRef.current.location}${cssFile}`;
-      document.head.appendChild(link);
-    });
-
-    jsImports.forEach((jsRef) => {
-      const jsFile = manifest.assets[jsRef].file;
-      console.log(`${stripesCoreRef.current.location}${jsFile}`);
-
-      const script = document.createElement('script');
-      script.src = `${stripesCoreRef.current.location}${jsFile}`;
-      document.body.appendChild(script);
-    });
-  };
 
   /**
    * getOIDCRedirectUri
@@ -269,8 +95,6 @@ function StripesHub({ stripes, config }) {
       });
       if (resp.ok) {
         const data = await resp.json();
-
-        loadStripes(stripes);
         return data;
       } else {
         const text = await resp.text();
@@ -360,18 +184,11 @@ function StripesHub({ stripes, config }) {
       session?.user?.id ? await validateSession(session, logout) : logout();
 
       if (session && sessionIsValid(session)) {
+        console.log('#########')
         const tenant = getSessionTenant(session);
         const { tenant: sessionTenant = tenant } = session;
 
-        const uiMap = await fetchEntitlements(sessionTenant);
-        const disco = await fetchDiscovery(sessionTenant, uiMap, handleWithLog);
-
-        await localforage.setItem(DISCOVERY_URL_KEY, stripes.discoveryUrl ?? stripes.url);
-        await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
-        await localforage.setItem(HOST_LOCATION_KEY, stripesCoreRef.current.location);
-        await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco).filter(module => module.name !== 'folio_stripes-core'));
-
-        await loadStripes();
+        await initStripes(stripes, sessionTenant);
       } else {
 
         logout();
@@ -383,7 +200,6 @@ function StripesHub({ stripes, config }) {
       console.error('error during StripesHub init', e); // eslint-disable-line no-console
       alert(`error during StripesHub init: ${JSON.stringify(e, null, 2)}`); // eslint-disable-line no-alert
     }
-
   };
 
   init();
@@ -393,5 +209,17 @@ function StripesHub({ stripes, config }) {
     </div>
   );
 }
+
+// StripesHub.propTypes = {
+//   stripes: PropTypes.shape({
+//     url: PropTypes.string.isRequired,
+//     authnUrl: PropTypes.string.isRequired,
+//     discoveryUrl: PropTypes.string,
+//   }).isRequired,
+//   config: PropTypes.shape({
+//     tenantOptions: PropTypes.object.isRequired,
+//     preserveConsole: PropTypes.bool,
+//   }).isRequired,
+// };
 
 export default StripesHub;

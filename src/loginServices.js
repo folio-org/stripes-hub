@@ -1,5 +1,5 @@
 import localforage from 'localforage';
-import { isObject } from 'lodash';
+import { isObject, noop } from 'lodash';
 
 import { defaultErrors } from './constants';
 
@@ -26,107 +26,10 @@ export const USERS_PATH = 'users-keycloak';
 /** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
 const HOST_APP_NAME = 'folio_stripes';
 
-const MEDATADATA_KEY = 'discovery';
-
 // const keys to-be-ingested by stripes-core
+const DISCOVERY_URL_KEY = 'entitlementUrl';
 const HOST_LOCATION_KEY = 'hostLocation';
 const REMOTE_LIST_KEY = 'entitlements';
-const ENTITLEMENT_URL_KEY = 'entitlementUrl';
-
- /** fetchEntitlement
-   * fetches entitlement data including the name, version, and location of each remote module and the host app.
-   * @param {string} entitlementUrl the endpoing to fetch entitlement data from
-   * @returns {object} entitlement data object
-   */
-
-  const fetchEntitlement = async (entitlementUrl) => {
-    const entitlements = await fetch(entitlementUrl);
-    if (!entitlements.ok) {
-      throw new Error(`Failed to fetch entitlements from ${entitlementUrl}: ${entitlements.status} ${entitlements.statusText}`);
-    }
-    const entitlementData = await entitlements.json();
-    return entitlementData;
-  };
-
-  /** fetchModuleMetadata
-   * Fetches module metadata - originally from the package.json of each module that categorizes the module
-   * @param {string} moduleMetadataUrl the URL to fetch module metadata from
-   * @returns {object} module metadata object
-   *
-  */
-
-  const fetchModuleMetadata = async (moduleMetadataUrl) => {
-    const moduleMetadataResp = await fetch(moduleMetadataUrl);
-    if (!moduleMetadataResp.ok) {
-      throw new Error(`Failed to fetch module metadata from ${moduleMetadataUrl}: ${moduleMetadataResp.status} ${moduleMetadataResp.statusText}`);
-    }
-    const moduleMetadata = await moduleMetadataResp.json();
-    return moduleMetadata;
-  };
-
-  /**
-   * loadStripes
-   * Dynamically load Stripes core assets based on manifest.json.
-   */
-  export const loadStripes = async (stripes) => {
-    console.log('Loading Stripes...'); // eslint-disable-line no-console
-
-    const moduleMetadataUrl = stripes.entitlementUrl;
-    let stripesCoreLocation = stripes.stripesCoreUrl; // or procured from entitlement response...
-
-    // store the location for stripes to pick up when it loads.
-
-    await localforage.setItem(ENTITLEMENT_URL_KEY, stripes.entitlementUrl);
-
-    const entitlementData = await fetchEntitlement(stripes.entitlementUrl);
-
-    // fetch module metadata...
-    const moduleMetadata = await fetchModuleMetadata(moduleMetadataUrl);
-
-    moduleMetadata[MEDATADATA_KEY].forEach((module) => {
-      const entitlementEntry = entitlementData.discovery.findIndex((entry) => entry.name === module.name);
-      entitlementData.discovery[entitlementEntry].metadata = module;
-    });
-
-    // pull the host app out of the registry and store its location in localforage to pass to stripes.
-    const hostEntitlement = entitlementData.discovery.find((entry) => entry.name === HOST_APP_NAME);
-    if (hostEntitlement) {
-      stripesCoreLocation = hostEntitlement.url;
-    }
-    await localforage.setItem(HOST_LOCATION_KEY, stripesCoreLocation);
-
-    const entitlementMinusStripes = entitlementData.discovery.filter((entry) => entry.name !== HOST_APP_NAME);
-    await localforage.setItem(REMOTE_LIST_KEY, entitlementMinusStripes);
-
-    const manifestJSON = await fetch(`${stripesCoreLocation}/manifest.json`);
-    const manifest = await manifestJSON.json();
-
-    // collect imports...
-    const JSimports = new Set();
-    const CSSimports = new Set();
-    Object.keys(manifest.entrypoints).forEach((entry) => {
-      manifest.entrypoints[entry].imports.forEach((imp) => {
-        if (imp.endsWith('.js')) {
-          JSimports.add(imp);
-        } else if (imp.endsWith('.css')) {
-          CSSimports.add(imp);
-        }
-      });
-    });
-
-    CSSimports.forEach((cssRef) => {
-      const cssFile = manifest.assets[cssRef].file;
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = `${stripesCoreLocation}${cssFile}`;
-      document.head.appendChild(link);
-    });
-
-    JSimports.forEach((jsRef) => {
-      const jsFile = manifest.assets[jsRef].file;
-      import(/* webpackIgnore: true */ `${stripesCoreLocation}${jsFile}`);
-    });
-  }
 
 /**
  * getHeaders
@@ -209,6 +112,156 @@ export const getLogoutTenant = () => {
 export const storeLogoutTenant = (tenantId) => {
   localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ tenantId }));
 };
+
+/** error-handler: log it */
+const handleWithLog = (msg) => {
+  console.error(msg); // eslint-disable-line no-console
+};
+
+/** error-handler: throw it */
+const handleWithThrow = (msg) => {
+  throw new Error(msg);
+};
+
+/**
+ * ffetch (folio-fetch)
+ * Wrapper around fetch to include Okapi headers and error handling. Throws
+ * if response is not ok. Returns parsed JSON response.
+ *
+ * @param {string} url URL to retrieve
+ * @param {string} tenant tenant for x-okapi-tenant header
+ * @returns {Promise} resolves to the JSON response
+ */
+const ffetch = async (url, tenant) => {
+  const res = await fetch(url, {
+    headers: getHeaders(tenant),
+    credentials: 'include',
+    mode: 'cors',
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Fetch to ${url} failed: ${res.status} ${res.statusText} - ${text}`);
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+/**
+ * fetchEntitlements
+ * Fetch entitlement data for the tenant, then coalesce UI modules across
+ * applications into a single map, keyed by module ID, including .
+ * @param {string} tenant
+ * @returns
+ */
+const fetchEntitlements = async (stripes, tenant) => {
+  console.log(`fetchEntitlements: ${stripes.url}/entitlements/${tenant}/applications tenant: ${tenant}`);
+  const uiMap = {};
+  const json = await ffetch(`${stripes.url}/entitlements/${tenant}/applications`, tenant);
+  const elist = json.applicationDescriptors;
+  elist.forEach(application => {
+    application.uiModules.forEach(module => {
+      uiMap[module.id] = module;
+    });
+    application.uiModuleDescriptors.forEach(module => {
+      if (uiMap[module.id]) {
+        uiMap[module.id].okapiInterfaces = module.requires;
+        uiMap[module.id].optionalOkapiInterfaces = module.optional;
+        uiMap[module.id] = { ...uiMap[module.id], ...module.metadata?.stripes };
+      }
+    });
+  });
+
+  return uiMap;
+};
+
+/**
+ * fetchDiscovery
+ * Fetch discovery data for the tenant and merge it with corresponding
+ * entitlement data, returning the intersection. (e.g. if discovery has
+ * entries for a, b, c and entitlement has entries for b, c, d then the
+ * returned map will have entries for b and c only.)
+ *
+ * @param {string} tenant
+ * @param {map} uiMap
+ * @param {function} handler error handler
+ * @returns
+ */
+const fetchDiscovery = async (stripes, tenant, uiMap, handler = noop) => {
+  console.log(`fetchDiscovery: ${stripes.url}/modules/discovery tenant: ${tenant}`);
+  const map = {};
+
+  const discoveryUrl = stripes.discoveryUrl ?? `${stripes.url}/modules/discovery`;
+  const json = await ffetch(`${discoveryUrl}?limit=100`, tenant);
+  json.discovery.forEach(entry => {
+    if (uiMap[entry.id]) {
+      map[entry.id] = uiMap[entry.id];
+      map[entry.id].location = entry.location;
+      map[entry.id].module = `@${entry.name.replace('_', '/')}`;
+    } else {
+      handler(`No entitlement found for discovered module ID ${entry.id}`);
+    }
+  });
+
+  return map;
+};
+
+
+/**
+ * loadStripes
+ * Dynamically load stripes CSS and JS assets using the build's manifest.json.
+ * Stripes will bootstrap itself once its JS is loaded.
+ */
+const loadStripes = async (stripesCore) => {
+  console.log(`loadStripes: ${stripesCore.location}`);
+  const manifestJSON = await fetch(`${stripesCore.location}/manifest.json`);
+  const manifest = await manifestJSON.json();
+
+  // collect imports...
+  const jsImports = new Set();
+  const cssImports = new Set();
+  Object.keys(manifest.entrypoints).forEach((entry) => {
+    manifest.entrypoints[entry].imports.forEach((imp) => {
+      if (imp.endsWith('.js')) {
+        jsImports.add(imp);
+      } else if (imp.endsWith('.css')) {
+        cssImports.add(imp);
+      }
+    });
+  });
+
+  cssImports.forEach((cssRef) => {
+    const cssFile = manifest.assets[cssRef].file
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `${stripesCore.location}${cssFile}`;
+    document.head.appendChild(link);
+  });
+
+  jsImports.forEach((jsRef) => {
+    const jsFile = manifest.assets[jsRef].file;
+    // dynamic import doesn't work here?!? import(`${stripesCoreRef.current.location}${jsFile}`);
+    const script = document.createElement('script');
+    script.src = `${stripesCore.location}${jsFile}`;
+    document.body.appendChild(script);
+  });
+}
+
+export const initStripes = async (stripes, tenant) => {
+  console.log('initStripes');
+  const uiMap = await fetchEntitlements(stripes, tenant);
+  const disco = await fetchDiscovery(stripes, tenant, uiMap, handleWithLog);
+
+  const stripesCore = Object.values(disco).find((entry) => entry.name === 'folio_stripes-core');
+
+  await localforage.setItem(DISCOVERY_URL_KEY, stripes.discoveryUrl ?? stripes.url);
+  await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
+  await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
+  await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco).filter(module => module.name !== 'folio_stripes-core'));
+
+  loadStripes(stripesCore);
+}
 
 /**
  * spreadUserWithPerms
@@ -373,7 +426,7 @@ export const createSession = async (tenant, token, data, stripes) => {
   }
 
   await localforage.setItem(SESSION_NAME, session);
-  loadStripes(stripes);
+  initStripes(stripes, tenant);
 };
 
 /**

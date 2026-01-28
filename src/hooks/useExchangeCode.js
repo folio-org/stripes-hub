@@ -28,13 +28,10 @@ const useExchangeCode = async (stripes, initSession = noop) => {
 
           // note: initSession is expected to execute an unawaited promise.
           // initSession calls .../_self and other functions in order to
-          // populate the session, eventually dispatching redux actions
-          // (isAuthenticated, sessionData, okapiReady), triggering
-          // RootWithIntl to re-render.
-          //
-          // return the json response from `authn/token` in order to
-          // show a status update on the calling page while session-init
-          // is still in-flight.
+          // populate the session, eventuall triggering a re-render. so,
+          // even though it's async, we do not await it here, instead
+          // returning the response-json that can be used to show a status
+          // update while session-init is still in-flight.
           initSession(json);
 
           return json;
