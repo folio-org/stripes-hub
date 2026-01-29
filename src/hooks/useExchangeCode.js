@@ -28,7 +28,7 @@ const useExchangeCode = async (stripes, initSession = noop) => {
 
           // note: initSession is expected to execute an unawaited promise.
           // initSession calls .../_self and other functions in order to
-          // populate the session, eventuall triggering a re-render. so,
+          // populate the session, eventually triggering a re-render. so,
           // even though it's async, we do not await it here, instead
           // returning the response-json that can be used to show a status
           // update while session-init is still in-flight.

@@ -29,12 +29,12 @@ if (globalThis.location.pathname === '/') {
   LandingComponent = OidcLandingComponent;
 }
 
-
-
 root.render(
-  <QueryClientProvider client={reactQueryClient}>
-    <IntlProvider>
-      <LandingComponent />
-    </IntlProvider>
-  </QueryClientProvider>
+  <React.StrictMode>
+    <QueryClientProvider client={reactQueryClient}>
+      <IntlProvider>
+        <LandingComponent />
+      </IntlProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
 );
