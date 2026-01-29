@@ -53,7 +53,7 @@ export const getHeaders = (tenant, token) => {
  * simple wrapper around access to values stored in localforage
  * to insulate RTR functions from that API.
  *
- * @returns {object} Session object from localforage
+ * @returns {Promise<string>} Session object from localforage
 */
 export const getSession = async () => {
   const session = await localforage.getItem(SESSION_NAME);
@@ -154,7 +154,7 @@ const ffetch = async (url, tenant) => {
  * Fetch entitlement data for the tenant, then coalesce UI modules across
  * applications into a single map, keyed by module ID, including .
  * @param {string} tenant
- * @returns
+ * @returns {Promise<map>} map of entitlement data, keyed by module ID
  */
 const fetchEntitlements = async (stripes, tenant) => {
   const uiMap = {};
@@ -186,7 +186,7 @@ const fetchEntitlements = async (stripes, tenant) => {
  * @param {string} tenant
  * @param {map} uiMap
  * @param {function} handler error handler
- * @returns
+ * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
 const fetchDiscovery = async (stripes, tenant, uiMap, handler = noop) => {
   const map = {};
@@ -244,8 +244,29 @@ const loadStripes = async (stripesCore) => {
     script.src = `${stripesCore.location}${jsFile}`;
     document.body.appendChild(script);
   });
+
+  // compilers get cranky in functions marked async that don't await anything,
+  // so we have to return _something_ here.
+  return Promise.resolve();
 }
 
+/**
+ * initStripes
+ * Fetch entitlements and discovery data, then cache it in local storage.
+ * Pluck stripes from the discovery data and purge it from the cache (we don't
+ * want stripes to try to load itself) and then load stripes.
+ *
+ * Stripes is keyed by folio_stripes-core in the entitlement data, which is
+ * composed of Application Descriptors, themselves composed of Module
+ * Descriptors. IOW, entitlement data only contains modules that have MDs.
+ * Since Stripes itself does not contain an MD but stripes-core does, we take
+ * advantage of that fact, using the folio_stripes-core key in entitlement and
+ * discovery data to find stripes' location.
+ *
+ * @param {object} stripes stripes config data
+ * @param {string} tenant
+ * @returns {Promise<void>} resolves when stripes is initialized
+ */
 export const initStripes = async (stripes, tenant) => {
   const uiMap = await fetchEntitlements(stripes, tenant);
   const disco = await fetchDiscovery(stripes, tenant, uiMap, handleWithLog);
@@ -260,7 +281,7 @@ export const initStripes = async (stripes, tenant) => {
   // Malkovich Malkovich Malkovich? Malkovich!
   await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco).filter(module => module.name !== 'folio_stripes-core'));
 
-  loadStripes(stripesCore);
+  return loadStripes(stripesCore);
 }
 
 /**
@@ -358,7 +379,7 @@ export const setTokenExpiry = async (te) => {
  * @param {string} token access token [deprecated; prefer folioAccessToken cookie]
  * @param {*} data response from call to _self
  *
- * @returns {Promise} resolving to { user, tenant, perms, isAuthenticated, tokenExpiration }
+ * @returns {Promise} resolving when stripes is initialized
  */
 export const createSession = async (tenant, token, data, stripes) => {
   const { user, perms } = spreadUserWithPerms(data);
@@ -425,7 +446,7 @@ export const createSession = async (tenant, token, data, stripes) => {
   }
 
   await localforage.setItem(SESSION_NAME, session);
-  initStripes(stripes, tenant);
+  return initStripes(stripes, tenant);
 };
 
 /**
