@@ -447,7 +447,6 @@ export const createSession = async (tenant, token, data, stripes) => {
 
   await localforage.setItem(SESSION_NAME, session);
   await initStripes(stripes, tenant);
-  return;
 };
 
 /**

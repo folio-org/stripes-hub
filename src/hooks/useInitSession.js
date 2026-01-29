@@ -3,19 +3,11 @@ import { useIntl } from 'react-intl';
 import noop from 'lodash/noop';
 
 import {
+  getHeaders,
   getLoginTenant,
   getSession,
   initStripes,
-
-  getLogoutTenant,
   USERS_PATH,
-  IS_LOGGING_OUT,
-  SESSION_NAME,
-  RTR_TIMEOUT_EVENT,
-  TENANT_LOCAL_STORAGE_KEY,
-  LOGIN_RESPONSE,
-  getHeaders,
-
 } from '../loginServices';
 
 const useInitSession = async (stripes, config, loginUrl) => {

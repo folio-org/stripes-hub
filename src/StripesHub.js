@@ -2,19 +2,6 @@ import localforage from 'localforage';
 import PropTypes from 'prop-types';
 import useInitSession from './hooks/useInitSession';
 
-import {
-  getLogoutTenant,
-  getSession,
-  USERS_PATH,
-  IS_LOGGING_OUT,
-  SESSION_NAME,
-  RTR_TIMEOUT_EVENT,
-  TENANT_LOCAL_STORAGE_KEY,
-  LOGIN_RESPONSE,
-  getHeaders,
-  initStripes
-} from './loginServices';
-
 function StripesHub({ stripes, config }) {
   /**
    * getCurrentTenant
