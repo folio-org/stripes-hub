@@ -56,7 +56,8 @@ export const getHeaders = (tenant, token) => {
  * @returns {object} Session object from localforage
 */
 export const getSession = async () => {
-  return localforage.getItem(SESSION_NAME);
+  const session = await localforage.getItem(SESSION_NAME);
+  return session;
 };
 
 /**
@@ -156,7 +157,6 @@ const ffetch = async (url, tenant) => {
  * @returns
  */
 const fetchEntitlements = async (stripes, tenant) => {
-  console.log(`fetchEntitlements: ${stripes.url}/entitlements/${tenant}/applications tenant: ${tenant}`);
   const uiMap = {};
   const json = await ffetch(`${stripes.url}/entitlements/${tenant}/applications`, tenant);
   const elist = json.applicationDescriptors;
@@ -189,7 +189,6 @@ const fetchEntitlements = async (stripes, tenant) => {
  * @returns
  */
 const fetchDiscovery = async (stripes, tenant, uiMap, handler = noop) => {
-  console.log(`fetchDiscovery: ${stripes.url}/modules/discovery tenant: ${tenant}`);
   const map = {};
 
   const discoveryUrl = stripes.discoveryUrl ?? `${stripes.url}/modules/discovery`;
@@ -214,7 +213,6 @@ const fetchDiscovery = async (stripes, tenant, uiMap, handler = noop) => {
  * Stripes will bootstrap itself once its JS is loaded.
  */
 const loadStripes = async (stripesCore) => {
-  console.log(`loadStripes: ${stripesCore.location}`);
   const manifestJSON = await fetch(`${stripesCore.location}/manifest.json`);
   const manifest = await manifestJSON.json();
 
@@ -241,7 +239,7 @@ const loadStripes = async (stripesCore) => {
 
   jsImports.forEach((jsRef) => {
     const jsFile = manifest.assets[jsRef].file;
-    // dynamic import doesn't work here?!? import(`${stripesCoreRef.current.location}${jsFile}`);
+    // dynamic import doesn't work here?!?
     const script = document.createElement('script');
     script.src = `${stripesCore.location}${jsFile}`;
     document.body.appendChild(script);
@@ -249,16 +247,17 @@ const loadStripes = async (stripesCore) => {
 }
 
 export const initStripes = async (stripes, tenant) => {
-  console.log('initStripes');
   const uiMap = await fetchEntitlements(stripes, tenant);
   const disco = await fetchDiscovery(stripes, tenant, uiMap, handleWithLog);
 
-  console.log({ disco })
   const stripesCore = Object.values(disco).find((entry) => entry.name === 'folio_stripes-core');
 
   await localforage.setItem(DISCOVERY_URL_KEY, stripes.discoveryUrl ?? stripes.url);
   await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
   await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
+  // REMOTE_LIST_KEY stores the list of apps that stripes will load,
+  // so we have to remove stripes from that list. Otherwise, Malkovich.
+  // Malkovich Malkovich Malkovich? Malkovich!
   await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco).filter(module => module.name !== 'folio_stripes-core'));
 
   loadStripes(stripesCore);
@@ -353,8 +352,7 @@ export const setTokenExpiry = async (te) => {
  *   isAuthenticated: boolean,
  *   tokenExpiration: { atExpires, rtExpires }
  * }
- * Dispatch the session object, then return a Promise that fetches
- * and dispatches tenant resources.
+ * then initalize and load stripes.
  *
  * @param {string} tenant tenant name
  * @param {string} token access token [deprecated; prefer folioAccessToken cookie]
@@ -557,7 +555,7 @@ export const getLoginErrors = (payload) => {
 
       return errors || [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
     }
-  } catch (_e) {
+  } catch (e) {
     return [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
   }
 };

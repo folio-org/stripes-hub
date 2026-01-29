@@ -1,4 +1,5 @@
 import localforage from 'localforage';
+import PropTypes from 'prop-types';
 
 import {
   getLogoutTenant,

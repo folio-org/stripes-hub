@@ -1,4 +1,5 @@
 import { useIntl } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import {
   getLoginTenant,
@@ -62,6 +63,14 @@ const OidcLanding = ({ stripes }) => {
       </div>
     </div>
   );
+};
+
+OidcLanding.propTypes = {
+  stripes: PropTypes.shape({
+    url: PropTypes.string.isRequired,
+    authnUrl: PropTypes.string.isRequired,
+    discoveryUrl: PropTypes.string,
+  }).isRequired
 };
 
 export default OidcLanding;
