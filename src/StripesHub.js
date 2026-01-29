@@ -1,5 +1,4 @@
 import localforage from 'localforage';
-import { useRef } from 'react';
 
 import {
   getLogoutTenant,
@@ -15,9 +14,6 @@ import {
 } from './loginServices';
 
 function StripesHub({ stripes, config }) {
-  console.log('RENDER')
-  const stripesCoreRef = useRef(null);
-
   /**
    * getCurrentTenant
    * Get the current tenant info from global config.
@@ -210,16 +206,16 @@ function StripesHub({ stripes, config }) {
   );
 }
 
-// StripesHub.propTypes = {
-//   stripes: PropTypes.shape({
-//     url: PropTypes.string.isRequired,
-//     authnUrl: PropTypes.string.isRequired,
-//     discoveryUrl: PropTypes.string,
-//   }).isRequired,
-//   config: PropTypes.shape({
-//     tenantOptions: PropTypes.object.isRequired,
-//     preserveConsole: PropTypes.bool,
-//   }).isRequired,
-// };
+StripesHub.propTypes = {
+  stripes: PropTypes.shape({
+    url: PropTypes.string.isRequired,
+    authnUrl: PropTypes.string.isRequired,
+    discoveryUrl: PropTypes.string,
+  }).isRequired,
+  config: PropTypes.shape({
+    tenantOptions: PropTypes.object.isRequired,
+    preserveConsole: PropTypes.bool,
+  }).isRequired,
+};
 
 export default StripesHub;

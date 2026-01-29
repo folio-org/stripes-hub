@@ -55,7 +55,7 @@ export const getHeaders = (tenant, token) => {
  *
  * @returns {object} Session object from localforage
 */
-export const getSession = () => {
+export const getSession = async () => {
   return localforage.getItem(SESSION_NAME);
 };
 
@@ -253,6 +253,7 @@ export const initStripes = async (stripes, tenant) => {
   const uiMap = await fetchEntitlements(stripes, tenant);
   const disco = await fetchDiscovery(stripes, tenant, uiMap, handleWithLog);
 
+  console.log({ disco })
   const stripesCore = Object.values(disco).find((entry) => entry.name === 'folio_stripes-core');
 
   await localforage.setItem(DISCOVERY_URL_KEY, stripes.discoveryUrl ?? stripes.url);
@@ -339,7 +340,7 @@ export const setTokenExpiry = async (te) => {
 
   // eslint-disable-next-line no-console
   console.error('Expected { atExpires: int, rtExpires: int }; received', te);
-  return Promise.reject(new TypeError('Did not receive { atExpires: int, rtExpires: int }'));
+  throw new TypeError('Did not receive { atExpires: int, rtExpires: int }');
 };
 
 /**
@@ -556,7 +557,7 @@ export const getLoginErrors = (payload) => {
 
       return errors || [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
     }
-  } catch (e) {
+  } catch (_e) {
     return [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
   }
 };
