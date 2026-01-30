@@ -32,7 +32,7 @@ if (globalThis.location.pathname === '/') {
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={reactQueryClient}>
-      <IntlProvider>
+      <IntlProvider locale={navigator.language || 'en-US'}>
         <LandingComponent />
       </IntlProvider>
     </QueryClientProvider>

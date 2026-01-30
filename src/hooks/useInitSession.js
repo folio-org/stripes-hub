@@ -109,7 +109,7 @@ const useInitSession = async (stripes, config, loginUrl) => {
   };
 
   const { isFetching, data, error } = useQuery(
-    ['@folio/stripes-core', 'scratchy-init'],
+    ['@folio/stripes-core', 'initSession'],
     async () => {
       try {
         const session = await getSession();
@@ -117,7 +117,6 @@ const useInitSession = async (stripes, config, loginUrl) => {
         session?.user?.id ? await validateSession(session, authenticate) : authenticate();
 
         if (session && sessionIsValid(session)) {
-          console.log('#########')
           const tenant = getSessionTenant(session);
           const { tenant: sessionTenant = tenant } = session;
 

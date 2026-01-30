@@ -157,23 +157,85 @@ const ffetch = async (url, tenant) => {
  * @returns {Promise<map>} map of entitlement data, keyed by module ID
  */
 const fetchEntitlements = async (stripes, tenant) => {
-  const uiMap = {};
+  const entitlement = {};
+  const applicationIds = [];
   const json = await ffetch(`${stripes.url}/entitlements/${tenant}/applications`, tenant);
   const elist = json.applicationDescriptors;
   elist.forEach(application => {
     application.uiModules.forEach(module => {
-      uiMap[module.id] = module;
+      entitlement[module.id] = module;
+
+      // store application IDs for use in the dicovery API query
+      entitlement[module.id].applicationId = application.id;
     });
     application.uiModuleDescriptors.forEach(module => {
-      if (uiMap[module.id]) {
-        uiMap[module.id].okapiInterfaces = module.requires;
-        uiMap[module.id].optionalOkapiInterfaces = module.optional;
-        uiMap[module.id] = { ...uiMap[module.id], ...module.metadata?.stripes };
+      if (entitlement[module.id]) {
+
+        entitlement[module.id].okapiInterfaces = module.requires;
+        entitlement[module.id].optionalOkapiInterfaces = module.optional;
+        entitlement[module.id] = { ...entitlement[module.id], ...module.metadata?.stripes };
       }
     });
   });
 
-  return uiMap;
+  return entitlement;
+};
+
+/**
+ * fetchCustomDiscovery
+ * Fetch discovery data with a single query. Knit results into the provided
+ * entitlement data, returning a new map of module ID to
+ * entitlement/discovery/module-descriptor data
+ *
+ * @param {object} stripes config
+ * @param {string} tenant
+ * @param {object} entitlement
+ * @param {function} handler handler for orphaned discovery entries
+ * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
+ */
+const fetchCustomDiscovery = async (stripes, tenant, entitlement) => {
+  const map = {};
+
+  const json = await ffetch(`${stripes.discoveryUrl}`, tenant);
+  json.discovery.forEach(entry => {
+    if (entitlement[entry.id]) {
+      console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
+      map[entry.id] = entitlement[entry.id];
+      map[entry.id].location = entry.location;
+    }
+  });
+
+  return map;
+};
+
+/**
+ * fetchDefaultDiscovery
+ * Fetch discovery data for each of the given applications by application-id.
+ * Knit results into the provided entitlement data, returning a new map of
+ * module ID to entitlement/discovery/module-descriptor data
+ *
+ * @param {object} stripes config
+ * @param {string} tenant
+ * @param {object} entitlement
+ * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
+ */
+const fetchDefaultDiscovery = async (stripes, tenant, entitlement) => {
+  const map = {};
+
+  const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
+
+  for (const appId of applicationIds) {
+    const json = await ffetch(`${stripes.url}/applications/${appId}/discovery?limit=500`, tenant);
+    json.discovery.forEach(entry => {
+      if (entitlement[entry.id]) {
+        console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
+        map[entry.id] = entitlement[entry.id];
+        map[entry.id].location = entry.location;
+      }
+    });
+  };
+
+  return map;
 };
 
 /**
@@ -183,29 +245,30 @@ const fetchEntitlements = async (stripes, tenant) => {
  * entries for a, b, c and entitlement has entries for b, c, d then the
  * returned map will have entries for b and c only.)
  *
+ * @param {object} stripes config data
  * @param {string} tenant
- * @param {map} uiMap
- * @param {function} handler error handler
+ * @param {map} entitlement
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
-const fetchDiscovery = async (stripes, tenant, uiMap, handler = noop) => {
-  const map = {};
+const fetchDiscovery = async (stripes, tenant, entitlement) => {
+  // Ordinarily, the discovery API query goes against the same gateway as
+  // any other API query. Running module-federation locally, however, requires
+  // running a local discovery server, and routing discovery API queries only
+  // to that local server. Provide the config value `discoveryUrl` to do so.
+  const discoveryHandler = stripes.discoveryUrl ? fetchCustomDiscovery : fetchDefaultDiscovery;
+  const map = await discoveryHandler(stripes, tenant, entitlement);
 
-  const discoveryUrl = stripes.discoveryUrl ?? `${stripes.url}/modules/discovery`;
-  const json = await ffetch(`${discoveryUrl}?limit=100`, tenant);
-  json.discovery.forEach(entry => {
-    if (uiMap[entry.id]) {
-      map[entry.id] = uiMap[entry.id];
-      map[entry.id].location = entry.location;
-      map[entry.id].module = `@${entry.name.replace('_', '/')}`;
-    } else {
-      handler(`No entitlement found for discovered module ID ${entry.id}`);
-    }
+  // modules have names like @folio/users but they are registered in entitlement
+  // with names like folio_users. who is responsible for this nonsense? anyway, fix it here.
+  // this is horribly brittle. what if we had a package @oh_noes/hosed that
+  // went into discovery as oh_noes_hosed? we'd be hosed.
+  // to be addressed in STRIPES-1009
+  Object.keys(map).forEach((key) => {
+    map[key].module = `@${map[key].name.replace('_', '/')}`;
   });
 
   return map;
 };
-
 
 /**
  * loadStripes
@@ -268,20 +331,24 @@ const loadStripes = async (stripesCore) => {
  * @returns {Promise<void>} resolves when stripes is initialized
  */
 export const initStripes = async (stripes, tenant) => {
-  const uiMap = await fetchEntitlements(stripes, tenant);
-  const disco = await fetchDiscovery(stripes, tenant, uiMap, handleWithLog);
+  const entitlement = await fetchEntitlements(stripes, tenant);
+  const discovery = await fetchDiscovery(stripes, tenant, entitlement);
 
-  const stripesCore = Object.values(disco).find((entry) => entry.name === 'folio_stripes-core');
+  const stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
+  if (stripesCore) {
+    await localforage.setItem(DISCOVERY_URL_KEY, stripes.discoveryUrl ?? stripes.url);
+    await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
+    await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
 
-  await localforage.setItem(DISCOVERY_URL_KEY, stripes.discoveryUrl ?? stripes.url);
-  await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
-  await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
-  // REMOTE_LIST_KEY stores the list of apps that stripes will load,
-  // so we have to remove stripes from that list. Otherwise, Malkovich.
-  // Malkovich Malkovich Malkovich? Malkovich!
-  await localforage.setItem(REMOTE_LIST_KEY, Object.values(disco).filter(module => module.name !== 'folio_stripes-core'));
+    // REMOTE_LIST_KEY stores the list of apps that stripes will load,
+    // so we have to remove stripes from that list. Otherwise, Malkovich.
+    // Malkovich Malkovich Malkovich? Malkovich!
+    await localforage.setItem(REMOTE_LIST_KEY, Object.values(discovery).filter(module => module.name !== 'folio_stripes-core'));
 
-  return loadStripes(stripesCore);
+    return loadStripes(stripesCore);
+  }
+
+  throw new Error('Could not find stripes-core in discovery data');
 }
 
 /**
