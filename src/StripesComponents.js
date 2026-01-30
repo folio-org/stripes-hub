@@ -65,7 +65,11 @@ TextField.propTypes = {
 }
 
 export const Button = (props) => {
+<<<<<<< HEAD
   const { buttonRef, css, children, disabled, onClick, to, type, ref } = props;
+=======
+  const { buttonClass, buttonRef, css, children, disabled, onClick, to, type, ref } = props;
+>>>>>>> b545ae4 (STHUB-8 forgot-* initial import)
   return (
     <button
       type={type}
@@ -105,3 +109,4 @@ export const AuthErrorsContainer = ({ errors }) => errors.length ? <div><pre>{JS
 AuthErrorsContainer.propTypes = {
   errors: PropTypes.array
 };
+
