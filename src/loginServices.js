@@ -133,7 +133,7 @@ const handleWithThrow = (msg) => {
  * @param {string} tenant tenant for x-okapi-tenant header
  * @returns {Promise} resolves to the JSON response
  */
-const ffetch = async (url, tenant) => {
+export const ffetch = async (url, tenant) => {
   const res = await fetch(url, {
     headers: getHeaders(tenant),
     credentials: 'include',
