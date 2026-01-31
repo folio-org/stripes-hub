@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { IntlProvider } from 'react-intl';
 import { QueryClientProvider } from 'react-query';
-import { CookiesProvider } from 'react-cookie';
 
 import createReactQueryClient from './createReactQueryClient';
 import StripesHub from './StripesHub';
@@ -17,7 +16,7 @@ const stripes = STRIPES_GLOBAL || {};
 // eslint-disable-next-line no-undef
 const config = CONFIG_GLOBAL || {};
 const StripesHubComponent = () => <StripesHub stripes={stripes} config={config} />;
-const OidcLandingComponent = () => <CookiesProvider><OidcLanding stripes={stripes} config={config} /></CookiesProvider>;
+const OidcLandingComponent = () => <OidcLanding stripes={stripes} config={config} />;
 
 const reactQueryClient = createReactQueryClient();
 
