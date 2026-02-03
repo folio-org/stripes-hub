@@ -285,10 +285,7 @@ const loadStripes = async (stripesCore) => {
 
   jsImports.forEach((jsRef) => {
     const jsFile = manifest.assets[jsRef].file;
-    // dynamic import doesn't work here?!?
-    const script = document.createElement('script');
-    script.src = `${stripesCore.location}${jsFile}`;
-    document.body.appendChild(script);
+    import(/* webpackIgnore: true */ `${stripesCore.location}${jsFile}`);
   });
 
   // compilers get cranky in functions marked async that don't await anything,
