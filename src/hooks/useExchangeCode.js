@@ -4,7 +4,7 @@ import noop from 'lodash/noop';
 
 import { getLoginTenant, getHeaders } from '../loginServices';
 
-const useExchangeCode = async (stripes, initSession = noop) => {
+const useExchangeCode = async (config, initSession = noop) => {
   const intl = useIntl();
   const urlParams = new URLSearchParams(globalThis.location.search);
   const code = urlParams.get('code');
@@ -19,7 +19,7 @@ const useExchangeCode = async (stripes, initSession = noop) => {
           params.append("code", code);
           params.append("redirect-uri", `${globalThis.location.protocol}//${globalThis.location.host}/oidc-landing?tenant=${loginTenant.name}&client_id=${loginTenant.clientId}`);
 
-          const response = await fetch(`${stripes.url}/authn/token?${params}`, {
+          const response = await fetch(`${config.hostUrl}/authn/token?${params}`, {
             headers: getHeaders(loginTenant.name),
             credentials: "include"
           });

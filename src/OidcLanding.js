@@ -21,7 +21,7 @@ import useExchangeCode from './hooks/useExchangeCode';
  *
  * @see RootWithIntl
  */
-const OidcLanding = ({ stripes }) => {
+const OidcLanding = ({ config }) => {
   const intl = useIntl();
 
   const atDefaultExpiration = Date.now() + (60 * 1000);
@@ -45,7 +45,7 @@ const OidcLanding = ({ stripes }) => {
           return storeLogoutTenant(loginTenant.name);
         })
         .then(() => {
-          return requestUserWithPerms(stripes, loginTenant.name);
+          return requestUserWithPerms(config, loginTenant.name);
         }).then(() => {
           // upon successful session init, redirect to root for stripes-core to proceed with normal boot.
           globalThis.location.replace('/');
@@ -53,7 +53,7 @@ const OidcLanding = ({ stripes }) => {
     }
   };
 
-  const { tokenData, isLoading } = useExchangeCode(stripes, initSession);
+  const { tokenData, isLoading } = useExchangeCode(config, initSession);
 
   return (
     <div data-test-saml-success>
@@ -66,8 +66,8 @@ const OidcLanding = ({ stripes }) => {
 };
 
 OidcLanding.propTypes = {
-  stripes: PropTypes.shape({
-    url: PropTypes.string.isRequired,
+  config: PropTypes.shape({
+    hostUrl: PropTypes.string.isRequired,
     authnUrl: PropTypes.string.isRequired,
     discoveryUrl: PropTypes.string,
   }).isRequired

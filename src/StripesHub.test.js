@@ -1,21 +1,31 @@
 import { render, screen } from '@testing-library/react';
+import { IntlProvider } from 'react-intl';
+import { QueryClientProvider } from 'react-query';
+
+import createReactQueryClient from './createReactQueryClient';
 import StripesHub from './StripesHub';
 
 test('renders', () => {
-  const stripes = {
-        url: 'http://url',
-        authnUrl: 'http://authn',
-      };
-      const config = {
-        tenantOptions: {
-          diku: {
-            name: 'diku', clientId: 'diku-application'
-          }
-        },
-        preserveConsole: true
+  const config = {
+    hostUrl: 'http://url',
+    authnUrl: 'http://authn',
+    tenantOptions: {
+      diku: {
+        name: 'diku', clientId: 'diku-application'
       }
+    },
+    preserveConsole: true
+  };
 
-  render(<StripesHub stripes={stripes} config={config} />);
+  const reactQueryClient = createReactQueryClient();
+
+  render(
+    <QueryClientProvider client={reactQueryClient}>
+      <IntlProvider locale="en">
+        <StripesHub config={config} />
+      </IntlProvider>
+    </QueryClientProvider>
+  );
 
   const parentDiv = screen.getByTestId("StripesHub");
   expect(parentDiv).toBeInTheDocument();

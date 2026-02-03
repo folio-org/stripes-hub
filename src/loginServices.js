@@ -62,30 +62,15 @@ export const getSession = async () => {
 
 /**
  * getLoginTenant
- * Retrieve tenant and clientId values. In order of preference, look here:
+ * Retrieve tenant and clientId values from the URL for params named tenant and client_id.
  *
- * 1 the URL for params named tenant and client_id
- * 2 stripes.config.js::config::tenantOptions iff it contains a single tenant,
- *   i.e. if it is shaped like this:
- *   tenantOptions: { someT: { name: 'someT', clientId: 'someC' }}
- * 3 stripes.config.js::okapi, the deprecated-but-historical location of these
- *   values
- *
- * @param {*} stripesConfig stripes.config.js::config
  * @returns { tenant: string, clientId: string }
  */
-export const getLoginTenant = (stripesConfig) => {
+export const getLoginTenant = () => {
   // derive from the URL
   const urlParams = new URLSearchParams(globalThis.location.search);
   let name = urlParams.get('tenant');
   let clientId = urlParams.get('client_id');
-
-  // derive from stripes.config.js::config::tenantOptions
-  if (stripesConfig?.tenantOptions && Object.keys(stripesConfig?.tenantOptions).length === 1) {
-    const key = Object.keys(stripesConfig.tenantOptions)[0];
-    name ||= stripesConfig.tenantOptions[key]?.name;
-    clientId ||= stripesConfig.tenantOptions[key]?.clientId;
-  }
 
   return {
     name,
@@ -153,13 +138,13 @@ const ffetch = async (url, tenant) => {
  * fetchEntitlements
  * Fetch entitlement data for the tenant, then coalesce UI modules across
  * applications into a single map, keyed by module ID, including .
+ * @param {object} config config
  * @param {string} tenant
  * @returns {Promise<map>} map of entitlement data, keyed by module ID
  */
-const fetchEntitlements = async (stripes, tenant) => {
+const fetchEntitlements = async (config, tenant) => {
   const entitlement = {};
-  const applicationIds = [];
-  const json = await ffetch(`${stripes.url}/entitlements/${tenant}/applications`, tenant);
+  const json = await ffetch(`${config.hostUrl}/entitlements/${tenant}/applications`, tenant);
   const elist = json.applicationDescriptors;
   elist.forEach(application => {
     application.uiModules.forEach(module => {
@@ -187,16 +172,16 @@ const fetchEntitlements = async (stripes, tenant) => {
  * entitlement data, returning a new map of module ID to
  * entitlement/discovery/module-descriptor data
  *
- * @param {object} stripes config
+ * @param {object} config config
  * @param {string} tenant
  * @param {object} entitlement
  * @param {function} handler handler for orphaned discovery entries
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
-const fetchCustomDiscovery = async (stripes, tenant, entitlement) => {
+const fetchCustomDiscovery = async (config, tenant, entitlement) => {
   const map = {};
 
-  const json = await ffetch(`${stripes.discoveryUrl}`, tenant);
+  const json = await ffetch(`${config.discoveryUrl}`, tenant);
   json.discovery.forEach(entry => {
     if (entitlement[entry.id]) {
       console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
@@ -214,18 +199,18 @@ const fetchCustomDiscovery = async (stripes, tenant, entitlement) => {
  * Knit results into the provided entitlement data, returning a new map of
  * module ID to entitlement/discovery/module-descriptor data
  *
- * @param {object} stripes config
+ * @param {object} config
  * @param {string} tenant
  * @param {object} entitlement
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
-const fetchDefaultDiscovery = async (stripes, tenant, entitlement) => {
+const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
   const map = {};
 
   const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
 
   for (const appId of applicationIds) {
-    const json = await ffetch(`${stripes.url}/applications/${appId}/discovery?limit=500`, tenant);
+    const json = await ffetch(`${config.hostUrl}/applications/${appId}/discovery?limit=500`, tenant);
     json.discovery.forEach(entry => {
       if (entitlement[entry.id]) {
         console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
@@ -245,18 +230,18 @@ const fetchDefaultDiscovery = async (stripes, tenant, entitlement) => {
  * entries for a, b, c and entitlement has entries for b, c, d then the
  * returned map will have entries for b and c only.)
  *
- * @param {object} stripes config data
+ * @param {object} config
  * @param {string} tenant
  * @param {map} entitlement
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
-const fetchDiscovery = async (stripes, tenant, entitlement) => {
+const fetchDiscovery = async (config, tenant, entitlement) => {
   // Ordinarily, the discovery API query goes against the same gateway as
   // any other API query. Running module-federation locally, however, requires
   // running a local discovery server, and routing discovery API queries only
   // to that local server. Provide the config value `discoveryUrl` to do so.
-  const discoveryHandler = stripes.discoveryUrl ? fetchCustomDiscovery : fetchDefaultDiscovery;
-  const map = await discoveryHandler(stripes, tenant, entitlement);
+  const discoveryHandler = config.discoveryUrl ? fetchCustomDiscovery : fetchDefaultDiscovery;
+  const map = await discoveryHandler(config, tenant, entitlement);
 
   // modules have names like @folio/users but they are registered in entitlement
   // with names like folio_users. who is responsible for this nonsense? anyway, fix it here.
@@ -326,17 +311,17 @@ const loadStripes = async (stripesCore) => {
  * advantage of that fact, using the folio_stripes-core key in entitlement and
  * discovery data to find stripes' location.
  *
- * @param {object} stripes stripes config data
+ * @param {object} config
  * @param {string} tenant
  * @returns {Promise<void>} resolves when stripes is initialized
  */
-export const initStripes = async (stripes, tenant) => {
-  const entitlement = await fetchEntitlements(stripes, tenant);
-  const discovery = await fetchDiscovery(stripes, tenant, entitlement);
+export const initStripes = async (config, tenant) => {
+  const entitlement = await fetchEntitlements(config, tenant);
+  const discovery = await fetchDiscovery(config, tenant, entitlement);
 
   const stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
   if (stripesCore) {
-    await localforage.setItem(DISCOVERY_URL_KEY, stripes.discoveryUrl ?? stripes.url);
+    await localforage.setItem(DISCOVERY_URL_KEY, config.discoveryUrl ?? config.hostUrl);
     await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
     await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
 
@@ -445,10 +430,11 @@ export const setTokenExpiry = async (te) => {
  * @param {string} tenant tenant name
  * @param {string} token access token [deprecated; prefer folioAccessToken cookie]
  * @param {*} data response from call to _self
+ * @param {object} config
  *
  * @returns {Promise} resolving when stripes is initialized
  */
-export const createSession = async (tenant, token, data, stripes) => {
+export const createSession = async (tenant, token, data, config) => {
   const { user, perms } = spreadUserWithPerms(data);
 
   // if we can't parse tokenExpiration data, e.g. because data comes from `.../_self`
@@ -513,7 +499,7 @@ export const createSession = async (tenant, token, data, stripes) => {
   }
 
   await localforage.setItem(SESSION_NAME, session);
-  await initStripes(stripes, tenant);
+  await initStripes(config, tenant);
 };
 
 /**
@@ -534,14 +520,16 @@ export const createSession = async (tenant, token, data, stripes) => {
   *
   * @param {string} tenant
   * @param {Response} resp HTTP response
+  * @param {string} ssoToken token from SSO login, if any
+  * @param {object} config
   *
   * @returns {Promise} resolving to login response body or undefined on error
   */
-export const processSession = async (tenant, resp, ssoToken, stripes) => {
+export const processSession = async (tenant, resp, ssoToken, config) => {
   if (resp.ok) {
     const json = await resp.json();
     const token = resp.headers.get('X-Okapi-Token') || json.access_token || ssoToken;
-    await createSession(tenant, token, json, stripes);
+    await createSession(tenant, token, json, config);
     return json;
   } else {
     // handleLoginError will dispatch setAuthError, then resolve to undefined
@@ -552,17 +540,17 @@ export const processSession = async (tenant, resp, ssoToken, stripes) => {
 /**
  * requestUserWithPerms
  * retrieve currently-authenticated user, then process the result to begin a session.
- * @param {object} stripes
+ * @param {object} config
  * @param {string} tenant
  * @param {string} token
  *
  * @returns {Promise} Promise resolving to the response-body (JSON) of the request
  */
-export const requestUserWithPerms = async (stripes, tenant, token) => {
-  const resp = await fetchOverriddenUserWithPerms(stripes.url, tenant, token, !token);
+export const requestUserWithPerms = async (config, tenant, token) => {
+  const resp = await fetchOverriddenUserWithPerms(config.hostUrl, tenant, token, !token);
 
   if (resp.ok) {
-    const sessionData = await processSession(tenant, resp, token, stripes);
+    const sessionData = await processSession(tenant, resp, token, config);
     return sessionData;
   } else {
     const error = await resp.json();

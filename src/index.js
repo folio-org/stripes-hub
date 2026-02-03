@@ -12,11 +12,9 @@ const TENANT_LOCAL_STORAGE_KEY = 'tenant';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 // eslint-disable-next-line no-undef
-const stripes = STRIPES_GLOBAL || {};
-// eslint-disable-next-line no-undef
 const config = CONFIG_GLOBAL || {};
-const StripesHubComponent = () => <StripesHub stripes={stripes} config={config} />;
-const OidcLandingComponent = () => <OidcLanding stripes={stripes} config={config} />;
+const StripesHubComponent = () => <StripesHub config={config} />;
+const OidcLandingComponent = () => <OidcLanding config={config} />;
 
 const reactQueryClient = createReactQueryClient();
 

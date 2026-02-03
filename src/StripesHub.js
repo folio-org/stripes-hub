@@ -1,8 +1,7 @@
-import localforage from 'localforage';
 import PropTypes from 'prop-types';
 import useInitSession from './hooks/useInitSession';
 
-function StripesHub({ stripes, config }) {
+function StripesHub({ config }) {
   /**
    * getCurrentTenant
    * Get the current tenant info from global config.
@@ -39,10 +38,10 @@ function StripesHub({ stripes, config }) {
     const loginTenant = getCurrentTenant();
 
     const redirectUri = getOIDCRedirectUri(loginTenant.name, loginTenant.clientId);
-    return `${stripes.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
+    return `${config.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
   };
 
-  const { sessionData, isLoading } = useInitSession(stripes, config, getLoginUrl());
+  const { sessionData, isLoading } = useInitSession(config, getLoginUrl());
 
   return (
     <div data-testid="StripesHub">
@@ -52,12 +51,10 @@ function StripesHub({ stripes, config }) {
 }
 
 StripesHub.propTypes = {
-  stripes: PropTypes.shape({
-    url: PropTypes.string.isRequired,
+  config: PropTypes.shape({
+    hostUrl: PropTypes.string.isRequired,
     authnUrl: PropTypes.string.isRequired,
     discoveryUrl: PropTypes.string,
-  }).isRequired,
-  config: PropTypes.shape({
     tenantOptions: PropTypes.object.isRequired,
     preserveConsole: PropTypes.bool,
   }).isRequired,

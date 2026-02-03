@@ -10,7 +10,7 @@ import {
   USERS_PATH,
 } from '../loginServices';
 
-const useInitSession = async (stripes, config, loginUrl) => {
+const useInitSession = async (config, loginUrl) => {
   const intl = useIntl();
   const urlParams = new URLSearchParams(globalThis.location.search);
   const loginTenant = getLoginTenant();
@@ -63,7 +63,7 @@ const useInitSession = async (stripes, config, loginUrl) => {
     const loginTenant = getCurrentTenant();
 
     const redirectUri = getOIDCRedirectUri(loginTenant.name, loginTenant.clientId);
-    return `${stripes.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
+    return `${config.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
   };
 
   /**
@@ -89,7 +89,7 @@ const useInitSession = async (stripes, config, loginUrl) => {
       const tenant = getCurrentTenant().name;
       const { token, tenant: sessionTenant = tenant } = session;
 
-      const resp = await fetch(`${stripes.url}/${USERS_PATH}/_self?expandPermissions=true`, {
+      const resp = await fetch(`${config.hostUrl}/${USERS_PATH}/_self?expandPermissions=true`, {
         headers: getHeaders(sessionTenant, token),
         credentials: 'include',
         mode: 'cors',
@@ -126,7 +126,7 @@ const useInitSession = async (stripes, config, loginUrl) => {
           // even though it's async, we do not await it here, instead
           // returning the response-json that can be used to show a status
           // update while session-init is still in-flight.
-          initStripes(stripes, sessionTenant);
+          initStripes(config, sessionTenant);
 
           return session;
         } else {
