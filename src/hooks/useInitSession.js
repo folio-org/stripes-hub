@@ -89,7 +89,7 @@ const useInitSession = async (config, loginUrl) => {
       const tenant = getCurrentTenant().name;
       const { token, tenant: sessionTenant = tenant } = session;
 
-      const resp = await fetch(`${config.hostUrl}/${USERS_PATH}/_self?expandPermissions=true`, {
+      const resp = await fetch(`${config.gatewayUrl}/${USERS_PATH}/_self?expandPermissions=true`, {
         headers: getHeaders(sessionTenant, token),
         credentials: 'include',
         mode: 'cors',

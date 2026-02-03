@@ -19,7 +19,7 @@ const useExchangeCode = async (config, initSession = noop) => {
           params.append("code", code);
           params.append("redirect-uri", `${globalThis.location.protocol}//${globalThis.location.host}/oidc-landing?tenant=${loginTenant.name}&client_id=${loginTenant.clientId}`);
 
-          const response = await fetch(`${config.hostUrl}/authn/token?${params}`, {
+          const response = await fetch(`${config.gatewayUrl}/authn/token?${params}`, {
             headers: getHeaders(loginTenant.name),
             credentials: "include"
           });

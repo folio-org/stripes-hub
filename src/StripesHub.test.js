@@ -7,7 +7,7 @@ import StripesHub from './StripesHub';
 
 test('renders', () => {
   const config = {
-    hostUrl: 'http://url',
+    gatewayUrl: 'http://url',
     authnUrl: 'http://authn',
     tenantOptions: {
       diku: {

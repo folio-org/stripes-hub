@@ -144,7 +144,7 @@ const ffetch = async (url, tenant) => {
  */
 const fetchEntitlements = async (config, tenant) => {
   const entitlement = {};
-  const json = await ffetch(`${config.hostUrl}/entitlements/${tenant}/applications`, tenant);
+  const json = await ffetch(`${config.gatewayUrl}/entitlements/${tenant}/applications`, tenant);
   const elist = json.applicationDescriptors;
   elist.forEach(application => {
     application.uiModules.forEach(module => {
@@ -208,7 +208,7 @@ const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
   const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
 
   for (const appId of applicationIds) {
-    const json = await ffetch(`${config.hostUrl}/applications/${appId}/discovery?limit=500`, tenant);
+    const json = await ffetch(`${config.gatewayUrl}/applications/${appId}/discovery?limit=500`, tenant);
     json.discovery.forEach(entry => {
       if (entitlement[entry.id]) {
         console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
@@ -319,7 +319,7 @@ export const initStripes = async (config, tenant) => {
 
   const stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
   if (stripesCore) {
-    await localforage.setItem(DISCOVERY_URL_KEY, config.discoveryUrl ?? config.hostUrl);
+    await localforage.setItem(DISCOVERY_URL_KEY, config.discoveryUrl ?? config.gatewayUrl);
     await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
     await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
 
@@ -545,7 +545,7 @@ export const processSession = async (tenant, resp, ssoToken, config) => {
  * @returns {Promise} Promise resolving to the response-body (JSON) of the request
  */
 export const requestUserWithPerms = async (config, tenant, token) => {
-  const resp = await fetchOverriddenUserWithPerms(config.hostUrl, tenant, token, !token);
+  const resp = await fetchOverriddenUserWithPerms(config.gatewayUrl, tenant, token, !token);
 
   if (resp.ok) {
     const sessionData = await processSession(tenant, resp, token, config);

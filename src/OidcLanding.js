@@ -67,7 +67,7 @@ const OidcLanding = ({ config }) => {
 
 OidcLanding.propTypes = {
   config: PropTypes.shape({
-    hostUrl: PropTypes.string.isRequired,
+    gatewayUrl: PropTypes.string.isRequired,
     authnUrl: PropTypes.string.isRequired,
     discoveryUrl: PropTypes.string,
   }).isRequired

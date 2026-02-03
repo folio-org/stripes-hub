@@ -12,7 +12,7 @@ const TENANT_LOCAL_STORAGE_KEY = 'tenant';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 // eslint-disable-next-line no-undef
-const config = CONFIG_GLOBAL || {};
+const config = FOLIO_CONFIG || {};
 const StripesHubComponent = () => <StripesHub config={config} />;
 const OidcLandingComponent = () => <OidcLanding config={config} />;
 

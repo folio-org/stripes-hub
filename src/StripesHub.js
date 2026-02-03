@@ -52,7 +52,7 @@ function StripesHub({ config }) {
 
 StripesHub.propTypes = {
   config: PropTypes.shape({
-    hostUrl: PropTypes.string.isRequired,
+    gatewayUrl: PropTypes.string.isRequired,
     authnUrl: PropTypes.string.isRequired,
     discoveryUrl: PropTypes.string,
     tenantOptions: PropTypes.object.isRequired,

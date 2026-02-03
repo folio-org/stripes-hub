@@ -17,9 +17,10 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <script lang="js">
-      const CONFIG_GLOBAL = {
-        hostUrl: 'http://localhost:8000',
-        authnUrl: 'http://localhost:9130',
+      const FOLIO_CONFIG = {
+        gatewayUrl: 'https://gateway-server.example.edu',
+        authnUrl: 'https://authentication-server.example.edu',
+
         tenantOptions: {
           diku: {
             name: 'diku', clientId: 'diku-application'
