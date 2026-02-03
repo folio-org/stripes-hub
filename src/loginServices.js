@@ -27,7 +27,7 @@ export const USERS_PATH = 'users-keycloak';
 const HOST_APP_NAME = 'folio_stripes';
 
 // const keys to-be-ingested by stripes-core
-const DISCOVERY_URL_KEY = 'entitlementUrl';
+const DISCOVERY_URL_KEY = 'discoveryUrl';
 const HOST_LOCATION_KEY = 'hostLocation';
 const REMOTE_LIST_KEY = 'entitlements';
 
@@ -168,9 +168,10 @@ const fetchEntitlements = async (config, tenant) => {
 
 /**
  * fetchCustomDiscovery
- * Fetch discovery data with a single query. Knit results into the provided
- * entitlement data, returning a new map of module ID to
- * entitlement/discovery/module-descriptor data
+ * Fetch discovery data with a single query and return it in a map keyed by id.
+ * IGNORE the entitlement data altogether! The local discovery service is, in
+ * fact, an entitlement-and-discovery service, and so we allow its response for
+ * both entitlement and discover data to be the authoritative response.
  *
  * @param {object} config config
  * @param {string} tenant
@@ -183,11 +184,8 @@ const fetchCustomDiscovery = async (config, tenant, entitlement) => {
 
   const json = await ffetch(`${config.discoveryUrl}`, tenant);
   json.discovery.forEach(entry => {
-    if (entitlement[entry.id]) {
-      console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
-      map[entry.id] = entitlement[entry.id];
-      map[entry.id].location = entry.location;
-    }
+    console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
+    map[entry.id] = entry;
   });
 
   return map;
