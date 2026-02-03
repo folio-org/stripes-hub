@@ -32,9 +32,17 @@ const ForgotPassword = ({ stripes, config, branding }) => {
     }
   };
 
+  // stripes-core handles this with a redirect to check-email, as below.
+  // maybe we want to keep that, because a11y? if so, we should fix the
+  // check-email component so it doesn't explode when called directly,
+  // i.e. when its state is missing
   if (userEmail) {
     return <h1>Check yer email homeslice</h1>;
   }
+
+  // if (userEmail) {
+  //   return <Redirect to={{ pathname: '/check-email', state: { userEmail } }} />;
+  // }
 
   return (
     <ForgotPasswordForm
