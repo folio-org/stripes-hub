@@ -3,3 +3,4 @@ export { default as forgotFormErrorCodes } from './forgotFormErrorCodes';
 export { default as changePasswordErrorCodes } from './changePasswordErrorCodes';
 export { default as ssoErrorCodes } from './ssoErrorCodes';
 export { default as defaultErrors } from './defaultErrors';
+export { default as urlPaths } from './urlPaths';

@@ -1,69 +1,25 @@
 import { useQuery } from 'react-query';
-import { useIntl } from 'react-intl';
-import noop from 'lodash/noop';
 
 import {
+  getCurrentTenant,
   getHeaders,
-  getLoginTenant,
   getSession,
   initStripes,
   USERS_PATH,
 } from '../loginServices';
 
 const useInitSession = async (config, loginUrl) => {
-  const intl = useIntl();
-  const urlParams = new URLSearchParams(globalThis.location.search);
-  const loginTenant = getLoginTenant();
 
   const getSessionTenant = (session) => {
     return session.tenant;
-  }
+  };
 
   const authenticate = () => {
-    globalThis.location.href = loginUrl;
-  }
-
-  /**
-   * getCurrentTenant
-   * Get the current tenant info from global config.
-   *
-   * @returns {object} tenant info object
-   */
-  const getCurrentTenant = () => {
-    const tenants = Object.values(config.tenantOptions);
-
-    // Selecting first for now until selection dropdown is added for multiple tenants
-    return tenants[0];
+    globalThis.location.replace(loginUrl);
   };
 
   const sessionIsValid = (session) => {
     return !!session?.isAuthenticated;
-  }
-
-  /**
-   * getOIDCRedirectUri
-   * Construct OIDC redirect URI based on current location, tenant, and client ID.
-   *
-   * @param {string} tenant - the tenant name
-   * @param {string} clientId - the client ID
-   * @returns {string} encoded redirect URI
-   */
-  const getOIDCRedirectUri = (tenant, clientId) => {
-    // we need to use `encodeURIComponent` to separate `redirect_uri` URL parameters from the rest of URL parameters that `redirect_uri` itself is part of
-    return encodeURIComponent(`${globalThis.location.protocol}//${globalThis.location.host}/oidc-landing?tenant=${tenant}&client_id=${clientId}`);
-  };
-
-  /**
-   * getLoginUrl
-   * Construct login URL based on Okapi config and current tenant info.
-   *
-   * @returns {string} login URL
-   */
-  const getLoginUrl = () => {
-    const loginTenant = getCurrentTenant();
-
-    const redirectUri = getOIDCRedirectUri(loginTenant.name, loginTenant.clientId);
-    return `${config.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
   };
 
   /**

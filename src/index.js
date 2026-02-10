@@ -4,26 +4,33 @@ import { IntlProvider } from 'react-intl';
 import { QueryClientProvider } from 'react-query';
 
 import createReactQueryClient from './createReactQueryClient';
+import AuthnLogin from './AuthnLogin';
 import StripesHub from './StripesHub';
 import OidcLanding from './OidcLanding';
-
-/** key for storing tenant info in local storage */
-const TENANT_LOCAL_STORAGE_KEY = 'tenant';
+import { urlPaths } from './constants';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-// eslint-disable-next-line no-undef
-const config = FOLIO_CONFIG || {};
-const StripesHubComponent = () => <StripesHub config={config} />;
-const OidcLandingComponent = () => <OidcLanding config={config} />;
+const config = FOLIO_CONFIG || {}; // eslint-disable-line no-undef
+const branding = BRANDING_GLOBAL || {}; // eslint-disable-line no-undef
+const AuthnLoginComponent = () => <AuthnLogin config={config} branding={branding} />;
+const StripesHubComponent = () => <StripesHub config={config} branding={branding} />;
+const OidcLandingComponent = () => <OidcLanding config={config} branding={branding} />;
 
 const reactQueryClient = createReactQueryClient();
+const pathName = globalThis.location.pathname;
 
 let LandingComponent = StripesHubComponent;
 
-if (globalThis.location.pathname === '/') {
-  LandingComponent = StripesHubComponent;
-} else if (globalThis.location.pathname === '/oidc-landing') {
-  LandingComponent = OidcLandingComponent;
+switch (pathName) {
+  case urlPaths.AUTHN_LOGIN:
+    LandingComponent = AuthnLoginComponent;
+    break;
+  case urlPaths.OIDC_LANDING:
+    LandingComponent = OidcLandingComponent;
+    break;
+  default:
+    LandingComponent = StripesHubComponent;
+    break;
 }
 
 root.render(
