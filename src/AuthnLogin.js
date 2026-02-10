@@ -40,17 +40,14 @@ const AuthnLogin = ({config, branding}) => {
       storeCurrentTenant(loginTenant.name, loginTenant.clientId);
     }
     // we only want to run this effect once, on load.
-    // okapi.authnUrl tenant values are defined in stripes.config.js
+    // okapi.authnUrl tenant values are defined in index.html
   }, []);
 
   if (config.authnUrl) {
     // If only 1 tenant is defined in config, skip the tenant selection screen.
     if (tenants.length === 1) {
-      //return <StripesHub config={config} branding={branding} />;
       const loginTenant = tenants[0];
-      // const redirectUri = getOIDCRedirectUri(loginTenant.name, loginTenant.clientId);
-      // const authnUri = `${okapi.authnUrl}/realms/${loginTenant.name}/protocol/openid-connect/auth?client_id=${loginTenant.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
-      //return <Redirect to={authnUri} />;
+
       globalThis.location.replace(getLoginUrl(config, loginTenant.name, loginTenant.clientId));
     }
 
