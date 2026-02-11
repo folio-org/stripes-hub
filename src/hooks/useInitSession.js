@@ -20,7 +20,7 @@ const useInitSession = async (config, loginUrl) => {
     if (globalThis.location.pathname !== '/') {
       setUnauthorizedPathToSession();
     }
-    globalThis.location.replace(loginUrl);
+    globalThis.location.pathname = loginUrl;
   };
 
   const sessionIsValid = (session) => {
