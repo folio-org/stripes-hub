@@ -3,9 +3,11 @@ import PropTypes from 'prop-types';
 
 import {
   getLoginTenant,
+  getUnauthorizedPathFromSession,
+  removeUnauthorizedPathFromSession,
   requestUserWithPerms,
   setTokenExpiry,
-  storeLogoutTenant,
+  storeCurrentTenant,
 } from './loginServices';
 
 import useExchangeCode from './hooks/useExchangeCode';
@@ -42,13 +44,16 @@ const OidcLanding = ({ config }) => {
         rtExpires: tokenData.refreshTokenExpiration ? new Date(tokenData.refreshTokenExpiration).getTime() : rtDefaultExpiration,
       })
         .then(() => {
-          return storeLogoutTenant(loginTenant.name);
+          return storeCurrentTenant(loginTenant.name, loginTenant.clientId);
         })
         .then(() => {
           return requestUserWithPerms(config, loginTenant.name);
         }).then(() => {
           // upon successful session init, redirect to root for stripes-core to proceed with normal boot.
-          globalThis.location.replace('/');
+          const redirectPath = getUnauthorizedPathFromSession() || '/';
+          removeUnauthorizedPathFromSession();
+
+          globalThis.location.replace(redirectPath);
         });
     }
   };

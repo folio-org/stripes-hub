@@ -1,7 +1,7 @@
 import localforage from 'localforage';
-import { isObject, noop } from 'lodash';
+import isObject from 'lodash/isObject';
 
-import { defaultErrors } from './constants';
+import { defaultErrors, urlPaths } from './constants';
 
 /** name for the session key in local storage */
 export const SESSION_NAME = 'okapiSess';
@@ -49,6 +49,30 @@ export const getHeaders = (tenant, token) => {
 };
 
 /**
+ * getOIDCRedirectUri
+ * Construct OIDC redirect URI based on current location, tenant, and client ID.
+ *
+ * @param {string} name - the tenant name
+ * @param {string} clientId - the client ID
+ * @returns {string} encoded redirect URI
+ */
+export const getOIDCRedirectUri = (name, clientId) => {
+  // we need to use `encodeURIComponent` to separate `redirect_uri` URL parameters from the rest of URL parameters that `redirect_uri` itself is part of
+  return encodeURIComponent(`${globalThis.location.protocol}//${globalThis.location.host}/oidc-landing?tenant=${name}&client_id=${clientId}`);
+};
+
+/**
+ * getLoginUrl
+ * Construct login URL based on Okapi config and current tenant info.
+ *
+ * @returns {string} login URL
+ */
+export const getLoginUrl = (config, name, clientId) => {
+  const redirectUri = getOIDCRedirectUri(name, clientId);
+  return `${config.authnUrl}/realms/${name}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
+};
+
+/**
  * getSession
  * simple wrapper around access to values stored in localforage
  * to insulate RTR functions from that API.
@@ -84,7 +108,7 @@ export const getLoginTenant = () => {
  *
  * @returns {object|undefined} tenant info object or undefined if not found
  */
-export const getLogoutTenant = () => {
+export const getCurrentTenant = () => {
   const storedTenant = localStorage.getItem(TENANT_LOCAL_STORAGE_KEY);
   return storedTenant ? JSON.parse(storedTenant) : undefined;
 };
@@ -93,10 +117,11 @@ export const getLogoutTenant = () => {
  * storeLogoutTenant
  * Store the tenant ID in local storage for use during logout.
  *
- * @param {string} tenantId the tenant ID
+ * @param {string} name the tenant name
+ * @param {string} clientId the client ID
  */
-export const storeLogoutTenant = (tenantId) => {
-  localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ tenantId }));
+export const storeCurrentTenant = (name, clientId) => {
+  localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ name, clientId }));
 };
 
 /** error-handler: log it */
@@ -108,6 +133,25 @@ const handleWithLog = (msg) => {
 const handleWithThrow = (msg) => {
   throw new Error(msg);
 };
+
+/**
+ * removeUnauthorizedPathFromSession, setUnauthorizedPathToSession, getUnauthorizedPathFromSession
+ * remove/set/get unauthorized_path to/from session storage.
+ * Used to restore path on returning from login if user accessed a bookmarked
+ * URL while unauthenticated and was redirected to login, and when a session
+ * times out, forcing the user to re-authenticate.
+ *
+ * @see components/OIDCRedirect
+ */
+const UNAUTHORIZED_PATH = 'unauthorized_path';
+export const removeUnauthorizedPathFromSession = () => sessionStorage.removeItem(UNAUTHORIZED_PATH);
+export const setUnauthorizedPathToSession = (pathname) => {
+  const path = pathname ?? `${window.location.pathname}${window.location.search}`;
+  if (!path.startsWith(urlPaths.LOGOUT) && !path.startsWith(urlPaths.AUTHN_LOGIN)) {
+    sessionStorage.setItem(UNAUTHORIZED_PATH, path);
+  }
+};
+export const getUnauthorizedPathFromSession = () => sessionStorage.getItem(UNAUTHORIZED_PATH);
 
 /**
  * ffetch (folio-fetch)
@@ -494,7 +538,6 @@ export const createSession = async (tenant, token, data, config) => {
   }
 
   await localforage.setItem(SESSION_NAME, session);
-  await initStripes(config, tenant);
 };
 
 /**
