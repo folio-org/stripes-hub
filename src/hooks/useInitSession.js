@@ -5,6 +5,7 @@ import {
   getHeaders,
   getSession,
   initStripes,
+  setUnauthorizedPathToSession,
   USERS_PATH,
 } from '../loginServices';
 
@@ -15,6 +16,10 @@ const useInitSession = async (config, loginUrl) => {
   };
 
   const authenticate = () => {
+    // Cache the current path so we can return to it after authenticating.
+    if (globalThis.location.pathname !== '/') {
+      setUnauthorizedPathToSession();
+    }
     globalThis.location.replace(loginUrl);
   };
 

@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 
 import {
   getLoginTenant,
+  getUnauthorizedPathFromSession,
+  removeUnauthorizedPathFromSession,
   requestUserWithPerms,
   setTokenExpiry,
   storeCurrentTenant,
@@ -48,7 +50,10 @@ const OidcLanding = ({ config }) => {
           return requestUserWithPerms(config, loginTenant.name);
         }).then(() => {
           // upon successful session init, redirect to root for stripes-core to proceed with normal boot.
-          globalThis.location.replace('/');
+          const redirectPath = getUnauthorizedPathFromSession() || '/';
+          removeUnauthorizedPathFromSession();
+
+          globalThis.location.replace(redirectPath);
         });
     }
   };
