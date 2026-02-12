@@ -26,6 +26,12 @@ export const USERS_PATH = 'users-keycloak';
 /** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
 const HOST_APP_NAME = 'folio_stripes';
 
+/** name for FOLIO config stored in localforage to be used by entitled applications (such as stripes-core) */
+const FOLIO_CONFIG_KEY = 'folio_config';
+
+/** name for FOLIO branding file locations to be used by entitled applications (such as stripes-core) */
+const FOLIO_BRANDING_KEY = 'folio_branding';
+
 // const keys to-be-ingested by stripes-core
 const DISCOVERY_URL_KEY = 'discoveryUrl';
 const HOST_LOCATION_KEY = 'hostLocation';
@@ -351,17 +357,20 @@ const loadStripes = async (stripesCore) => {
  * discovery data to find stripes' location.
  *
  * @param {object} config
+ * @param {object} branding
  * @param {string} tenant
  * @returns {Promise<void>} resolves when stripes is initialized
  */
-export const initStripes = async (config, tenant) => {
+export const initStripes = async (config, branding, tenant) => {
   const entitlement = await fetchEntitlements(config, tenant);
   const discovery = await fetchDiscovery(config, tenant, entitlement);
 
   const stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
   if (stripesCore) {
     await localforage.setItem(DISCOVERY_URL_KEY, config.discoveryUrl ?? config.gatewayUrl);
-    await localforage.setItem(HOST_APP_NAME, 'folio_stripes');
+    await localforage.setItem(HOST_APP_NAME, HOST_APP_NAME);
+    await localforage.setItem(FOLIO_CONFIG_KEY, config);
+    await localforage.setItem(FOLIO_BRANDING_KEY, branding);
     await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
 
     // REMOTE_LIST_KEY stores the list of apps that stripes will load,

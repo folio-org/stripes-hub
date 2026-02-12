@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import useInitSession from './hooks/useInitSession';
 import { urlPaths } from './constants';
 
-function StripesHub({ config }) {
-  const { isLoading } = useInitSession(config, urlPaths.AUTHN_LOGIN);
+function StripesHub({ config, branding }) {
+  const { isLoading } = useInitSession(config, branding, urlPaths.AUTHN_LOGIN);
 
   return (
     <div data-testid="StripesHub">
@@ -20,6 +20,10 @@ StripesHub.propTypes = {
     discoveryUrl: PropTypes.string,
     tenantOptions: PropTypes.object.isRequired,
     preserveConsole: PropTypes.bool,
+  }).isRequired,
+  branding: PropTypes.shape({
+    logo: PropTypes.string,
+    altText: PropTypes.string,
   }).isRequired,
 };
 
