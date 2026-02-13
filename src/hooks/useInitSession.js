@@ -9,7 +9,7 @@ import {
   USERS_PATH,
 } from '../loginServices';
 
-const useInitSession = async (config, loginUrl) => {
+const useInitSession = async (config, branding, loginUrl) => {
 
   const getSessionTenant = (session) => {
     return session.tenant;
@@ -87,7 +87,7 @@ const useInitSession = async (config, loginUrl) => {
           // even though it's async, we do not await it here, instead
           // returning the response-json that can be used to show a status
           // update while session-init is still in-flight.
-          initStripes(config, sessionTenant);
+          initStripes(config, branding, sessionTenant);
 
           return session;
         } else {
