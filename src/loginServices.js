@@ -30,7 +30,7 @@ const HOST_APP_NAME = 'folio_stripes';
 const FOLIO_CONFIG_KEY = 'folio_config';
 
 /** name for FOLIO branding file locations to be used by entitled applications (such as stripes-core) */
-const FOLIO_BRANDING_KEY = 'folio_branding';
+const FOLIO_BRANDING_KEY = 'branding_config';
 
 // const keys to-be-ingested by stripes-core
 const DISCOVERY_URL_KEY = 'discoveryUrl';
