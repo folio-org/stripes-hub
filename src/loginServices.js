@@ -367,10 +367,12 @@ export const initStripes = async (config, branding, tenant) => {
 
   const stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
   if (stripesCore) {
+    // cache config and branding data for stripes-core to consume on load
+    localStorage.setItem(FOLIO_CONFIG_KEY, JSON.stringify(config));
+    localStorage.setItem(FOLIO_BRANDING_KEY, JSON.stringify(branding));
+
     await localforage.setItem(DISCOVERY_URL_KEY, config.discoveryUrl ?? config.gatewayUrl);
     await localforage.setItem(HOST_APP_NAME, HOST_APP_NAME);
-    await localforage.setItem(FOLIO_CONFIG_KEY, config);
-    await localforage.setItem(FOLIO_BRANDING_KEY, branding);
     await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
 
     // REMOTE_LIST_KEY stores the list of apps that stripes will load,
