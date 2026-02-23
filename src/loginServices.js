@@ -206,8 +206,8 @@ const fetchEntitlements = async (config, tenant) => {
     application.uiModuleDescriptors.forEach(module => {
       if (entitlement[module.id]) {
 
-        entitlement[module.id].okapiInterfaces = module.requires;
-        entitlement[module.id].optionalOkapiInterfaces = module.optional;
+        entitlement[module.id].okapiInterfaces = interfaceArrayToKeyedObject(module.requires || []);
+        entitlement[module.id].optionalOkapiInterfaces = interfaceArrayToKeyedObject(module.optional || []);
         entitlement[module.id] = { ...entitlement[module.id], ...module.metadata?.stripes };
       }
     });
@@ -215,6 +215,19 @@ const fetchEntitlements = async (config, tenant) => {
 
   return entitlement;
 };
+
+/**
+ * Helper function to convert an array of objects with `id` and `version`
+ * properties into an object keyed by `id` with values of `version`.
+ * @param {*} arr the array of interfaces to convert shaped like [{ id: 'interfaceA', version: '1.0 2.0' }, ...]
+ * @returns the converted object shaped like { interfaceA: '1.0 2.0', ... }
+ */
+const interfaceArrayToKeyedObject = (arr) => {
+    return arr.reduce((acc, curr) => {
+        acc[curr.id] = curr.version;
+        return acc;
+    }, {});
+}
 
 /**
  * fetchCustomDiscovery
@@ -365,8 +378,9 @@ export const initStripes = async (config, branding, tenant) => {
   const entitlement = await fetchEntitlements(config, tenant);
   const discovery = await fetchDiscovery(config, tenant, entitlement);
 
-  const stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
+  let stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
   if (stripesCore) {
+    //stripesCore.location = "http://stripes-force-host.s3.us-east-1.amazonaws.com";
     // cache config and branding data for stripes-core to consume on load
     localStorage.setItem(FOLIO_CONFIG_KEY, JSON.stringify(config));
     localStorage.setItem(FOLIO_BRANDING_KEY, JSON.stringify(branding));
