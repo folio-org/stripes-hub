@@ -379,8 +379,8 @@ export const initStripes = async (config, branding, tenant) => {
   const discovery = await fetchDiscovery(config, tenant, entitlement);
 
   const stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
+
   if (stripesCore) {
-    //stripesCore.location = "http://stripes-force-host.s3.us-east-1.amazonaws.com";
     // cache config and branding data for stripes-core to consume on load
     localStorage.setItem(FOLIO_CONFIG_KEY, JSON.stringify(config));
     localStorage.setItem(FOLIO_BRANDING_KEY, JSON.stringify(branding));
