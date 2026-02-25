@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import { useIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
 
@@ -10,6 +9,7 @@ import styles from './index.css';
 function FatalError({ branding, config, error }) {
   const intl = useIntl();
 
+  console.error({ error })
   const handleLogout = async () => {
     await fetch(`${config.gatewayUrl}/logout`, {
       method: 'POST',
@@ -22,23 +22,28 @@ function FatalError({ branding, config, error }) {
     location.reload();
   }
 
+  // did we get some juicy json in an API response?
   let message = null;
   let subMessage = null;
   const errors = error?.options?.json?.errors;
   if (errors && errors[0]?.message) {
-    setMessage(errors[0]?.message);
+    message = errors[0]?.message;
     const params = errors[0]?.parameters;
     if (params && params[0]?.value) {
-      setSubMessage(params[0].value);
+      subMessage = params[0].value;
     }
+  } else if (error?.options?.json?.message) {
+    message = error?.options?.json?.message;
   }
+
+  const l10nMessage = error.options?.id ? intl.formatMessage({ id: error.options.id }, { url: error?.options?.url }) : error.message;
 
   return (
     <Template branding={branding}>
       <Row center="xs">
         <Col xs={12}>
           <h1><FormattedMessage id="stripes-hub.FatalError.headline" /></h1>
-          <h2>{error.message}</h2>
+          <h2>{l10nMessage}</h2>
           <h3>{message}</h3>
           <h3>{subMessage}</h3>
         </Col>

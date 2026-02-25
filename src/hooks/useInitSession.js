@@ -142,9 +142,13 @@ const useInitSession = (config, branding, loginUrl) => {
   const { isLoading: isLoadingDiscovery, data: discovery, error: discoveryError } = useQuery(
     ['@folio/stripes-core', 'discovery'],
     async () => {
-      const tenant = getCurrentTenant().name;
-      const discovery = await fetchDiscovery(config, tenant, entitlement);
-      return discovery;
+      try {
+        const tenant = getCurrentTenant().name;
+        const discovery = await fetchDiscovery(config, tenant, entitlement);
+        return discovery;
+      } catch (error) {
+        throw error;
+      }
     },
     {
       retry: false,

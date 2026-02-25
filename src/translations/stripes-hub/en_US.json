@@ -1,8 +1,8 @@
 {
-  "StripesHub.loadingEntitlements": "loading entitlements ...",
-  "StripesHub.loadingDiscovery": "loading discovery ...",
-  "StripesHub.loadingSession": "loading session ...",
-  "StripesHub.loadingStripes": "loading Stripes ...",
+  "StripesHub.loadingEntitlements": "Loading entitlements ...",
+  "StripesHub.loadingDiscovery": "Loading discovery ...",
+  "StripesHub.loadingSession": "Loading session ...",
+  "StripesHub.loadingStripes": "Loading Stripes ...",
 
   "OidcLanding.initializingSession": "Initializing session ...",
   "PreLoginLanding.tenantChoose": "Choose your tenant",
@@ -10,6 +10,10 @@
   "PreLoginLanding.button.continue": "Continue",
   "FatalError.headline": "Rats. You successfully signed in, but FOLIO failed to load because of an error 😢",
   "FatalError.tryAgain": "Try again",
-  "FatalError.logout": "Log out"
+  "FatalError.logout": "Log out",
 
+  "error.entitlementFetch": "Entitlement fetch error at {url}",
+  "error.discoveryFetch": "Discovery fetch error at {url}",
+  "error.sessionFetch": "Session fetch error at {url}",
+  "error.tokenExchangeFailure": "Token exchange failed"
 }

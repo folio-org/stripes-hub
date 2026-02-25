@@ -183,9 +183,11 @@ const ffetch = async (url, tenant) => {
     mode: 'cors',
   });
 
+  // TODO: should ffetch be responsible for throwing this generic error
+  // or should the caller trap and rethrow with more context? e.g. "entitlement error", "discovery error"?
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Fetch to ${url} failed: ${res.status} ${res.statusText} - ${text}`);
+    const json = await res.json();
+    throw new StripesHubError(`Fetch to ${url} failed: ${res.status} ${res.statusText}`, { json });
   }
 
   const json = await res.json();
@@ -201,27 +203,36 @@ const ffetch = async (url, tenant) => {
  * @returns {Promise<map>} map of entitlement data, keyed by module ID
  */
 export const fetchEntitlements = async (config, tenant) => {
-  const entitlement = {};
-  const json = await ffetch(`${config.gatewayUrl}/entitlements/${tenant}/applications`, tenant);
-  const elist = json.applicationDescriptors;
-  elist.forEach(application => {
-    application.uiModules.forEach(module => {
-      entitlement[module.id] = module;
+  const url = `${config.gatewayUrl}/entitlements/${tenant}/applications`;
+  try {
+    const entitlement = {};
+    const json = await ffetch(url, tenant);
+    const elist = json.applicationDescriptors;
+    elist.forEach(application => {
+      application.uiModules.forEach(module => {
+        entitlement[module.id] = module;
 
-      // store application IDs for use in the dicovery API query
-      entitlement[module.id].applicationId = application.id;
+        // store application IDs for use in the dicovery API query
+        entitlement[module.id].applicationId = application.id;
+      });
+      application.uiModuleDescriptors.forEach(module => {
+        if (entitlement[module.id]) {
+          entitlement[module.id].okapiInterfaces = module.requires;
+          entitlement[module.id].optionalOkapiInterfaces = module.optional;
+          entitlement[module.id] = { ...entitlement[module.id], ...module.metadata?.stripes };
+        }
+      });
     });
-    application.uiModuleDescriptors.forEach(module => {
-      if (entitlement[module.id]) {
 
-        entitlement[module.id].okapiInterfaces = module.requires;
-        entitlement[module.id].optionalOkapiInterfaces = module.optional;
-        entitlement[module.id] = { ...entitlement[module.id], ...module.metadata?.stripes };
-      }
-    });
-  });
+    return entitlement;
+  } catch (error) {
+    const json = error?.options?.json || null;
 
-  return entitlement;
+    throw new StripesHubError(
+      `Entitlement fetch error at ${url}`,
+      { json, url, id: 'stripes-hub.error.entitlementFetch', cause: error }
+    );
+  }
 };
 
 /**
@@ -240,26 +251,32 @@ export const fetchEntitlements = async (config, tenant) => {
 const fetchCustomDiscovery = async (config, tenant, entitlement) => {
   const map = {};
 
-  // const json = await ffetch(`${config.discoveryUrl}`, tenant);
   const res = await fetch(`${config.discoveryUrl}`, {
     headers: getHeaders(tenant),
-    // credentials: 'include',
     mode: 'cors',
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Fetch to ${url} failed: ${res.status} ${res.statusText} - ${text}`);
+  if (res.ok) {
+    const json = await res.json();
+
+    json.discovery.forEach(entry => {
+      console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
+      map[entry.id] = entry;
+    });
+
+    return map;
   }
 
-  const json = await res.json();
+  // who knows what kind of errors custom discover might return
+  let json = null;
+  if (res.headers.get('Content-Type')?.includes('application/json')) {
+    json = await res.json();
+  }
 
-  json.discovery.forEach(entry => {
-    console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
-    map[entry.id] = entry;
-  });
-
-  return map;
+  throw new StripesHubError(
+    `Discovery fetch error at ${config.discoveryUrl}`,
+    { json, url: config.discoveryUrl, id: 'stripes-hub.error.discoveryFetch' }
+  );
 };
 
 /**
@@ -274,22 +291,32 @@ const fetchCustomDiscovery = async (config, tenant, entitlement) => {
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
 const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
-  const map = {};
+  try {
+    const map = {};
 
-  const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
+    const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
 
-  for (const appId of applicationIds) {
-    const json = await ffetch(`${config.gatewayUrl}/applications/${appId}/discovery?limit=500`, tenant);
-    json.discovery.forEach(entry => {
-      if (entitlement[entry.id]) {
-        console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
-        map[entry.id] = entitlement[entry.id];
-        map[entry.id].location = entry.location;
-      }
-    });
+    for (const appId of applicationIds) {
+      const json = await ffetch(`${config.gatewayUrl}/applications/${appId}/discovery?limit=500`, tenant);
+      json.discovery.forEach(entry => {
+        if (entitlement[entry.id]) {
+          console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
+          map[entry.id] = entitlement[entry.id];
+          map[entry.id].location = entry.location;
+        }
+      });
+    };
+
+    return map;
+
+  } catch (error) {
+    const json = error?.options?.json || null;
+    throw new StripesHubError(
+      `Discovery fetch error at ${url}`,
+      { json, url, id: 'stripes-hub.error.discoveryFetch', cause: error }
+    );
   };
 
-  return map;
 };
 
 /**

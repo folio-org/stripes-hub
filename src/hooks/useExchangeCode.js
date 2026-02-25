@@ -32,16 +32,14 @@ const useExchangeCode = (config, initSession = noop) => {
             return json;
           }
 
-          throw new StripesHubError(`Token exchange failed`, { json });
+          throw new StripesHubError(`Token exchange failure`, { json, id: 'stripes-hub.error.tokenExchangeFailure ' });
 
         } catch (error) {
-          console.error({ error }); // eslint-disable-line no-console
-          // rethrow if error is already wrapped
-          if (error instanceof StripesHubError) {
-            throw error;
-          }
-
-          throw new StripesHubError('monkeys', { cause: fetchError, message: 'fetch error during OTP exchange' })
+          const json = error?.options?.json || null;
+          throw new StripesHubError(
+            `Token exchange failure`,
+            { json, id: 'stripes-hub.error.tokenExchangeFailure', cause: error }
+          );
         }
       }
 

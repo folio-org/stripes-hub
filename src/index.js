@@ -40,7 +40,7 @@ switch (pathName) {
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={reactQueryClient}>
-      <IntlProvider locale={navigator.language || 'en-US'} messages={translations} >
+      <IntlProvider locale={config.locale || navigator.language || 'en-US'} messages={translations} >
         <LandingComponent />
       </IntlProvider>
     </QueryClientProvider>
