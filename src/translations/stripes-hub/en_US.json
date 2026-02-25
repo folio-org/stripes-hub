@@ -4,11 +4,11 @@
   "StripesHub.loadingSession": "Loading session ...",
   "StripesHub.loadingStripes": "Loading Stripes ...",
 
-  "OidcLanding.initializingSession": "Initializing session ...",
+  "OidcLanding.initializingSession": "Loading session ...",
   "PreLoginLanding.tenantChoose": "Choose your tenant",
   "PreLoginLanding.tenantLibrary": "Tenant / Library",
   "PreLoginLanding.button.continue": "Continue",
-  "FatalError.headline": "Rats. You successfully signed in, but FOLIO failed to load because of an error 😢",
+  "FatalError.headline": "Oh, snap. You successfully signed in, but FOLIO failed to load because of an error 😢. If the problem persists please contact your system administrator.",
   "FatalError.tryAgain": "Try again",
   "FatalError.logout": "Log out",
 
@@ -16,5 +16,5 @@
   "error.discoveryFetch": "Discovery fetch error at {url}",
   "error.sessionFetch": "Session fetch error at {url}",
   "error.tokenExchangeFailure": "Token exchange failed",
-  "error.stripesFetchFailure": "Stripes load failed at {url}"
+  "error.stripesFetchFailure": "Stripes fetch error at {url}"
 }
