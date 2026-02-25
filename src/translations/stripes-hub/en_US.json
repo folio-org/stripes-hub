@@ -1,0 +1,15 @@
+{
+  "StripesHub.loadingEntitlements": "loading entitlements ...",
+  "StripesHub.loadingDiscovery": "loading discovery ...",
+  "StripesHub.loadingSession": "loading session ...",
+  "StripesHub.loadingStripes": "loading Stripes ...",
+
+  "OidcLanding.initializingSession": "Initializing session ...",
+  "PreLoginLanding.tenantChoose": "Choose your tenant",
+  "PreLoginLanding.tenantLibrary": "Tenant / Library",
+  "PreLoginLanding.button.continue": "Continue",
+  "FatalError.headline": "Rats. You successfully signed in, but FOLIO failed to load because of an error 😢",
+  "FatalError.tryAgain": "Try again",
+  "FatalError.logout": "Log out"
+
+}

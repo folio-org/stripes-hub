@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useIntl } from 'react-intl';
+import { useIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
 
 import { Button, Col, OrganizationLogo, Row, Select } from './StripesComponents';
@@ -9,8 +9,6 @@ import styles from './index.css';
 
 function FatalError({ branding, config, error }) {
   const intl = useIntl();
-  const [message, setMessage] = useState();
-  const [subMessage, setSubMessage] = useState();
 
   const handleLogout = async () => {
     await fetch(`${config.gatewayUrl}/logout`, {
@@ -24,17 +22,16 @@ function FatalError({ branding, config, error }) {
     location.reload();
   }
 
-  useEffect(() => {
-    if (error?.options?.json) {
-      if (error?.options.json?.errors[0]?.message) {
-        setMessage(error.options.json?.errors[0]?.message);
-        const params = error.options.json.errors[0]?.parameters;
-        if (params && params[0]?.value) {
-          setSubMessage(params[0].value);
-        }
-      }
+  let message = null;
+  let subMessage = null;
+  const errors = error?.options?.json?.errors;
+  if (errors && errors[0]?.message) {
+    setMessage(errors[0]?.message);
+    const params = errors[0]?.parameters;
+    if (params && params[0]?.value) {
+      setSubMessage(params[0].value);
     }
-  }, [error]);
+  }
 
   return (
     <main style={{ width: '100%' }}>
@@ -47,7 +44,7 @@ function FatalError({ branding, config, error }) {
           </Row>
           <Row center="xs">
             <Col xs={12}>
-              <h1>Rats. You successfully signed in, but FOLIO failed to load because of an error 😢</h1>
+              <h1><FormattedMessage id="stripes-hub.FatalError.headline" /></h1>
               <h2>{error.message}</h2>
               <h3>{message}</h3>
               <h3>{subMessage}</h3>
@@ -59,7 +56,7 @@ function FatalError({ branding, config, error }) {
                 className={styles.submitButton}
                 onClick={handleReload}
               >
-                Try again
+                <FormattedMessage id="stripes-hub.FatalError.tryAgain" />
               </Button>
             </Col>
             <Col xs={6}>
@@ -67,7 +64,7 @@ function FatalError({ branding, config, error }) {
                 className={styles.submitButton}
                 onClick={handleLogout}
               >
-                Logout
+                <FormattedMessage id="stripes-hub.FatalError.logout" />
               </Button>
             </Col>
           </Row>

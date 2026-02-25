@@ -18,7 +18,7 @@ export function sortedTenantOptions(tenantOptions) {
 
 function PreLoginLanding({ onSelectTenant, config, branding, tenantOptions }) {
   const intl = useIntl();
-  
+
   const options = sortedTenantOptions(tenantOptions);
 
   const redirectToLogin = () => {
@@ -56,19 +56,17 @@ function PreLoginLanding({ onSelectTenant, config, branding, tenantOptions }) {
           <Row center="xs">
             <Col xs={3}>
               <Select
-                label={intl.formatMessage({ id: 'stripes-core.tenantLibrary' })}
+                label={intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantLibrary' })}
                 defaultValue=""
                 onChange={handleChangeTenant}
-                dataOptions={[...options, { value: '', label: intl.formatMessage({ id: 'stripes-core.tenantChoose' }) }]}
+                dataOptions={[...options, { value: '', label: intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantChoose' }) }]}
               />
               <Button
-                buttonClass={styles.submitButton}
+                className={styles.submitButton}
                 disabled={isButtonDisabled}
                 onClick={redirectToLogin}
-                buttonStyle="primary"
-                fullWidth
               >
-                {intl.formatMessage({ id: 'stripes-core.button.continue' })}
+                {intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.button.continue' })}
               </Button>
             </Col>
           </Row>

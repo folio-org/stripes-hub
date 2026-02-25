@@ -40,14 +40,8 @@ const useExchangeCode = (config, initSession = noop) => {
           if (error instanceof StripesHubError) {
             throw error;
           }
-          // throw new StripesHubError('monkeys', { cause: fetchError, message: 'fetch error during OTP exchange' })
-          // // throw json from the error-response, or just rethrow
-          // if (fetchError?.response?.json) {
-          //   const errorJson = await fetchError.response.json();
-          //   throw errorJson;
-          // }
 
-          throw fetchError;
+          throw new StripesHubError('monkeys', { cause: fetchError, message: 'fetch error during OTP exchange' })
         }
       }
 

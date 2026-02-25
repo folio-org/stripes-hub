@@ -200,7 +200,7 @@ const ffetch = async (url, tenant) => {
  * @param {string} tenant
  * @returns {Promise<map>} map of entitlement data, keyed by module ID
  */
-const fetchEntitlements = async (config, tenant) => {
+export const fetchEntitlements = async (config, tenant) => {
   const entitlement = {};
   const json = await ffetch(`${config.gatewayUrl}/entitlements/${tenant}/applications`, tenant);
   const elist = json.applicationDescriptors;
@@ -304,7 +304,7 @@ const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
  * @param {map} entitlement
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
-const fetchDiscovery = async (config, tenant, entitlement) => {
+export const fetchDiscovery = async (config, tenant, entitlement) => {
   // Ordinarily, the discovery API query goes against the same gateway as
   // any other API query. Running module-federation locally, however, requires
   // running a local discovery server, and routing discovery API queries only
@@ -329,7 +329,7 @@ const fetchDiscovery = async (config, tenant, entitlement) => {
  * Dynamically load stripes CSS and JS assets using the build's manifest.json.
  * Stripes will bootstrap itself once its JS is loaded.
  */
-const loadStripes = async (stripesCore) => {
+export const loadStripes = async (stripesCore) => {
   try {
     console.log('x')
     const manifestJSON = await fetch(`${stripesCore.location}/manifest.json`);
@@ -369,48 +369,6 @@ const loadStripes = async (stripesCore) => {
     console.error('error loading stripes', error.message); // eslint-disable-line no-console
     throw error;
   }
-}
-
-/**
- * initStripes
- * Fetch entitlements and discovery data, then cache it in local storage.
- * Pluck stripes from the discovery data and purge it from the cache (we don't
- * want stripes to try to load itself) and then load stripes.
- *
- * Stripes is keyed by folio_stripes-core in the entitlement data, which is
- * composed of Application Descriptors, themselves composed of Module
- * Descriptors. IOW, entitlement data only contains modules that have MDs.
- * Since Stripes itself does not contain an MD but stripes-core does, we take
- * advantage of that fact, using the folio_stripes-core key in entitlement and
- * discovery data to find stripes' location.
- *
- * @param {object} config
- * @param {object} branding
- * @param {string} tenant
- * @returns {Promise<void>} resolves when stripes is initialized
- */
-export const initStripes = async (config, branding, tenant) => {
-  const entitlement = await fetchEntitlements(config, tenant);
-  const discovery = await fetchDiscovery(config, tenant, entitlement);
-
-  const stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
-  if (stripesCore) {
-    await localforage.setItem(DISCOVERY_URL_KEY, config.discoveryUrl ?? config.gatewayUrl);
-    await localforage.setItem(HOST_APP_NAME, HOST_APP_NAME);
-    await localforage.setItem(FOLIO_CONFIG_KEY, config);
-    await localforage.setItem(FOLIO_BRANDING_KEY, branding);
-    await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
-
-    // REMOTE_LIST_KEY stores the list of apps that stripes will load,
-    // so we have to remove stripes from that list. Otherwise, Malkovich.
-    // Malkovich Malkovich Malkovich? Malkovich!
-    await localforage.setItem(REMOTE_LIST_KEY, Object.values(discovery).filter(module => module.name !== 'folio_stripes-core'));
-
-    await loadStripes(stripesCore);
-    return Promise.resolve();
-  }
-
-  throw new Error('Stripes core module not found in discovery data');
 }
 
 /**
