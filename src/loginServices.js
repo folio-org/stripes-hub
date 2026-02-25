@@ -187,7 +187,7 @@ const ffetch = async (url, tenant) => {
   // or should the caller trap and rethrow with more context? e.g. "entitlement error", "discovery error"?
   if (!res.ok) {
     const json = await res.json();
-    throw new StripesHubError(`Fetch to ${url} failed: ${res.status} ${res.statusText}`, { json });
+    throw new StripesHubError(`Fetch to ${url} failed: ${res.status} ${res.statusText}`, { json, url });
   }
 
   const json = await res.json();
@@ -291,15 +291,17 @@ const fetchCustomDiscovery = async (config, tenant, entitlement) => {
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
 const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
+  const url = `${config.gatewayUrl}/applications/${appId}/discovery?limit=500`;
   try {
     const map = {};
 
     const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
 
     for (const appId of applicationIds) {
-      const json = await ffetch(`${config.gatewayUrl}/applications/${appId}/discovery?limit=500`, tenant);
+      const json = await ffetch(url, tenant);
       json.discovery.forEach(entry => {
         if (entitlement[entry.id]) {
+          // TODO: use a categorical logger for this or omit it
           console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
           map[entry.id] = entitlement[entry.id];
           map[entry.id].location = entry.location;
@@ -357,50 +359,56 @@ export const fetchDiscovery = async (config, tenant, entitlement) => {
  * Stripes will bootstrap itself once its JS is loaded.
  */
 export const loadStripes = async (stripesCore) => {
+  const url = `${stripesCore.location}/manifest.json`;
   try {
-    console.log('x')
-    const manifestJSON = await fetch(`${stripesCore.location}/manifest.json`);
-    if (!manifestJSON.ok) {
-      throw new Error(`Failed to fetch manifest: ${stripesCore.location}/manifest.json`);
-    }
+    const manifestJSON = await fetch(url);
     const manifest = await manifestJSON.json();
 
-    // collect imports...
-    const jsImports = new Set();
-    const cssImports = new Set();
-    Object.keys(manifest.entrypoints).forEach((entry) => {
-      manifest.entrypoints[entry].imports.forEach((imp) => {
-        if (imp.endsWith('.js')) {
-          jsImports.add(imp);
-        } else if (imp.endsWith('.css')) {
-          cssImports.add(imp);
-        }
+    if (manifestJSON.ok) {
+      // collect imports...
+      const jsImports = new Set();
+      const cssImports = new Set();
+      Object.keys(manifest.entrypoints).forEach((entry) => {
+        manifest.entrypoints[entry].imports.forEach((imp) => {
+          if (imp.endsWith('.js')) {
+            jsImports.add(imp);
+          } else if (imp.endsWith('.css')) {
+            cssImports.add(imp);
+          }
+        });
       });
-    });
 
-    cssImports.forEach((cssRef) => {
-      const cssFile = manifest.assets[cssRef].file
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = `${stripesCore.location}${cssFile}`;
-      document.head.appendChild(link);
-    });
+      cssImports.forEach((cssRef) => {
+        const cssFile = manifest.assets[cssRef].file
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `${stripesCore.location}${cssFile}`;
+        document.head.appendChild(link);
+      });
 
-    for (const jsRef of jsImports) {
-      const jsFile = manifest.assets[jsRef].file;
-      console.log(`Loading stripes asset ${stripesCore.location}${jsFile}...`)
-      await import(/* webpackIgnore: true */ `${stripesCore.location}${jsFile}`);
+      for (const jsRef of jsImports) {
+        const jsFile = manifest.assets[jsRef].file;
+        console.log(`Loading stripes asset ${stripesCore.location}${jsFile}...`)
+        await import(/* webpackIgnore: true */ `${stripesCore.location}${jsFile}`);
+      }
+      return;
     }
+
+    throw new Error('Failed to fetch manifest', { json: manifest });
+
   } catch (error) {
-    console.log('ccccccccc')
-    console.error('error loading stripes', error.message); // eslint-disable-line no-console
-    throw error;
+    console.error(error); // eslint-disable-line no-console
+    const json = error?.options?.json || null;
+    throw new StripesHubError(
+      `Stripes init error at ${url}`,
+      { json, url, id: 'stripes-hub.error.stripesFetchFailure', cause: error }
+    );
   }
 }
 
 /**
  * spreadUserWithPerms
- * Restructure the response from `bl-users/self?expandPermissions=true`
+ * Restructure the response from `bl - users / self ? expandPermissions = true`
  * to return an object shaped like
  * {
  *   user: { id, username, ...personal }

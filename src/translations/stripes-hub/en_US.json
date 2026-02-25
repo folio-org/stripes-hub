@@ -15,5 +15,6 @@
   "error.entitlementFetch": "Entitlement fetch error at {url}",
   "error.discoveryFetch": "Discovery fetch error at {url}",
   "error.sessionFetch": "Session fetch error at {url}",
-  "error.tokenExchangeFailure": "Token exchange failed"
+  "error.tokenExchangeFailure": "Token exchange failed",
+  "error.stripesFetchFailure": "Stripes load failed at {url}"
 }
