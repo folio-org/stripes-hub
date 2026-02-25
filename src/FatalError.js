@@ -24,15 +24,17 @@ function FatalError({ branding, config, error }) {
     location.reload();
   }
 
-  if (error?.options?.json) {
-    if (error?.options.json?.errors[0]?.message) {
-      setMessage(error.options.json?.errors[0]?.message);
-      const params = error.options.json.errors[0]?.parameters;
-      if (params && params[0]?.value) {
-        setSubMessage(params[0].value);
+  useEffect(() => {
+    if (error?.options?.json) {
+      if (error?.options.json?.errors[0]?.message) {
+        setMessage(error.options.json?.errors[0]?.message);
+        const params = error.options.json.errors[0]?.parameters;
+        if (params && params[0]?.value) {
+          setSubMessage(params[0].value);
+        }
       }
     }
-  }
+  }, [error]);
 
   return (
     <main style={{ width: '100%' }}>
