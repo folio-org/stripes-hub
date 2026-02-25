@@ -1,14 +1,22 @@
 import PropTypes from 'prop-types';
+import { useIntl, FormattedMessage } from 'react-intl';
 
 import useInitSession from './hooks/useInitSession';
 import { urlPaths } from './constants';
+import FatalError from './FatalError';
 
 function StripesHub({ config, branding }) {
-  const { isLoading } = useInitSession(config, branding, urlPaths.AUTHN_LOGIN);
+  const intl = useIntl();
+
+  const { error, isLoading } = useInitSession(config, branding, urlPaths.AUTHN_LOGIN);
+
+  if (error) {
+    return <FatalError branding={branding} config={config} error={error} />;
+  }
 
   return (
     <div data-testid="StripesHub">
-      {isLoading && <h1>Initializing session...</h1>}
+      {isLoading && <h1><FormattedMessage id="stripes-hub.StripesHub.initializingSession" /></h1>}
     </div>
   );
 }

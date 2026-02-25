@@ -9,7 +9,7 @@ import {
   USERS_PATH,
 } from '../loginServices';
 
-const useInitSession = async (config, branding, loginUrl) => {
+const useInitSession = (config, branding, loginUrl) => {
 
   const getSessionTenant = (session) => {
     return session.tenant;
@@ -75,6 +75,8 @@ const useInitSession = async (config, branding, loginUrl) => {
       try {
         const session = await getSession();
 
+        // retrieve session data. if none is available, redirect to login
+        // because we pass `authenticate()` as the error handler
         session?.user?.id ? await validateSession(session, authenticate) : authenticate();
 
         if (session && sessionIsValid(session)) {
@@ -87,7 +89,8 @@ const useInitSession = async (config, branding, loginUrl) => {
           // even though it's async, we do not await it here, instead
           // returning the response-json that can be used to show a status
           // update while session-init is still in-flight.
-          initStripes(config, branding, sessionTenant);
+          const initRes = await initStripes(config, branding, sessionTenant);
+          console.log({ initRes })
 
           return session;
         } else {
@@ -95,7 +98,8 @@ const useInitSession = async (config, branding, loginUrl) => {
         }
       } catch (e) {
         console.error('error during StripesHub init', e); // eslint-disable-line no-console
-        alert(`error during StripesHub init: ${JSON.stringify(e, null, 2)}`); // eslint-disable-line no-alert
+        //alert(`error during StripesHub init: ${JSON.stringify(e, null, 2)}`); // eslint-disable-line no-alert
+        return Promise.reject(e)
       }
     },
     {

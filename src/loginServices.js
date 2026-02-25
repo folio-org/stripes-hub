@@ -54,6 +54,14 @@ export const getHeaders = (tenant, token) => {
   };
 };
 
+export class StripesHubError extends Error {
+  constructor(message, options) {
+    super(message, options);
+
+    this.options = options;
+  }
+}
+
 /**
  * getOIDCRedirectUri
  * Construct OIDC redirect URI based on current location, tenant, and client ID.
@@ -232,7 +240,20 @@ const fetchEntitlements = async (config, tenant) => {
 const fetchCustomDiscovery = async (config, tenant, entitlement) => {
   const map = {};
 
-  const json = await ffetch(`${config.discoveryUrl}`, tenant);
+  // const json = await ffetch(`${config.discoveryUrl}`, tenant);
+  const res = await fetch(`${config.discoveryUrl}`, {
+    headers: getHeaders(tenant),
+    // credentials: 'include',
+    mode: 'cors',
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Fetch to ${url} failed: ${res.status} ${res.statusText} - ${text}`);
+  }
+
+  const json = await res.json();
+
   json.discovery.forEach(entry => {
     console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
     map[entry.id] = entry;
@@ -309,38 +330,45 @@ const fetchDiscovery = async (config, tenant, entitlement) => {
  * Stripes will bootstrap itself once its JS is loaded.
  */
 const loadStripes = async (stripesCore) => {
-  const manifestJSON = await fetch(`${stripesCore.location}/manifest.json`);
-  const manifest = await manifestJSON.json();
+  try {
+    console.log('x')
+    const manifestJSON = await fetch(`${stripesCore.location}/manifest.json`);
+    if (!manifestJSON.ok) {
+      throw new Error(`Failed to fetch manifest: ${stripesCore.location}/manifest.json`);
+    }
+    const manifest = await manifestJSON.json();
 
-  // collect imports...
-  const jsImports = new Set();
-  const cssImports = new Set();
-  Object.keys(manifest.entrypoints).forEach((entry) => {
-    manifest.entrypoints[entry].imports.forEach((imp) => {
-      if (imp.endsWith('.js')) {
-        jsImports.add(imp);
-      } else if (imp.endsWith('.css')) {
-        cssImports.add(imp);
-      }
+    // collect imports...
+    const jsImports = new Set();
+    const cssImports = new Set();
+    Object.keys(manifest.entrypoints).forEach((entry) => {
+      manifest.entrypoints[entry].imports.forEach((imp) => {
+        if (imp.endsWith('.js')) {
+          jsImports.add(imp);
+        } else if (imp.endsWith('.css')) {
+          cssImports.add(imp);
+        }
+      });
     });
-  });
 
-  cssImports.forEach((cssRef) => {
-    const cssFile = manifest.assets[cssRef].file
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = `${stripesCore.location}${cssFile}`;
-    document.head.appendChild(link);
-  });
+    cssImports.forEach((cssRef) => {
+      const cssFile = manifest.assets[cssRef].file
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `${stripesCore.location}${cssFile}`;
+      document.head.appendChild(link);
+    });
 
-  jsImports.forEach((jsRef) => {
-    const jsFile = manifest.assets[jsRef].file;
-    import(/* webpackIgnore: true */ `${stripesCore.location}${jsFile}`);
-  });
-
-  // compilers get cranky in functions marked async that don't await anything,
-  // so we have to return _something_ here.
-  return Promise.resolve();
+    for (const jsRef of jsImports) {
+      const jsFile = manifest.assets[jsRef].file;
+      console.log(`Loading stripes asset ${stripesCore.location}${jsFile}...`)
+      await import(/* webpackIgnore: true */ `${stripesCore.location}${jsFile}`);
+    }
+  } catch (error) {
+    console.log('ccccccccc')
+    console.error('error loading stripes', error.message); // eslint-disable-line no-console
+    throw error;
+  }
 }
 
 /**
@@ -378,10 +406,11 @@ export const initStripes = async (config, branding, tenant) => {
     // Malkovich Malkovich Malkovich? Malkovich!
     await localforage.setItem(REMOTE_LIST_KEY, Object.values(discovery).filter(module => module.name !== 'folio_stripes-core'));
 
-    return loadStripes(stripesCore);
+    await loadStripes(stripesCore);
+    return Promise.resolve();
   }
 
-  throw new Error('Could not find stripes-core in discovery data');
+  throw new Error('Stripes core module not found in discovery data');
 }
 
 /**

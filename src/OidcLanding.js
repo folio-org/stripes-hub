@@ -1,4 +1,4 @@
-import { useIntl } from 'react-intl';
+import { useIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
 
 import {
@@ -8,9 +8,11 @@ import {
   requestUserWithPerms,
   setTokenExpiry,
   storeCurrentTenant,
+  StripesHubError
 } from './loginServices';
 
 import useExchangeCode from './hooks/useExchangeCode';
+import FatalError from './FatalError';
 
 /**
  * OidcLanding: un-authenticated route handler for /oidc-landing.
@@ -23,7 +25,7 @@ import useExchangeCode from './hooks/useExchangeCode';
  *
  * @see RootWithIntl
  */
-const OidcLanding = ({ config }) => {
+const OidcLanding = ({ branding, config }) => {
   const intl = useIntl();
 
   const atDefaultExpiration = Date.now() + (60 * 1000);
@@ -58,13 +60,17 @@ const OidcLanding = ({ config }) => {
     }
   };
 
-  const { tokenData, isLoading } = useExchangeCode(config, initSession);
+  const { error, isLoading, tokenData } = useExchangeCode(config, initSession);
+
+  if (error) {
+    return <FatalError branding={branding} config={config} error={error} />;
+  }
 
   return (
     <div data-test-saml-success>
       <div>
-        {isLoading && intl.formatMessage({ id: 'stripes-core.oidc.validatingAuthenticationToken' })}
-        {tokenData && intl.formatMessage({ id: 'stripes-core.oidc.initializingSession' })}
+        {isLoading && <h1><FormattedMessage id="stripes-hub.OidcLanding.validatingAuthenticationToken" /></h1>}
+        {tokenData && <h1><FormattedMessage id="stripes-hub.OidcLanding.initializingSession" /></h1>}
       </div>
     </div>
   );

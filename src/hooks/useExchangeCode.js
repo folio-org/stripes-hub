@@ -2,9 +2,9 @@ import { useQuery } from 'react-query';
 import { useIntl } from 'react-intl';
 import noop from 'lodash/noop';
 
-import { getLoginTenant, getHeaders } from '../loginServices';
+import { getLoginTenant, getHeaders, StripesHubError } from '../loginServices';
 
-const useExchangeCode = async (config, initSession = noop) => {
+const useExchangeCode = (config, initSession = noop) => {
   const intl = useIntl();
   const urlParams = new URLSearchParams(globalThis.location.search);
   const code = urlParams.get('code');
@@ -26,21 +26,26 @@ const useExchangeCode = async (config, initSession = noop) => {
 
           const json = await response.json();
 
-          // note: initSession is expected to execute an unawaited promise.
-          // initSession calls .../_self and other functions in order to
-          // populate the session, eventually triggering a re-render. so,
-          // even though it's async, we do not await it here, instead
-          // returning the response-json that can be used to show a status
-          // update while session-init is still in-flight.
-          initSession(json);
-
-          return json;
-        } catch (fetchError) {
-          // throw json from the error-response, or just rethrow
-          if (fetchError?.response?.json) {
-            const errorJson = await fetchError.response.json();
-            throw errorJson;
+          if (response.ok) {
+            // initSession eventually redirects to /
+            await initSession(json);
+            return json;
           }
+
+          throw new StripesHubError(`Token exchange failed`, { json });
+
+        } catch (error) {
+          console.error({ error }); // eslint-disable-line no-console
+          // rethrow if error is already wrapped
+          if (error instanceof StripesHubError) {
+            throw error;
+          }
+          // throw new StripesHubError('monkeys', { cause: fetchError, message: 'fetch error during OTP exchange' })
+          // // throw json from the error-response, or just rethrow
+          // if (fetchError?.response?.json) {
+          //   const errorJson = await fetchError.response.json();
+          //   throw errorJson;
+          // }
 
           throw fetchError;
         }
