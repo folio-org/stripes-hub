@@ -5,6 +5,7 @@ import useInitSession from './hooks/useInitSession';
 import { urlPaths } from './constants';
 import FatalError from './FatalError';
 import { Col, OrganizationLogo, Row } from './StripesComponents';
+import Template from './Template';
 import styles from './index.css';
 
 function StripesHub({ branding, config }) {
@@ -27,27 +28,18 @@ function StripesHub({ branding, config }) {
   }
 
   return (
-    <main style={{ width: '100%' }}>
-      <div>
-        <div className={styles.container}>
-          <Row center="xs">
-            <Col xs={12}>
-              <OrganizationLogo branding={branding} />
-            </Col>
-          </Row>
-          <Row center="xs">
-            <Col xs={12}>
-              <div data-testid="StripesHub">
-                {isLoadingEntitlement && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingEntitlements" /></h1>}
-                {isLoadingDiscovery && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingDiscovery" /></h1>}
-                {isLoadingSession && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingSession" /></h1>}
-                {isLoadingStripes && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingStripes" /></h1>}
-              </div>
-            </Col>
-          </Row>
-        </div>
-      </div>
-    </main>
+    <Template branding={branding}>
+      <Row center="xs">
+        <Col xs={12}>
+          <div data-testid="StripesHub">
+            {isLoadingEntitlement && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingEntitlements" /></h1>}
+            {isLoadingDiscovery && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingDiscovery" /></h1>}
+            {isLoadingSession && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingSession" /></h1>}
+            {isLoadingStripes && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingStripes" /></h1>}
+          </div>
+        </Col>
+      </Row>
+    </Template>
   );
 }
 

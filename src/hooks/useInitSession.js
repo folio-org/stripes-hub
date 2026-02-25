@@ -9,12 +9,6 @@ import {
   getSession,
   loadStripes,
   setUnauthorizedPathToSession,
-  // DISCOVERY_URL_KEY,
-  // FOLIO_BRANDING_KEY,
-  // FOLIO_CONFIG_KEY,
-  // HOST_APP_NAME,
-  // REMOTE_LIST_KEY,
-  // USERS_PATH,
 } from '../loginServices';
 
 /** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
@@ -26,12 +20,13 @@ const FOLIO_CONFIG_KEY = 'folio_config';
 /** name for FOLIO branding file locations to be used by entitled applications (such as stripes-core) */
 const FOLIO_BRANDING_KEY = 'branding_config';
 
-// const keys to-be-ingested by stripes-core
+/** root API path to user session data */
+const USERS_PATH = 'users-keycloak';  // TODO: does this need to be a constant? what about okapi?
+
+// localstorage keys to-be-ingested by stripes-core
 const DISCOVERY_URL_KEY = 'discoveryUrl';
 const HOST_LOCATION_KEY = 'hostLocation';
 const REMOTE_LIST_KEY = 'entitlements';
-const USERS_PATH = 'users-keycloak';
-
 
 /**
  * Pull the session from local storage and validate it by fetching from .../_self.
@@ -45,7 +40,6 @@ const USERS_PATH = 'users-keycloak';
  * @returns
  */
 const useInitSession = (config, branding, loginUrl) => {
-
   const getSessionTenant = (session) => {
     return session.tenant;
   };

@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { Button, Col, OrganizationLogo, Row, Select } from './StripesComponents';
 import { getLoginUrl, getCurrentTenant } from './loginServices';
 import styles from './index.css';
+import Template from './Template';
 
 export function sortedTenantOptions(tenantOptions) {
   return Object.values(tenantOptions)
@@ -45,34 +46,25 @@ function PreLoginLanding({ onSelectTenant, config, branding, tenantOptions }) {
   };
 
   return (
-    <main style={{ width: '100%' }}>
-      <div>
-        <div className={styles.container}>
-          <Row center="xs">
-            <Col xs={6}>
-              <OrganizationLogo branding={branding} />
-            </Col>
-          </Row>
-          <Row center="xs">
-            <Col xs={3}>
-              <Select
-                label={intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantLibrary' })}
-                defaultValue=""
-                onChange={handleChangeTenant}
-                dataOptions={[...options, { value: '', label: intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantChoose' }) }]}
-              />
-              <Button
-                className={styles.submitButton}
-                disabled={isButtonDisabled}
-                onClick={redirectToLogin}
-              >
-                {intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.button.continue' })}
-              </Button>
-            </Col>
-          </Row>
-        </div>
-      </div>
-    </main>
+    <Template branding={branding}>
+      <Row center="xs">
+        <Col xs={3}>
+          <Select
+            label={intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantLibrary' })}
+            defaultValue=""
+            onChange={handleChangeTenant}
+            dataOptions={[...options, { value: '', label: intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantChoose' }) }]}
+          />
+          <Button
+            className={styles.submitButton}
+            disabled={isButtonDisabled}
+            onClick={redirectToLogin}
+          >
+            {intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.button.continue' })}
+          </Button>
+        </Col>
+      </Row>
+    </Template>
   );
 }
 

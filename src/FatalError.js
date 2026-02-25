@@ -3,7 +3,7 @@ import { useIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
 
 import { Button, Col, OrganizationLogo, Row, Select } from './StripesComponents';
-import { getLoginUrl, getCurrentTenant } from './loginServices';
+import Template from './Template';
 import styles from './index.css';
 
 
@@ -34,43 +34,35 @@ function FatalError({ branding, config, error }) {
   }
 
   return (
-    <main style={{ width: '100%' }}>
-      <div>
-        <div className={styles.container}>
-          <Row center="xs">
-            <Col xs={12}>
-              <OrganizationLogo branding={branding} />
-            </Col>
-          </Row>
-          <Row center="xs">
-            <Col xs={12}>
-              <h1><FormattedMessage id="stripes-hub.FatalError.headline" /></h1>
-              <h2>{error.message}</h2>
-              <h3>{message}</h3>
-              <h3>{subMessage}</h3>
-            </Col>
-          </Row>
-          <Row center="xs">
-            <Col xs={6}>
-              <Button
-                className={styles.submitButton}
-                onClick={handleReload}
-              >
-                <FormattedMessage id="stripes-hub.FatalError.tryAgain" />
-              </Button>
-            </Col>
-            <Col xs={6}>
-              <Button
-                className={styles.submitButton}
-                onClick={handleLogout}
-              >
-                <FormattedMessage id="stripes-hub.FatalError.logout" />
-              </Button>
-            </Col>
-          </Row>
-        </div>
-      </div>
-    </main>
+    <Template branding={branding}>
+      <Row center="xs">
+        <Col xs={12}>
+          <h1><FormattedMessage id="stripes-hub.FatalError.headline" /></h1>
+          <h2>{error.message}</h2>
+          <h3>{message}</h3>
+          <h3>{subMessage}</h3>
+        </Col>
+      </Row>
+      <Row center="xs">
+        <Col xs={6}>
+          <Button
+            className={styles.submitButton}
+            onClick={handleReload}
+          >
+            <FormattedMessage id="stripes-hub.FatalError.tryAgain" />
+          </Button>
+        </Col>
+        <Col xs={6}>
+          <Button
+            className={styles.submitButton}
+            onClick={handleLogout}
+          >
+            <FormattedMessage id="stripes-hub.FatalError.logout" />
+          </Button>
+        </Col>
+      </Row>
+    </Template>
+
   );
 }
 

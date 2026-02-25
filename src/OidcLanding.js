@@ -13,6 +13,7 @@ import {
 
 import useExchangeCode from './hooks/useExchangeCode';
 import FatalError from './FatalError';
+import Template from './Template';
 
 /**
  * OidcLanding: un-authenticated route handler for /oidc-landing.
@@ -49,6 +50,7 @@ const OidcLanding = ({ branding, config }) => {
           return storeCurrentTenant(loginTenant.name, loginTenant.clientId);
         })
         .then(() => {
+          // TODO: ruwp makes a duplicate API call to _self; how can we avoid this
           return requestUserWithPerms(config, loginTenant.name);
         }).then(() => {
           // upon successful session init, redirect to root for stripes-core to proceed with normal boot.
@@ -67,12 +69,14 @@ const OidcLanding = ({ branding, config }) => {
   }
 
   return (
-    <div data-test-saml-success>
-      <div>
-        {isLoading && <h1><FormattedMessage id="stripes-hub.OidcLanding.validatingAuthenticationToken" /></h1>}
-        {tokenData && <h1><FormattedMessage id="stripes-hub.OidcLanding.initializingSession" /></h1>}
+    <Template branding={branding}>
+      <div data-test-saml-success>
+        <div>
+          {isLoading && <h1><FormattedMessage id="stripes-hub.OidcLanding.validatingAuthenticationToken" /></h1>}
+          {tokenData && <h1><FormattedMessage id="stripes-hub.OidcLanding.initializingSession" /></h1>}
+        </div>
       </div>
-    </div>
+    </Template>
   );
 };
 
