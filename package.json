@@ -24,6 +24,7 @@
     "@babel/plugin-syntax-jsx": "^7.28.6",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-react": "^7.9.0",
+    "@eslint/js": "^10.0.1",
     "@folio/eslint-config-stripes": "^8.0.0",
     "@folio/jest-config-stripes": "^3.0.0",
     "@folio/stripes-cli": "^4.0.0",
@@ -31,6 +32,9 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^13.5.0",
+    "eslint": "^10.0.2",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^17.3.0",
     "react-scripts": "5.0.1",
     "serve": "^14.2.5"
   },
@@ -38,7 +42,8 @@
     "start": "PORT=3000 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint ./src"
   },
   "eslintConfig": {
     "extends": [
