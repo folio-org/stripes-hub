@@ -237,7 +237,7 @@ export const fetchEntitlements = async (config, tenant) => {
  * Fetch discovery data with a single query and return it in a map keyed by id.
  * IGNORE the entitlement data altogether! The local discovery service is, in
  * fact, an entitlement-and-discovery service, and so we allow its response for
- * both entitlement and discover data to be the authoritative response.
+ * both entitlement and discovery data to be the authoritative response.
  *
  * @param {object} config config
  * @param {string} tenant

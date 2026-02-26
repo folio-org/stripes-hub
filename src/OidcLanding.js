@@ -13,7 +13,7 @@ import {
 
 import useExchangeCode from './hooks/useExchangeCode';
 import FatalError from './FatalError';
-import Template from './Template';
+import StripesTemplate from './StripesTemplate';
 
 /**
  * OidcLanding: un-authenticated route handler for /oidc-landing.
@@ -69,14 +69,14 @@ const OidcLanding = ({ branding, config }) => {
   }
 
   return (
-    <Template branding={branding}>
+    <StripesTemplate branding={branding}>
       <div data-test-saml-success>
         <div>
           {isLoading && <h1><FormattedMessage id="stripes-hub.OidcLanding.validatingAuthenticationToken" /></h1>}
           {tokenData && <h1><FormattedMessage id="stripes-hub.OidcLanding.initializingSession" /></h1>}
         </div>
       </div>
-    </Template>
+    </StripesTemplate>
   );
 };
 
