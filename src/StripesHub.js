@@ -5,7 +5,7 @@ import useInitSession from './hooks/useInitSession';
 import { urlPaths } from './constants';
 import FatalError from './FatalError';
 import { Col, OrganizationLogo, Row } from './StripesComponents';
-import Template from './Template';
+import StripesTemplate from './StripesTemplate';
 import styles from './index.css';
 
 function StripesHub({ branding, config }) {
@@ -28,7 +28,7 @@ function StripesHub({ branding, config }) {
   }
 
   return (
-    <Template branding={branding}>
+    <StripesTemplate branding={branding}>
       <Row center="xs">
         <Col xs={12}>
           <div data-testid="StripesHub">
@@ -39,7 +39,7 @@ function StripesHub({ branding, config }) {
           </div>
         </Col>
       </Row>
-    </Template>
+    </StripesTemplate>
   );
 }
 

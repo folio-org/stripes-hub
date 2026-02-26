@@ -168,30 +168,27 @@ export const setUnauthorizedPathToSession = (pathname) => {
 export const getUnauthorizedPathFromSession = () => sessionStorage.getItem(UNAUTHORIZED_PATH);
 
 /**
- * ffetch (folio-fetch)
- * Wrapper around fetch to include Okapi headers and error handling. Throws
+ * authenticatedFetch
+ * Wrapper around fetch to include headers headers and error handling. Throws
  * if response is not ok. Returns parsed JSON response.
  *
  * @param {string} url URL to retrieve
  * @param {string} tenant tenant for x-okapi-tenant header
  * @returns {Promise} resolves to the JSON response
  */
-const ffetch = async (url, tenant) => {
+const authenticatedFetch = async (url, tenant) => {
   const res = await fetch(url, {
     headers: getHeaders(tenant),
     credentials: 'include',
     mode: 'cors',
   });
 
-  // TODO: should ffetch be responsible for throwing this generic error
-  // or should the caller trap and rethrow with more context? e.g. "entitlement error", "discovery error"?
-  if (!res.ok) {
-    const json = await res.json();
-    throw new StripesHubError(`Fetch to ${url} failed: ${res.status} ${res.statusText}`, { json, url });
+  const json = await res.json();
+  if (res.ok) {
+    return json;
   }
 
-  const json = await res.json();
-  return json;
+  throw new StripesHubError(`Fetch to ${url} failed: ${res.status} ${res.statusText}`, { json, url });
 }
 
 /**
@@ -206,7 +203,7 @@ export const fetchEntitlements = async (config, tenant) => {
   const url = `${config.gatewayUrl}/entitlements/${tenant}/applications`;
   try {
     const entitlement = {};
-    const json = await ffetch(url, tenant);
+    const json = await authenticatedFetch(url, tenant);
     const elist = json.applicationDescriptors;
     elist.forEach(application => {
       application.uiModules.forEach(module => {
@@ -298,7 +295,7 @@ const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
     const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
 
     for (const appId of applicationIds) {
-      const json = await ffetch(url, tenant);
+      const json = await authenticatedFetch(url, tenant);
       json.discovery.forEach(entry => {
         if (entitlement[entry.id]) {
           // TODO: use a categorical logger for this or omit it

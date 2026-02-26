@@ -2,7 +2,7 @@ import { useIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
 
 import { Button, Col, OrganizationLogo, Row, Select } from './StripesComponents';
-import Template from './Template';
+import StripesTemplate from './StripesTemplate';
 import styles from './index.css';
 
 
@@ -39,7 +39,7 @@ function FatalError({ branding, config, error }) {
   const l10nMessage = error.options?.id ? intl.formatMessage({ id: error.options.id }, { url: error?.options?.url }) : error.message;
 
   return (
-    <Template branding={branding}>
+    <StripesTemplate branding={branding}>
       <Row center="xs">
         <Col xs={12}>
           <h1><FormattedMessage id="stripes-hub.FatalError.headline" /></h1>
@@ -66,7 +66,7 @@ function FatalError({ branding, config, error }) {
           </Button>
         </Col>
       </Row>
-    </Template>
+    </StripesTemplate>
 
   );
 }

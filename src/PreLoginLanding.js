@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { Button, Col, OrganizationLogo, Row, Select } from './StripesComponents';
 import { getLoginUrl, getCurrentTenant } from './loginServices';
 import styles from './index.css';
-import Template from './Template';
+import StripesTemplate from './StripesTemplate';
 
 export function sortedTenantOptions(tenantOptions) {
   return Object.values(tenantOptions)
@@ -46,7 +46,7 @@ function PreLoginLanding({ onSelectTenant, config, branding, tenantOptions }) {
   };
 
   return (
-    <Template branding={branding}>
+    <StripesTemplate branding={branding}>
       <Row center="xs">
         <Col xs={3}>
           <Select
@@ -64,7 +64,7 @@ function PreLoginLanding({ onSelectTenant, config, branding, tenantOptions }) {
           </Button>
         </Col>
       </Row>
-    </Template>
+    </StripesTemplate>
   );
 }
 

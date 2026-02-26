@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { Col, OrganizationLogo, Row } from './StripesComponents';
 import styles from './index.css';
 
-function Template({ branding, children }) {
+function StripesTemplate({ branding, children }) {
   const intl = useIntl();
 
   return (
@@ -23,7 +23,7 @@ function Template({ branding, children }) {
   );
 }
 
-Template.propTypes = {
+StripesTemplate.propTypes = {
   branding: PropTypes.shape({
     logo: PropTypes.string,
     altText: PropTypes.string,
@@ -31,4 +31,4 @@ Template.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-export default Template;
+export default StripesTemplate;
