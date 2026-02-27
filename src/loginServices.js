@@ -214,8 +214,8 @@ export const fetchEntitlements = async (config, tenant) => {
       });
       application.uiModuleDescriptors.forEach(module => {
         if (entitlement[module.id]) {
-          entitlement[module.id].okapiInterfaces = module.requires;
-          entitlement[module.id].optionalOkapiInterfaces = module.optional;
+          entitlement[module.id].okapiInterfaces = interfaceArrayToKeyedObject(module.requires || []);
+          entitlement[module.id].optionalOkapiInterfaces = interfaceArrayToKeyedObject(module.optional || []);
           entitlement[module.id] = { ...entitlement[module.id], ...module.metadata?.stripes };
         }
       });
@@ -224,13 +224,25 @@ export const fetchEntitlements = async (config, tenant) => {
     return entitlement;
   } catch (error) {
     const json = error?.options?.json || null;
-
     throw new StripesHubError(
       `Entitlement fetch error at ${url}`,
       { json, url, id: 'stripes-hub.error.entitlementFetch', cause: error }
     );
   }
 };
+
+/**
+ * Helper function to convert an array of objects with `id` and `version`
+ * properties into an object keyed by `id` with values of `version`.
+ * @param {*} arr the array of interfaces to convert shaped like [{ id: 'interfaceA', version: '1.0 2.0' }, ...]
+ * @returns the converted object shaped like { interfaceA: '1.0 2.0', ... }
+ */
+const interfaceArrayToKeyedObject = (arr) => {
+    return arr.reduce((acc, curr) => {
+        acc[curr.id] = curr.version;
+        return acc;
+    }, {});
+}
 
 /**
  * fetchCustomDiscovery

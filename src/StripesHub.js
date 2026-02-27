@@ -52,8 +52,13 @@ StripesHub.propTypes = {
     preserveConsole: PropTypes.bool,
   }).isRequired,
   branding: PropTypes.shape({
-    logo: PropTypes.string,
-    altText: PropTypes.string,
+    logo: PropTypes.shape({
+      src: PropTypes.string,
+      alt: PropTypes.string,
+    }),
+    favicon: PropTypes.shape({
+      src: PropTypes.string,
+    }),
   }).isRequired,
 };
 
