@@ -310,8 +310,7 @@ const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
       const json = await authenticatedFetch(url, tenant);
       json.discovery.forEach(entry => {
         if (entitlement[entry.id]) {
-          // TODO: use a categorical logger for this or omit it
-          console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
+          // maybe log sth like `Adding discovery data for ${entry.id} => ${entry.location}`
           map[entry.id] = entitlement[entry.id];
           map[entry.id].location = entry.location;
         }
