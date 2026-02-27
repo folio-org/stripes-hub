@@ -4,13 +4,10 @@ import { useIntl, FormattedMessage } from 'react-intl';
 import useInitSession from './hooks/useInitSession';
 import { urlPaths } from './constants';
 import FatalError from './FatalError';
-import { Col, OrganizationLogo, Row } from './StripesComponents';
+import { Col, Row } from './StripesComponents';
 import StripesTemplate from './StripesTemplate';
-import styles from './index.css';
 
 function StripesHub({ branding, config }) {
-  const intl = useIntl();
-
   const {
     isLoadingDiscovery,
     discoveryError,

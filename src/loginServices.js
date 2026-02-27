@@ -238,10 +238,10 @@ export const fetchEntitlements = async (config, tenant) => {
  * @returns the converted object shaped like { interfaceA: '1.0 2.0', ... }
  */
 const interfaceArrayToKeyedObject = (arr) => {
-    return arr.reduce((acc, curr) => {
-        acc[curr.id] = curr.version;
-        return acc;
-    }, {});
+  return arr.reduce((acc, curr) => {
+    acc[curr.id] = curr.version;
+    return acc;
+  }, {});
 }
 
 /**
@@ -300,13 +300,12 @@ const fetchCustomDiscovery = async (config, tenant, entitlement) => {
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
 const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
-  const url = `${config.gatewayUrl}/applications/${appId}/discovery?limit=500`;
+  let url = null;
   try {
     const map = {};
-
     const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
-
     for (const appId of applicationIds) {
+      url = `${config.gatewayUrl}/applications/${appId}/discovery?limit=500`;
       const json = await authenticatedFetch(url, tenant);
       json.discovery.forEach(entry => {
         if (entitlement[entry.id]) {
@@ -318,7 +317,6 @@ const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
     };
 
     return map;
-
   } catch (error) {
     const json = error?.options?.json || null;
     throw new StripesHubError(
@@ -326,7 +324,6 @@ const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
       { json, url, id: 'stripes-hub.error.discoveryFetch', cause: error }
     );
   };
-
 };
 
 /**

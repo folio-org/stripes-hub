@@ -1,9 +1,10 @@
 import { useIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
 
-import { Button, Col, OrganizationLogo, Row, Select } from './StripesComponents';
+import { Button, Col, Row } from './StripesComponents';
 import StripesTemplate from './StripesTemplate';
 import styles from './index.css';
+import { config } from 'localforage';
 
 
 function FatalError({ branding, config, error }) {
@@ -25,13 +26,9 @@ function FatalError({ branding, config, error }) {
   // did we get some juicy json in an API response?
   let message = null;
   let subMessage = null;
-  const errors = error?.options?.json?.errors;
-  if (errors && errors[0]?.message) {
-    message = errors[0]?.message;
-    const params = errors[0]?.parameters;
-    if (params && params[0]?.value) {
-      subMessage = params[0].value;
-    }
+  if (error?.options?.json?.errors?.[0]?.message) {
+    message = error?.options?.json?.errors[0]?.message;
+    subMessage = error?.options?.json?.errors[0]?.parameters?.[0].value;
   } else if (error?.options?.json?.message) {
     message = error?.options?.json?.message;
   }
@@ -73,12 +70,28 @@ function FatalError({ branding, config, error }) {
 
 FatalError.propTypes = {
   branding: PropTypes.shape({
-    logo: PropTypes.string,
     altText: PropTypes.string,
+    logo: PropTypes.string,
+  }).isRequired,
+  config: PropTypes.shape({
+    gatewayUrl: PropTypes.string.isRequired,
   }).isRequired,
   error: PropTypes.shape({
-    message: PropTypes.string.isRequired,
     cause: PropTypes.shape({ message: PropTypes.string.isRequired }),
+    message: PropTypes.string.isRequired,
+    options: PropTypes.shape({
+      id: PropTypes.string,
+      json: PropTypes.shape({
+        message: PropTypes.string,
+        errors: PropTypes.arrayOf(PropTypes.shape({
+          message: PropTypes.string,
+          parameters: PropTypes.arrayOf(PropTypes.shape({
+            value: PropTypes.string,
+          })),
+        })),
+      }),
+      url: PropTypes.string,
+    }),
   }).isRequired
 };
 

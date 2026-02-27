@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import PropTypes from 'prop-types';
 
-import { Button, Col, OrganizationLogo, Row, Select } from './StripesComponents';
+import { Button, Col, Row, Select } from './StripesComponents';
 import { getLoginUrl, getCurrentTenant } from './loginServices';
 import styles from './index.css';
 import StripesTemplate from './StripesTemplate';
@@ -17,7 +17,7 @@ export function sortedTenantOptions(tenantOptions) {
     .map(i => ({ value: i.name, label: i.displayName ?? i.name }));
 }
 
-function PreLoginLanding({ onSelectTenant, config, branding, tenantOptions }) {
+function PreLoginLanding({ config, branding, onSelectTenant, tenantOptions }) {
   const intl = useIntl();
 
   const options = sortedTenantOptions(tenantOptions);
@@ -69,6 +69,18 @@ function PreLoginLanding({ onSelectTenant, config, branding, tenantOptions }) {
 }
 
 PreLoginLanding.propTypes = {
+  branding: PropTypes.shape({
+    favicon: PropTypes.shape({
+      src: PropTypes.string,
+    }),
+    logo: PropTypes.shape({
+      alt: PropTypes.string,
+      src: PropTypes.string,
+    }),
+  }),
+  config: PropTypes.shape({
+    authnUrl: PropTypes.string.isRequired,
+  }).isRequired,
   onSelectTenant: PropTypes.func.isRequired,
 };
 

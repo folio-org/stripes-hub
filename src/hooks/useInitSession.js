@@ -21,7 +21,7 @@ const FOLIO_CONFIG_KEY = 'folio_config';
 const FOLIO_BRANDING_KEY = 'branding_config';
 
 /** root API path to user session data */
-const USERS_PATH = 'users-keycloak';  // TODO: does this need to be a constant? what about okapi?
+const USERS_PATH = 'users-keycloak';
 
 // localstorage keys to-be-ingested by stripes-core
 const DISCOVERY_URL_KEY = 'discoveryUrl';
@@ -142,21 +142,15 @@ const useInitSession = (config, branding, loginUrl) => {
   const { isLoading: isLoadingDiscovery, data: discovery, error: discoveryError } = useQuery(
     ['@folio/stripes-core', 'discovery'],
     async () => {
-      try {
-        const tenant = getCurrentTenant().name;
-        const discovery = await fetchDiscovery(config, tenant, entitlement);
-        return discovery;
-      } catch (error) {
-        throw error;
-      }
+      const tenant = getCurrentTenant().name;
+      const discovery = await fetchDiscovery(config, tenant, entitlement);
+      return discovery;
     },
     {
       retry: false,
       enabled: !!entitlement && Object.keys(entitlement).length > 0, // discovery depends on entitlement, so don't run until we have entitlement data
     }
   );
-
-
 
   /**
    * initStripes

@@ -8,7 +8,6 @@ import {
   requestUserWithPerms,
   setTokenExpiry,
   storeCurrentTenant,
-  StripesHubError
 } from './loginServices';
 
 import useExchangeCode from './hooks/useExchangeCode';
@@ -27,8 +26,6 @@ import StripesTemplate from './StripesTemplate';
  * @see RootWithIntl
  */
 const OidcLanding = ({ branding, config }) => {
-  const intl = useIntl();
-
   const atDefaultExpiration = Date.now() + (60 * 1000);
   const rtDefaultExpiration = Date.now() + (2 * 60 * 1000);
 
@@ -81,10 +78,19 @@ const OidcLanding = ({ branding, config }) => {
 };
 
 OidcLanding.propTypes = {
+  branding: PropTypes.shape({
+    favicon: PropTypes.shape({
+      src: PropTypes.string,
+    }),
+    logo: PropTypes.shape({
+      alt: PropTypes.string,
+      src: PropTypes.string,
+    }),
+  }),
   config: PropTypes.shape({
-    gatewayUrl: PropTypes.string.isRequired,
     authnUrl: PropTypes.string.isRequired,
     discoveryUrl: PropTypes.string,
+    gatewayUrl: PropTypes.string.isRequired,
   }).isRequired
 };
 
