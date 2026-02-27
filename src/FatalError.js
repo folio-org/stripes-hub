@@ -4,8 +4,6 @@ import PropTypes from 'prop-types';
 import { Button, Col, Row } from './StripesComponents';
 import StripesTemplate from './StripesTemplate';
 import styles from './index.css';
-import { config } from 'localforage';
-
 
 function FatalError({ branding, config, error }) {
   const intl = useIntl();

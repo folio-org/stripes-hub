@@ -17,7 +17,7 @@ export function sortedTenantOptions(tenantOptions) {
     .map(i => ({ value: i.name, label: i.displayName ?? i.name }));
 }
 
-function PreLoginLanding({ config, branding, onSelectTenant, tenantOptions }) {
+function PreLoginLanding({ branding, config, onSelectTenant, tenantOptions }) {
   const intl = useIntl();
 
   const options = sortedTenantOptions(tenantOptions);
@@ -82,6 +82,7 @@ PreLoginLanding.propTypes = {
     authnUrl: PropTypes.string.isRequired,
   }).isRequired,
   onSelectTenant: PropTypes.func.isRequired,
+  tenantOptions: PropTypes.object.isRequired,
 };
 
 export default PreLoginLanding;

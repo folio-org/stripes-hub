@@ -109,9 +109,6 @@ const useInitSession = (config, branding, loginUrl) => {
         cachedSession?.user?.id ? await validateSession(cachedSession, authenticate) : authenticate();
 
         if (cachedSession && sessionIsValid(cachedSession)) {
-          const tenant = getSessionTenant(cachedSession);
-          const { tenant: sessionTenant = tenant } = cachedSession;
-
           return cachedSession;
         } else {
           authenticate();
@@ -170,7 +167,7 @@ const useInitSession = (config, branding, loginUrl) => {
    * @param {string} tenant
    * @returns {Promise<void>} resolves when stripes is initialized
    */
-  const { isLoading: isLoadingStripes, data: stripes, error: stripesError } = useQuery(
+  const { isLoading: isLoadingStripes, error: stripesError } = useQuery(
     ['@folio/stripes-core', 'stripes'],
     async () => {
       console.log({ session, entitlement, discovery });

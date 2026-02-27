@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useIntl, FormattedMessage } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
 import useInitSession from './hooks/useInitSession';
 import { urlPaths } from './constants';

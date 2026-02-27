@@ -1,4 +1,4 @@
-import { useIntl, FormattedMessage } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
 
 import {
@@ -47,7 +47,6 @@ const OidcLanding = ({ branding, config }) => {
           return storeCurrentTenant(loginTenant.name, loginTenant.clientId);
         })
         .then(() => {
-          // TODO: ruwp makes a duplicate API call to _self; how can we avoid this
           return requestUserWithPerms(config, loginTenant.name);
         }).then(() => {
           // upon successful session init, redirect to root for stripes-core to proceed with normal boot.
