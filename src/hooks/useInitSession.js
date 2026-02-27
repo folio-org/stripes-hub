@@ -40,10 +40,6 @@ const REMOTE_LIST_KEY = 'entitlements';
  * @returns
  */
 const useInitSession = (config, branding, loginUrl) => {
-  const getSessionTenant = (session) => {
-    return session.tenant;
-  };
-
   const authenticate = () => {
     // Cache the current path so we can return to it after authenticating.
     if (globalThis.location.pathname !== '/') {
