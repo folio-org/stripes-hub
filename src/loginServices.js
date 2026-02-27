@@ -54,6 +54,14 @@ export const getHeaders = (tenant, token) => {
   };
 };
 
+export class StripesHubError extends Error {
+  constructor(message, options) {
+    super(message, options);
+
+    this.options = options;
+  }
+}
+
 /**
  * getOIDCRedirectUri
  * Construct OIDC redirect URI based on current location, tenant, and client ID.
@@ -160,28 +168,27 @@ export const setUnauthorizedPathToSession = (pathname) => {
 export const getUnauthorizedPathFromSession = () => sessionStorage.getItem(UNAUTHORIZED_PATH);
 
 /**
- * ffetch (folio-fetch)
- * Wrapper around fetch to include Okapi headers and error handling. Throws
+ * authenticatedFetch
+ * Wrapper around fetch to include headers headers and error handling. Throws
  * if response is not ok. Returns parsed JSON response.
  *
  * @param {string} url URL to retrieve
  * @param {string} tenant tenant for x-okapi-tenant header
  * @returns {Promise} resolves to the JSON response
  */
-const ffetch = async (url, tenant) => {
+const authenticatedFetch = async (url, tenant) => {
   const res = await fetch(url, {
     headers: getHeaders(tenant),
     credentials: 'include',
     mode: 'cors',
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Fetch to ${url} failed: ${res.status} ${res.statusText} - ${text}`);
+  const json = await res.json();
+  if (res.ok) {
+    return json;
   }
 
-  const json = await res.json();
-  return json;
+  throw new StripesHubError(`Fetch to ${url} failed: ${res.status} ${res.statusText}`, { json, url });
 }
 
 /**
@@ -192,28 +199,36 @@ const ffetch = async (url, tenant) => {
  * @param {string} tenant
  * @returns {Promise<map>} map of entitlement data, keyed by module ID
  */
-const fetchEntitlements = async (config, tenant) => {
-  const entitlement = {};
-  const json = await ffetch(`${config.gatewayUrl}/entitlements/${tenant}/applications`, tenant);
-  const elist = json.applicationDescriptors;
-  elist.forEach(application => {
-    application.uiModules.forEach(module => {
-      entitlement[module.id] = module;
+export const fetchEntitlements = async (config, tenant) => {
+  const url = `${config.gatewayUrl}/entitlements/${tenant}/applications`;
+  try {
+    const entitlement = {};
+    const json = await authenticatedFetch(url, tenant);
+    const elist = json.applicationDescriptors;
+    elist.forEach(application => {
+      application.uiModules.forEach(module => {
+        entitlement[module.id] = module;
 
-      // store application IDs for use in the dicovery API query
-      entitlement[module.id].applicationId = application.id;
+        // store application IDs for use in the dicovery API query
+        entitlement[module.id].applicationId = application.id;
+      });
+      application.uiModuleDescriptors.forEach(module => {
+        if (entitlement[module.id]) {
+          entitlement[module.id].okapiInterfaces = interfaceArrayToKeyedObject(module.requires || []);
+          entitlement[module.id].optionalOkapiInterfaces = interfaceArrayToKeyedObject(module.optional || []);
+          entitlement[module.id] = { ...entitlement[module.id], ...module.metadata?.stripes };
+        }
+      });
     });
-    application.uiModuleDescriptors.forEach(module => {
-      if (entitlement[module.id]) {
 
-        entitlement[module.id].okapiInterfaces = interfaceArrayToKeyedObject(module.requires || []);
-        entitlement[module.id].optionalOkapiInterfaces = interfaceArrayToKeyedObject(module.optional || []);
-        entitlement[module.id] = { ...entitlement[module.id], ...module.metadata?.stripes };
-      }
-    });
-  });
-
-  return entitlement;
+    return entitlement;
+  } catch (error) {
+    const json = error?.options?.json || null;
+    throw new StripesHubError(
+      `Entitlement fetch error at ${url}`,
+      { json, url, id: 'stripes-hub.error.entitlementFetch', cause: error }
+    );
+  }
 };
 
 /**
@@ -223,10 +238,10 @@ const fetchEntitlements = async (config, tenant) => {
  * @returns the converted object shaped like { interfaceA: '1.0 2.0', ... }
  */
 const interfaceArrayToKeyedObject = (arr) => {
-    return arr.reduce((acc, curr) => {
-        acc[curr.id] = curr.version;
-        return acc;
-    }, {});
+  return arr.reduce((acc, curr) => {
+    acc[curr.id] = curr.version;
+    return acc;
+  }, {});
 }
 
 /**
@@ -234,7 +249,7 @@ const interfaceArrayToKeyedObject = (arr) => {
  * Fetch discovery data with a single query and return it in a map keyed by id.
  * IGNORE the entitlement data altogether! The local discovery service is, in
  * fact, an entitlement-and-discovery service, and so we allow its response for
- * both entitlement and discover data to be the authoritative response.
+ * both entitlement and discovery data to be the authoritative response.
  *
  * @param {object} config config
  * @param {string} tenant
@@ -245,13 +260,32 @@ const interfaceArrayToKeyedObject = (arr) => {
 const fetchCustomDiscovery = async (config, tenant, entitlement) => {
   const map = {};
 
-  const json = await ffetch(`${config.discoveryUrl}`, tenant);
-  json.discovery.forEach(entry => {
-    console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
-    map[entry.id] = entry;
+  const res = await fetch(`${config.discoveryUrl}`, {
+    headers: getHeaders(tenant),
+    mode: 'cors',
   });
 
-  return map;
+  if (res.ok) {
+    const json = await res.json();
+
+    json.discovery.forEach(entry => {
+      console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
+      map[entry.id] = entry;
+    });
+
+    return map;
+  }
+
+  // who knows what kind of errors custom discover might return
+  let json = null;
+  if (res.headers.get('Content-Type')?.includes('application/json')) {
+    json = await res.json();
+  }
+
+  throw new StripesHubError(
+    `Discovery fetch error at ${config.discoveryUrl}`,
+    { json, url: config.discoveryUrl, id: 'stripes-hub.error.discoveryFetch' }
+  );
 };
 
 /**
@@ -266,22 +300,30 @@ const fetchCustomDiscovery = async (config, tenant, entitlement) => {
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
 const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
-  const map = {};
+  let url = null;
+  try {
+    const map = {};
+    const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
+    for (const appId of applicationIds) {
+      url = `${config.gatewayUrl}/applications/${appId}/discovery?limit=500`;
+      const json = await authenticatedFetch(url, tenant);
+      json.discovery.forEach(entry => {
+        if (entitlement[entry.id]) {
+          // maybe log sth like `Adding discovery data for ${entry.id} => ${entry.location}`
+          map[entry.id] = entitlement[entry.id];
+          map[entry.id].location = entry.location;
+        }
+      });
+    };
 
-  const applicationIds = Array.from(new Set(Object.values(entitlement).map(mod => mod.applicationId)));
-
-  for (const appId of applicationIds) {
-    const json = await ffetch(`${config.gatewayUrl}/applications/${appId}/discovery?limit=500`, tenant);
-    json.discovery.forEach(entry => {
-      if (entitlement[entry.id]) {
-        console.log(`Adding discovery data for ${entry.id} => ${entry.location}`);
-        map[entry.id] = entitlement[entry.id];
-        map[entry.id].location = entry.location;
-      }
-    });
+    return map;
+  } catch (error) {
+    const json = error?.options?.json || null;
+    throw new StripesHubError(
+      `Discovery fetch error at ${url}`,
+      { json, url, id: 'stripes-hub.error.discoveryFetch', cause: error }
+    );
   };
-
-  return map;
 };
 
 /**
@@ -296,7 +338,7 @@ const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
  * @param {map} entitlement
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
-const fetchDiscovery = async (config, tenant, entitlement) => {
+export const fetchDiscovery = async (config, tenant, entitlement) => {
   // Ordinarily, the discovery API query goes against the same gateway as
   // any other API query. Running module-federation locally, however, requires
   // running a local discovery server, and routing discovery API queries only
@@ -321,88 +363,57 @@ const fetchDiscovery = async (config, tenant, entitlement) => {
  * Dynamically load stripes CSS and JS assets using the build's manifest.json.
  * Stripes will bootstrap itself once its JS is loaded.
  */
-const loadStripes = async (stripesCore) => {
-  const manifestJSON = await fetch(`${stripesCore.location}/manifest.json`);
-  const manifest = await manifestJSON.json();
+export const loadStripes = async (stripesCore) => {
+  const url = `${stripesCore.location}/manifest.json`;
+  try {
+    const manifestJSON = await fetch(url);
+    const manifest = await manifestJSON.json();
 
-  // collect imports...
-  const jsImports = new Set();
-  const cssImports = new Set();
-  Object.keys(manifest.entrypoints).forEach((entry) => {
-    manifest.entrypoints[entry].imports.forEach((imp) => {
-      if (imp.endsWith('.js')) {
-        jsImports.add(imp);
-      } else if (imp.endsWith('.css')) {
-        cssImports.add(imp);
+    if (manifestJSON.ok) {
+      // collect imports...
+      const jsImports = new Set();
+      const cssImports = new Set();
+      Object.keys(manifest.entrypoints).forEach((entry) => {
+        manifest.entrypoints[entry].imports.forEach((imp) => {
+          if (imp.endsWith('.js')) {
+            jsImports.add(imp);
+          } else if (imp.endsWith('.css')) {
+            cssImports.add(imp);
+          }
+        });
+      });
+
+      cssImports.forEach((cssRef) => {
+        const cssFile = manifest.assets[cssRef].file
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `${stripesCore.location}${cssFile}`;
+        document.head.appendChild(link);
+      });
+
+      for (const jsRef of jsImports) {
+        const jsFile = manifest.assets[jsRef].file;
+        console.log(`Loading stripes asset ${stripesCore.location}${jsFile}...`)
+        await import(/* webpackIgnore: true */ `${stripesCore.location}${jsFile}`);
       }
-    });
-  });
+      return;
+    }
 
-  cssImports.forEach((cssRef) => {
-    const cssFile = manifest.assets[cssRef].file
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = `${stripesCore.location}${cssFile}`;
-    document.head.appendChild(link);
-  });
+    throw new Error('Failed to fetch manifest', { json: manifest });
 
-  jsImports.forEach((jsRef) => {
-    const jsFile = manifest.assets[jsRef].file;
-    import(/* webpackIgnore: true */ `${stripesCore.location}${jsFile}`);
-  });
-
-  // compilers get cranky in functions marked async that don't await anything,
-  // so we have to return _something_ here.
-  return Promise.resolve();
-}
-
-/**
- * initStripes
- * Fetch entitlements and discovery data, then cache it in local storage.
- * Pluck stripes from the discovery data and purge it from the cache (we don't
- * want stripes to try to load itself) and then load stripes.
- *
- * Stripes is keyed by folio_stripes-core in the entitlement data, which is
- * composed of Application Descriptors, themselves composed of Module
- * Descriptors. IOW, entitlement data only contains modules that have MDs.
- * Since Stripes itself does not contain an MD but stripes-core does, we take
- * advantage of that fact, using the folio_stripes-core key in entitlement and
- * discovery data to find stripes' location.
- *
- * @param {object} config
- * @param {object} branding
- * @param {string} tenant
- * @returns {Promise<void>} resolves when stripes is initialized
- */
-export const initStripes = async (config, branding, tenant) => {
-  const entitlement = await fetchEntitlements(config, tenant);
-  const discovery = await fetchDiscovery(config, tenant, entitlement);
-
-  const stripesCore = Object.values(discovery).find((entry) => entry.name === 'folio_stripes-core');
-
-  if (stripesCore) {
-    // cache config and branding data for stripes-core to consume on load
-    localStorage.setItem(FOLIO_CONFIG_KEY, JSON.stringify(config));
-    localStorage.setItem(FOLIO_BRANDING_KEY, JSON.stringify(branding));
-
-    await localforage.setItem(DISCOVERY_URL_KEY, config.discoveryUrl ?? config.gatewayUrl);
-    await localforage.setItem(HOST_APP_NAME, HOST_APP_NAME);
-    await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
-
-    // REMOTE_LIST_KEY stores the list of apps that stripes will load,
-    // so we have to remove stripes from that list. Otherwise, Malkovich.
-    // Malkovich Malkovich Malkovich? Malkovich!
-    await localforage.setItem(REMOTE_LIST_KEY, Object.values(discovery).filter(module => module.name !== 'folio_stripes-core'));
-
-    return loadStripes(stripesCore);
+  } catch (error) {
+    console.error(error); // eslint-disable-line no-console
+    const json = error?.options?.json || null;
+    throw new StripesHubError(
+      `Stripes init error at ${url}`,
+      { json, url, id: 'stripes-hub.error.stripesFetchFailure', cause: error }
+    );
   }
-
-  throw new Error('Could not find stripes-core in discovery data');
 }
 
 /**
  * spreadUserWithPerms
- * Restructure the response from `bl-users/self?expandPermissions=true`
+ * Restructure the response from `bl - users / self ? expandPermissions = true`
  * to return an object shaped like
  * {
  *   user: { id, username, ...personal }
