@@ -17,12 +17,22 @@ test('renders', () => {
     preserveConsole: true
   };
 
+  const branding = {
+    logo: {
+      src: 'http://logo',
+      alt: 'logo-alt-text',
+    },
+    favicon: {
+      src: 'http://favicon',
+    },
+  };
+
   const reactQueryClient = createReactQueryClient();
 
   render(
     <QueryClientProvider client={reactQueryClient}>
       <IntlProvider locale="en">
-        <StripesHub config={config} />
+        <StripesHub branding={branding} config={config} />
       </IntlProvider>
     </QueryClientProvider>
   );
