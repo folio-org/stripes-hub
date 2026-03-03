@@ -14,16 +14,6 @@ export default defineConfig([
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat['jsx-runtime'],
   {
-    rules: {
-      "no-underscore-dangle": "off",
-      "no-unused-vars": ["warn", {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "React",
-        "caughtErrorsIgnorePattern": "^_"
-      }],
-    },
-  },
-  {
     files: ['**/*.test.js'],
     plugins: { jest: pluginJest },
     languageOptions: {
