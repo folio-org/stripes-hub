@@ -665,7 +665,8 @@ export const getLoginErrors = (payload) => {
 
       return errors || [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
     }
-  } catch (_e) {
+  } catch (e) {
+    console.error(e);
     return [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
   }
 };
@@ -678,7 +679,8 @@ export const processBadResponse = async (response, defaultClientError) => {
     const responseBody = await response.json();
     const responsePayload = responseBody.errorMessage || responseBody;
     actionPayload = getProcessedErrors(responsePayload, response.status, clientError);
-  } catch (_e) {
+  } catch (e) {
+    console.error(e);
     actionPayload = [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
   }
 
