@@ -5,16 +5,14 @@ import styles from './index.css';
 
 function StripesTemplate({ branding, children }) {
   return (
-    <main style={{ width: '100%' }}>
-      <div>
-        <div className={styles.container}>
-          <Row center="xs">
-            <Col xs={12}>
-              <OrganizationLogo branding={branding} />
-            </Col>
-          </Row>
-          {children}
-        </div>
+    <main style={{ width: '100%' }} className="container">
+      <div >
+        <Row center="xs">
+          <Col xs={12}>
+            <OrganizationLogo branding={branding} />
+          </Col>
+        </Row>
+        {children}
       </div>
     </main>
   );

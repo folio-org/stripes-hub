@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 
 import useForgotUsernameMutation from './hooks/useForgotUsernameMutation';
-import { getLoginTenant, processBadResponse } from './loginServices';
+import { getLoginTenant, hideEmail, processBadResponse } from './loginServices';
 import { defaultErrors } from './constants';
 import ForgotUsernameForm from './ForgotUsernameForm';
+import StripesTemplate from './StripesTemplate';
 // import { validateForgotUsernameForm as isValidUsername } from './validators';
 
-const ForgotUsername = ({ stripes, config, branding }) => {
+const ForgotUsername = ({ branding, config }) => {
   const { name: tenant } = getLoginTenant(config);
 
   const [userEmail, setUserEmail] = useState(null);
   const [isValidInput, setIsValidInput] = useState(true);
   const [authFailure, setAuthFailure] = useState([]);
-  const sendReminderMutation = useForgotUsernameMutation({ stripes, tenant });
+  const sendReminderMutation = useForgotUsernameMutation({ config, tenant });
 
   const handleSubmit = async (values) => {
     setUserEmail(null);
@@ -36,7 +37,13 @@ const ForgotUsername = ({ stripes, config, branding }) => {
   };
 
   if (userEmail) {
-    return <h1>Check yer email homeslice</h1>;
+    history.pushState({}, "", "/check-email");
+    return (
+      <StripesTemplate branding={branding}>
+        <p>An email has been sent to {hideEmail(userEmail)}</p>
+        <p>If you don't receive the email, check your spam, junk, social or other folders. Or contact your FOLIO system administrator.</p>
+      </StripesTemplate>
+    );
   }
 
   // if (userEmail) {
@@ -45,11 +52,10 @@ const ForgotUsername = ({ stripes, config, branding }) => {
 
   return (
     <ForgotUsernameForm
-      stripes={stripes}
-      config={config}
       branding={branding}
-      isValid={isValidInput}
+      config={config}
       errors={authFailure}
+      isValid={isValidInput}
       onSubmit={handleSubmit}
     />
   );

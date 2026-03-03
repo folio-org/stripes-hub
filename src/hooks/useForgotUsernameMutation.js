@@ -11,11 +11,11 @@ import { useMutation } from 'react-query';
  *   }
  *
  */
-const useForgotPasswordMutation = ({ stripes, tenant }) => {
-  const pathPrefix = stripes.authnUrl ? 'users-keycloak' : 'bl-users';
+const useForgotPasswordMutation = ({ config, tenant }) => {
+  const pathPrefix = config.authnUrl ? 'users-keycloak' : 'bl-users';
 
   const mutation = useMutation({
-    mutationFn: (id) => fetch(`${stripes.url}/${pathPrefix}/forgotten/username`, {
+    mutationFn: (id) => fetch(`${config.gatewayUrl}/${pathPrefix}/forgotten/username`, {
       "headers": {
         "accept": "application/json",
         "content-type": "application/json",

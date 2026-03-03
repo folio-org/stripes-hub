@@ -11,6 +11,7 @@ OrganizationLogo.propTypes = {
 }
 
 export const SelectAndDispatchTenant = () => { };
+
 export const FieldLabel = (props) => {
   const { children, ...rest } = props;
   return <label htmlFor={props.htmlFor} {...rest}>{children}</label>;
@@ -19,18 +20,22 @@ FieldLabel.propTypes = {
   children: PropTypes.node,
   htmlFor: PropTypes.string,
 }
+
 export const Headline = ({ children }) => <h1>{children}</h1>;
 Headline.propTypes = {
   children: PropTypes.node,
 }
+
 export const Row = ({ children }) => <div>{children}</div>;
 Row.propTypes = {
   children: PropTypes.node,
 }
+
 export const Col = ({ children }) => <span>{children}</span>;
 Col.propTypes = {
   children: PropTypes.node,
 }
+
 export const Select = (props) => {
   const { dataOptions, readOnly, ...rest } = props;
   const options = [];
@@ -65,11 +70,7 @@ TextField.propTypes = {
 }
 
 export const Button = (props) => {
-<<<<<<< HEAD
   const { buttonRef, css, children, disabled, onClick, to, type, ref } = props;
-=======
-  const { buttonClass, buttonRef, css, children, disabled, onClick, to, type, ref } = props;
->>>>>>> b545ae4 (STHUB-8 forgot-* initial import)
   return (
     <button
       type={type}
@@ -102,11 +103,9 @@ Button.propTypes = {
   ]),
   to: PropTypes.string,
   type: PropTypes.string,
-
 }
 
 export const AuthErrorsContainer = ({ errors }) => errors.length ? <div><pre>{JSON.stringify(errors)}</pre></div> : null;
 AuthErrorsContainer.propTypes = {
   errors: PropTypes.array
 };
-

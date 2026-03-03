@@ -7,125 +7,103 @@ import {
   TextField, Button, AuthErrorsContainer
 } from './StripesComponents'
 import { getLoginTenant } from './loginServices';
+import StripesTemplate from './StripesTemplate';
 
-
-// import { forgotFormErrorCodes } from '../../constants';
-// import FieldLabel from '../CreateResetPassword/components/FieldLabel';
-// import OrganizationLogo from '../OrganizationLogo';
-// import AuthErrorsContainer from '../AuthErrorsContainer';
-// import { useStripes } from '../../StripesContext';
-// import SelectAndDispatchTenant from '../SelectAndDispatchTenant';
-
-// import styles from '../Login/Login.css';
 
 const ForgotUserNameForm = ({ config, branding, errors = [], isValid, onSubmit }) => {
   const styles = {};
   const intl = useIntl();
-  const forgotUsernamePlaceholder = intl.formatMessage({ id: 'stripes-core.placeholder.forgotUsername' });
+  const forgotUsernamePlaceholder = intl.formatMessage({ id: 'stripes-hub.ForgotUsername.placeholder' });
   const { name: tenant } = getLoginTenant(config);
 
   return (
-    <Form
-      onSubmit={onSubmit}
-      render={({ handleSubmit, pristine }) => (
-        <main>
-          <div className={styles.wrapper} style={branding?.style?.login ?? {}}>
-            <div className={styles.container}>
+    <StripesTemplate branding={branding}>
+      <Form
+        onSubmit={onSubmit}
+        render={({ handleSubmit, pristine }) => (
+          <form
+            className={styles.form}
+            data-form="forgot"
+            onSubmit={handleSubmit}
+          >
+            <Row center="xs">
+              <Col xs={6}>
+                <Headline
+                  size="xx-large"
+                  tag="h1"
+                  data-test-h1
+                >
+                  <FormattedMessage id="stripes-hub.ForgotUsername.title" />
+                </Headline>
+              </Col>
+            </Row>
+            <SelectAndDispatchTenant styles={styles} />
+            <div data-test-new-username-field>
               <Row center="xs">
                 <Col xs={6}>
-                  <OrganizationLogo branding={branding} />
+                  <Row
+                    between="xs"
+                    bottom="xs"
+                  >
+                    <Col xs={6}>
+                      <FieldLabel htmlFor="input-email-or-phone">
+                        {forgotUsernamePlaceholder}
+                      </FieldLabel>
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
-              <Row>
-                <form
-                  className={styles.form}
-                  data-form="forgot"
-                  onSubmit={handleSubmit}
-                >
-                  <Row center="xs">
-                    <Col xs={6}>
-                      <Headline
-                        size="xx-large"
-                        tag="h1"
-                        data-test-h1
-                      >
-                        <FormattedMessage id="stripes-core.label.forgotUsername" />
-                      </Headline>
-                    </Col>
-                  </Row>
-                  <SelectAndDispatchTenant styles={styles} />
-                  <div data-test-new-username-field>
-                    <Row center="xs">
-                      <Col xs={6}>
-                        <Row
-                          between="xs"
-                          bottom="xs"
-                        >
-                          <Col xs={6}>
-                            <FieldLabel htmlFor="input-email-or-phone">
-                              {forgotUsernamePlaceholder}
-                            </FieldLabel>
-                          </Col>
-                        </Row>
-                      </Col>
-                    </Row>
-                    <Row center="xs">
-                      <Col xs={6}>
-                        <Field
-                          id="input-email-or-phone"
-                          component={TextField}
-                          name="userInput"
-                          type="text"
-                          marginBottom0
-                          fullWidth
-                          inputClass={styles.loginInput}
-                          validationEnabled={false}
-                          hasClearIcon={false}
-                          autoCapitalize="none"
-                          required
-                          value=""
-                          placeholder={forgotUsernamePlaceholder}
-                        />
-                      </Col>
-                    </Row>
-                  </div>
-                  <Row center="xs">
-                    <Col xs={6}>
-                      <div className={styles.formGroup}>
-                        <Button
-                          buttonStyle="primary"
-                          id="clickable-login"
-                          type="submit"
-                          buttonClass={styles.loginSubmitButton}
-                          disabled={pristine || !tenant}
-                          fullWidth
-                          marginBottom0
-                        >
-                          <FormattedMessage id="stripes-core.button.continue" />
-                        </Button>
-                      </div>
-                    </Col>
-                  </Row>
-                  <Row center="xs">
-                    <Col xs={6}>
-                      <div className={styles.authErrorsWrapper}>
-                        <AuthErrorsContainer
-                          errors={!isValid
-                            ? [{ code: forgotFormErrorCodes.EMAIL_INVALID }]
-                            : errors
-                          }
-                          data-test-container
-                        />
-                      </div>
-                    </Col>
-                  </Row>
-                </form>
+              <Row center="xs">
+                <Col xs={6}>
+                  <Field
+                    id="input-email-or-phone"
+                    component={TextField}
+                    name="userInput"
+                    type="text"
+                    marginBottom0
+                    fullWidth
+                    inputClass={styles.loginInput}
+                    validationEnabled={false}
+                    hasClearIcon={false}
+                    autoCapitalize="none"
+                    required
+                    value=""
+                    placeholder={forgotUsernamePlaceholder}
+                  />
+                </Col>
               </Row>
             </div>
-          </div>
-        </main>
-      )}
-    />
+            <Row center="xs">
+              <Col xs={6}>
+                <div className={styles.formGroup}>
+                  <Button
+                    buttonStyle="primary"
+                    id="clickable-login"
+                    type="submit"
+                    disabled={pristine || !tenant}
+                  >
+                    <FormattedMessage id="stripes-hub.button.continue" />
+                  </Button>
+                </div>
+              </Col>
+            </Row>
+            <Row center="xs">
+              <Col xs={6}>
+                <div className={styles.authErrorsWrapper}>
+                  <AuthErrorsContainer
+                    errors={!isValid
+                      ? [{ code: forgotFormErrorCodes.EMAIL_INVALID }]
+                      : errors
+                    }
+                    data-test-container
+                  />
+                </div>
+              </Col>
+            </Row>
+          </form>
+        )}
+      />
+    </StripesTemplate>
   );
 };
 

@@ -12,6 +12,13 @@
   "FatalError.tryAgain": "Try again",
   "FatalError.logout": "Log out",
 
+  "ForgotPassword.title": "Forgot password?",
+  "ForgotPassword.placeholder": "Enter username, email, or phone",
+  "ForgotUsername.title": "Forgot username?",
+  "ForgotUsername.placeholder": "Enter email or phone",
+
+  "button.continue": "Continue",
+
   "error.entitlementFetch": "Entitlement fetch error at {url}",
   "error.discoveryFetch": "Discovery fetch error at {url}",
   "error.sessionFetch": "Session fetch error at {url}",

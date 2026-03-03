@@ -17,26 +17,19 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <script lang="js">
+//        discoveryUrl: 'http://localhost:3001/registry',
+//        entitlementUrl: 'http://localhost:3001/registry',
+//        stripesCoreUrl: 'http://localhost:3005',
       const FOLIO_CONFIG = {
-        gatewayUrl: 'https://gateway-server.example.edu',
-        authnUrl: 'https://authentication-server.example.edu',
-
+        gatewayUrl: 'https://folio-etesting-snapshot-kong.ci.folio.org',
+        authnUrl: 'https://folio-etesting-snapshot-keycloak.ci.folio.org',
+        discoveryUrl: 'http://localhost:3001/registry',
         tenantOptions: {
           diku: {
             name: 'diku', clientId: 'diku-application'
           }
         },
         preserveConsole: true,
-      };
-
-      const BRANDING_GLOBAL = {
-        logo: {
-          src: '%PUBLIC_URL%/tenant-assets/opentown-libraries-logo.png',
-          alt: 'Opentown Libraries'
-        },
-        favicon: {
-          src: '%PUBLIC_URL%/tenant-assets/folio-favicon.png',
-        }
       };
 
       const BRANDING_GLOBAL = {

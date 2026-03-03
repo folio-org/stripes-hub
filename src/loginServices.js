@@ -76,11 +76,18 @@ export const getSession = async () => {
  *
  * @returns { tenant: string, clientId: string }
  */
-export const getLoginTenant = () => {
+export const getLoginTenant = (config) => {
   // derive from the URL
   const urlParams = new URLSearchParams(globalThis.location.search);
   let name = urlParams.get('tenant');
   let clientId = urlParams.get('client_id');
+
+  // derive from stripes.config.js::config::tenantOptions
+  if (config?.tenantOptions && Object.keys(config?.tenantOptions).length === 1) {
+    const key = Object.keys(config.tenantOptions)[0];
+    name ||= config.tenantOptions[key]?.name;
+    clientId ||= config.tenantOptions[key]?.clientId;
+  }
 
   return {
     name,
@@ -686,3 +693,26 @@ export const processBadResponse = async (response, defaultClientError) => {
 
   return actionPayload;
 };
+
+const signToShow = '*';
+
+const replacer = (string, pattern1, pattern2) => (
+  pattern1.concat(signToShow.repeat(pattern2.length))
+);
+
+/**
+ * A function to hide the eternal user email and show it according to the following rules:
+ *  - show first two characters for the local-part
+ *  - show first character of the domain
+ *  - show the dot
+ * Each replacement step performs formatting as it mentioned above
+ * @param email      - an email to be formatted
+ * @returns {string} - a formatted email string
+ */
+export const hideEmail = email => (
+  email
+    .replace(/(^.{2})(.+?)(?=@)/g, replacer)
+    .replace(/(^.+@.)(.+?)(?=\.)/g, replacer)
+    .replace(/(\.)(.+?)(?=$)/g, replacer)
+);
+
