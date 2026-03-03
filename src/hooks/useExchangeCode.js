@@ -43,7 +43,6 @@ const useExchangeCode = (config, initSession = noop) => {
         }
       }
 
-      // eslint-disable-next-line no-throw-literal
       throw intl.formatMessage({ id: 'stripes-core.oidc.otp.missingCode' });
     },
     {

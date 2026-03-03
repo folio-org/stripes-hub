@@ -89,7 +89,7 @@ const useInitSession = (config, branding, loginUrl) => {
       }
     } catch (error) {
       // log a warning, then call the error handler if we received one
-      console.error(error); // eslint-disable-line no-console
+      console.error(error);
       return handleError ? handleError() : Promise.resolve();
     }
   };
@@ -110,8 +110,8 @@ const useInitSession = (config, branding, loginUrl) => {
           authenticate();
         }
       } catch (e) {
-        console.error('error during StripesHub init', e); // eslint-disable-line no-console
-        throw new Error('Session init error')
+        console.error('error during StripesHub init', e);
+        throw new Error('Session init error', { cause: e });
       }
     },
     {
