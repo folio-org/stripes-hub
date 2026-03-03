@@ -584,7 +584,7 @@ export const requestUserWithPerms = async (config, tenant, token) => {
   const resp = await fetchOverriddenUserWithPerms(config.gatewayUrl, tenant, token, !token);
 
   if (resp.ok) {
-    const sessionData = await processSession(tenant, resp, token, config);
+    const sessionData = await processSession(tenant, resp, token);
     return sessionData;
   } else {
     const error = await resp.json();
