@@ -291,6 +291,13 @@ input[type="number"]::-webkit-inner-spin-button {
   justify-content: center;
 }
 
+.container > div {
+  max-width: 500px;
+  width: 100%;
+  padding: 30px 15px;
+  text-align: center;
+}
+
 .formControl {
   align-items: center;
   background-color: var(--color-fill-form-element);

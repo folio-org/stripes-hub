@@ -64,7 +64,7 @@ Select.propTypes = {
   readOnly: PropTypes.bool,
 }
 
-export const TextField = (props) => <input {...props.input} />;
+export const TextField = (props) => <div className='formControl'><input {...props.input} /></div>;
 TextField.propTypes = {
   input: PropTypes.object,
 }
