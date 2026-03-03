@@ -19,7 +19,7 @@ const StripesHubComponent = () => <StripesHub config={config} branding={branding
 
 const reactQueryClient = createReactQueryClient();
 const pathName = globalThis.location.pathname;
-let LandingComponent = StripesHubComponent;
+let LandingComponent;
 const translations = Object.keys(rawTranslations).reduce((acc, key) => {
   acc[`stripes-hub.${key}`] = rawTranslations[key];
   return acc;

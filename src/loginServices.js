@@ -6,36 +6,8 @@ import { defaultErrors, urlPaths } from './constants';
 /** name for the session key in local storage */
 export const SESSION_NAME = 'okapiSess';
 
-/** key for the logging out action */
-export const IS_LOGGING_OUT = '@folio/stripes/core::Logout';
-
-/**
- * dispatched if the session is idle (without activity) for too long
- */
-export const RTR_TIMEOUT_EVENT = '@folio/stripes/core::RTRIdleSessionTimeout';
-
 /** key for storing tenant info in local storage */
 export const TENANT_LOCAL_STORAGE_KEY = 'tenant';
-
-/** key for login response in local storage */
-export const LOGIN_RESPONSE = 'loginResponse';
-
-/** path to users API call */
-export const USERS_PATH = 'users-keycloak';
-
-/** name for whatever the entitlement service will call the hub app (stripes, stripes-core, etc.) */
-const HOST_APP_NAME = 'folio_stripes';
-
-/** name for FOLIO config stored in localforage to be used by entitled applications (such as stripes-core) */
-const FOLIO_CONFIG_KEY = 'folio_config';
-
-/** name for FOLIO branding file locations to be used by entitled applications (such as stripes-core) */
-const FOLIO_BRANDING_KEY = 'branding_config';
-
-// const keys to-be-ingested by stripes-core
-const DISCOVERY_URL_KEY = 'discoveryUrl';
-const HOST_LOCATION_KEY = 'hostLocation';
-const REMOTE_LIST_KEY = 'entitlements';
 
 /**
  * getHeaders
@@ -136,16 +108,6 @@ export const getCurrentTenant = () => {
  */
 export const storeCurrentTenant = (name, clientId) => {
   localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ name, clientId }));
-};
-
-/** error-handler: log it */
-const handleWithLog = (msg) => {
-  console.error(msg); // eslint-disable-line no-console
-};
-
-/** error-handler: throw it */
-const handleWithThrow = (msg) => {
-  throw new Error(msg);
 };
 
 /**
@@ -253,11 +215,9 @@ const interfaceArrayToKeyedObject = (arr) => {
  *
  * @param {object} config config
  * @param {string} tenant
- * @param {object} entitlement
- * @param {function} handler handler for orphaned discovery entries
  * @returns {Promise<object>} map of entitlement and discovery data, keyed by module ID
  */
-const fetchCustomDiscovery = async (config, tenant, entitlement) => {
+const fetchCustomDiscovery = async (config, tenant) => {
   const map = {};
 
   const res = await fetch(`${config.discoveryUrl}`, {
@@ -402,7 +362,7 @@ export const loadStripes = async (stripesCore) => {
     throw new Error('Failed to fetch manifest', { json: manifest });
 
   } catch (error) {
-    console.error(error); // eslint-disable-line no-console
+    console.error(error);
     const json = error?.options?.json || null;
     throw new StripesHubError(
       `Stripes init error at ${url}`,
@@ -485,7 +445,7 @@ export const setTokenExpiry = async (te) => {
     return localforage.setItem(SESSION_NAME, val);
   }
 
-  // eslint-disable-next-line no-console
+
   console.error('Expected { atExpires: int, rtExpires: int }; received', te);
   throw new TypeError('Did not receive { atExpires: int, rtExpires: int }');
 };
@@ -509,7 +469,7 @@ export const setTokenExpiry = async (te) => {
  *
  * @returns {Promise} resolving when stripes is initialized
  */
-export const createSession = async (tenant, token, data, config) => {
+export const createSession = async (tenant, token, data) => {
   const { user, perms } = spreadUserWithPerms(data);
 
   // if we can't parse tokenExpiration data, e.g. because data comes from `.../_self`
@@ -599,11 +559,11 @@ export const createSession = async (tenant, token, data, config) => {
   *
   * @returns {Promise} resolving to login response body or undefined on error
   */
-export const processSession = async (tenant, resp, ssoToken, config) => {
+export const processSession = async (tenant, resp, ssoToken) => {
   if (resp.ok) {
     const json = await resp.json();
     const token = resp.headers.get('X-Okapi-Token') || json.access_token || ssoToken;
-    await createSession(tenant, token, json, config);
+    await createSession(tenant, token, json);
     return json;
   } else {
     // handleLoginError will dispatch setAuthError, then resolve to undefined
@@ -624,7 +584,7 @@ export const requestUserWithPerms = async (config, tenant, token) => {
   const resp = await fetchOverriddenUserWithPerms(config.gatewayUrl, tenant, token, !token);
 
   if (resp.ok) {
-    const sessionData = await processSession(tenant, resp, token, config);
+    const sessionData = await processSession(tenant, resp, token);
     return sessionData;
   } else {
     const error = await resp.json();
@@ -706,6 +666,7 @@ export const getLoginErrors = (payload) => {
       return errors || [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
     }
   } catch (e) {
+    console.error(e);
     return [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
   }
 };
@@ -719,6 +680,7 @@ export const processBadResponse = async (response, defaultClientError) => {
     const responsePayload = responseBody.errorMessage || responseBody;
     actionPayload = getProcessedErrors(responsePayload, response.status, clientError);
   } catch (e) {
+    console.error(e);
     actionPayload = [defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR];
   }
 

@@ -13,7 +13,7 @@ function FatalError({ branding, config, error }) {
     await fetch(`${config.gatewayUrl}/logout`, {
       method: 'POST',
       credentials: 'include',
-    }); // eslint-disable-line no-unused-vars
+    }); 
     globalThis.location.assign(location.origin);
   }
 
