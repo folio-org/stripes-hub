@@ -3,32 +3,26 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import PropTypes from 'prop-types';
 
 import StripesTemplate from './StripesTemplate';
-import { getLoginTenant, hideEmail } from './loginServices';
+import ForgotDidMutate from './ForgotDidMutate';
+import { getLoginTenant } from './loginServices';
 import useForgotPassword from './hooks/useForgotPassword';
 import {
   SelectAndDispatchTenant, FieldLabel, Headline, Row, Col,
-  TextField, Button, AuthErrorsContainer
+  TextField, Button
 } from './StripesComponents'
 import { brandingShape, configShape } from './constants';
-
 
 const ForgotPassword = ({ branding, config }) => {
   const intl = useIntl();
   const styles = {};
   const { name: tenant } = getLoginTenant(config);
 
-  const { errors, handleSubmit, userEmail } = useForgotPassword({ config, tenant });
+  const { handleSubmit, didMutate } = useForgotPassword({ config, tenant });
   const forgotPasswordPlaceholder = intl.formatMessage({ id: 'stripes-hub.ForgotPassword.placeholder' });
 
-  if (userEmail) {
+  if (didMutate) {
     history.pushState({}, "", "/check-email");
-
-    return (
-      <StripesTemplate branding={branding}>
-        <p>An email has been sent to {hideEmail(userEmail)}</p>
-        <p>If you do not receive the email, check your spam, junk, social or other folders. Or contact your FOLIO system administrator.</p>
-      </StripesTemplate>
-    );
+    return <ForgotDidMutate branding={branding} />;
   }
 
   return (
@@ -95,13 +89,6 @@ const ForgotPassword = ({ branding, config }) => {
                   >
                     <FormattedMessage id="stripes-hub.button.continue" />
                   </Button>
-                </div>
-              </Col>
-            </Row>
-            <Row center="xs">
-              <Col xs={6}>
-                <div className={styles.authErrorsWrapper}>
-                  <AuthErrorsContainer errors={errors} />
                 </div>
               </Col>
             </Row>

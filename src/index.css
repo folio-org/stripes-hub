@@ -293,9 +293,27 @@ input[type="number"]::-webkit-inner-spin-button {
   --link-box-shadow-focus: 0 0 0 3px var(--color-fill-focus);
   --link-box-shadow-current: 0 0 0 3px var(--color-fill-focus-current);
 
+  /* copied from message-banner */
+  --message-banner-font-size: var(--font-size-medium);
+  --message-banner-padding-small: 0.6rem;
+  --message-banner-padding-large: 0.75rem;
+  --message-banner-stacked-margin-top: var(--gutter-static);
+  --message-banner-border-radius: var(--radius);
+  --message-banner-min-height: 32px;
+  --message-banner-line-height: 1.25;
+  --message-banner-default-fill: #000;
+  --message-banner-default-color: #fff;
+  --message-banner-default-border-color: #000;
+  --message-banner-error-fill: var(--error-fill);
+  --message-banner-error-color: var(--error);
+  --message-banner-error-border-color: var(--error);
+  --message-banner-success-fill: var(--success-fill);
+  --message-banner-success-color: var(--color-text);
+  --message-banner-success-border-color: var(--success);
+  --message-banner-warning-fill: var(--warn-fill);
+  --message-banner-warning-color: var(--warn);
+  --message-banner-warning-border-color: var(--warn);
 }
-
-
 
 .container {
   display: flex;
@@ -375,6 +393,22 @@ form button:disabled {
 }
 
 form input:focus, form button:focus {
-    border: 1px solid var(--primary);
-    box-shadow: inset 0 0 0 2px rgba(37 118 195 / 30%);
+  border: 1px solid var(--primary);
+  box-shadow: inset 0 0 0 2px rgba(37 118 195 / 30%);
+}
+
+.errorContainer {
+  align-items: center;
+  background-color: var(--message-banner-error-fill);
+  border: 1px solid;
+  border-color: var(--message-banner-error-border-color);
+  border-radius: var(--message-banner-border-radius);
+  color: var(--message-banner-error-color);
+  display: flex;
+  font-size: var(--message-banner-font-size);
+  line-height: var(--message-banner-line-height);
+  margin-top: var(--gutter-static);
+  min-height: var(--message-banner-min-height);
+  text-align: left;
+  width: 100%;
 }

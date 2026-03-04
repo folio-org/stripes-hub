@@ -8,6 +8,9 @@ import { useMutation } from 'react-query';
  * versions such as https://emailregex.com/ and does a good enough job for us.
  *
  * This was introduced in STCOR-276/PR #496
+ *
+ * @param {string} input
+ * @returns boolean
  */
 export const isValidEmail = (input) => {
   // eslint-disable-next-line no-useless-escape
@@ -16,12 +19,24 @@ export const isValidEmail = (input) => {
   return emailRegExp.test(input);
 };
 
+/**
+ * validate a phone number, but just barely
+ * Returns true if the input string is just numbers, dots, dashes
+ *
+ * @param {string} input
+ * @returns boolean
+ */
 export const isValidPhoneNumber = (input) => {
   const phoneRegExp = /^\d+([.-]+\d+)*$/;
 
   return phoneRegExp.test(input);
 };
 
+/**
+ * validate that input is either an email address or a phone number
+ * @param {string} input
+ * @returns boolean
+ */
 export const isValidEmailOrPhoneNumber = (input) => {
   const normalizedInput = String(input)
     .toLowerCase()
@@ -42,11 +57,9 @@ export const isValidEmailOrPhoneNumber = (input) => {
  *
  */
 const useForgotUsername = ({ config, tenant }) => {
-  const [userEmail, setUserEmail] = useState(null);
-  const [errors, setErrors] = useState([]);
+  const [didMutate, setDidMutate] = useState(false);
+  const [isError, setIsError] = useState(false);
   const pathPrefix = config.authnUrl ? 'users-keycloak' : 'bl-users';
-
-  const processBadResponse = () => Promise.resolve(['boom']);
 
   const mutation = useMutation({
     mutationFn: (id) => fetch(`${config.gatewayUrl}/${pathPrefix}/forgotten/username`, {
@@ -63,25 +76,25 @@ const useForgotUsername = ({ config, tenant }) => {
   });
 
   const handleSubmit = async (values) => {
-    setUserEmail(null);
-    setErrors([]);
+    setDidMutate(null);
+    setIsError(false);
     const { userInput } = values;
 
     if (isValidEmailOrPhoneNumber(userInput)) {
       try {
         await mutation.mutateAsync(userInput);
-        setUserEmail(userInput);
+        setDidMutate(true);
       } catch (error) {
-        const res = await processBadResponse(undefined, error.response)
-        setErrors(res);
+        console.warn(error);
       }
+      setDidMutate(true);
     } else {
-      setErrors(['invalid email or phone number'])
+      setIsError(true);
     }
   };
 
   return {
-    errors, handleSubmit, userEmail
+    isError, handleSubmit, didMutate
   }
 };
 

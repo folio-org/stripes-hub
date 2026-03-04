@@ -9,25 +9,20 @@ import {
 import useForgotUsername from './hooks/useForgotUsername';
 import { getLoginTenant, hideEmail } from './loginServices';
 import StripesTemplate from './StripesTemplate';
+import ForgotDidMutate from './ForgotDidMutate';
 import { brandingShape, configShape } from './constants';
 
 const ForgotUsername = ({ branding, config }) => {
   const { name: tenant } = getLoginTenant(config);
-  const { errors, handleSubmit, userEmail } = useForgotUsername({ config, tenant });
+  const { isError, handleSubmit, didMutate } = useForgotUsername({ config, tenant });
 
   const styles = {};
   const intl = useIntl();
   const forgotUsernamePlaceholder = intl.formatMessage({ id: 'stripes-hub.ForgotUsername.placeholder' });
 
-  if (userEmail) {
+  if (didMutate) {
     history.pushState({}, "", "/check-email");
-    return (
-      <StripesTemplate branding={branding}>
-        <h1>Check your email</h1>
-        <h2>An email has been sent to {hideEmail(userEmail)}</h2>
-        <h2>If you do not receive the email, check your spam, junk, social or other folders. Or contact your FOLIO system administrator.</h2>
-      </StripesTemplate>
-    );
+    return <ForgotDidMutate branding={branding} />;
   }
 
   return (
@@ -105,7 +100,7 @@ const ForgotUsername = ({ branding, config }) => {
               <Col xs={6}>
                 <div className={styles.authErrorsWrapper}>
                   <AuthErrorsContainer
-                    errors={errors}
+                    errors={isError ? [intl.formatMessage({ id: 'stripes-hub.ForgotUsername.error' })] : []}
                     data-test-container
                   />
                 </div>

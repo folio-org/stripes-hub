@@ -16,6 +16,11 @@
   "ForgotPassword.placeholder": "Enter username, email, or phone",
   "ForgotUsername.title": "Forgot username?",
   "ForgotUsername.placeholder": "Enter email or phone",
+  "ForgotUsername.error": "Please enter a valid email",
+
+  "ForgotDidMutate.checkYourEmail": "Check your email",
+  "ForgotDidMutate.sent": "An email has been sent to your email address.",
+  "ForgotDidMutate.missing": "If you do not receive the email, check your spam, junk, social or other folders. Or contact your FOLIO system administrator.",
 
   "button.continue": "Continue",
 

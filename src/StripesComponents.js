@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-export const AuthErrorsContainer = ({ errors }) => errors.length ? <div><pre>{JSON.stringify(errors)}</pre></div> : null;
+export const AuthErrorsContainer = ({ errors }) => errors.length ? <div className="errorContainer"><h2>⚠️ {errors}</h2></div> : null;
 AuthErrorsContainer.propTypes = {
   errors: PropTypes.array
 };
