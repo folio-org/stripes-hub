@@ -1,5 +1,6 @@
 import { Field, Form } from 'react-final-form';
 import { FormattedMessage, useIntl } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import {
   AuthErrorsContainer, Button, Col, FieldLabel, Headline, Row,
@@ -12,7 +13,7 @@ import { brandingShape, configShape } from './constants';
 
 const ForgotUsername = ({ branding, config }) => {
   const { name: tenant } = getLoginTenant(config);
-  const { errors, handleSubmit, isValidInput, userEmail } = useForgotUsername({ config, tenant });
+  const { errors, handleSubmit, userEmail } = useForgotUsername({ config, tenant });
 
   const styles = {};
   const intl = useIntl();
@@ -118,8 +119,8 @@ const ForgotUsername = ({ branding, config }) => {
 };
 
 ForgotUsername.propTypes = {
-  branding: brandingShape,
-  config: configShape,
+  branding: PropTypes.shape(brandingShape).isRequired,
+  config: PropTypes.shape(configShape).isRequired,
 }
 
 export default ForgotUsername;

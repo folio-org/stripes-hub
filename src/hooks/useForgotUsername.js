@@ -43,7 +43,6 @@ export const isValidEmailOrPhoneNumber = (input) => {
  */
 const useForgotUsername = ({ config, tenant }) => {
   const [userEmail, setUserEmail] = useState(null);
-  const [isValidInput, setIsValidInput] = useState(true);
   const [errors, setErrors] = useState([]);
   const pathPrefix = config.authnUrl ? 'users-keycloak' : 'bl-users';
 
@@ -74,17 +73,15 @@ const useForgotUsername = ({ config, tenant }) => {
         setUserEmail(userInput);
       } catch (error) {
         const res = await processBadResponse(undefined, error.response)
-        setIsValidInput(true);
         setErrors(res);
       }
     } else {
       setErrors(['invalid email or phone number'])
-      setIsValidInput(false);
     }
   };
 
   return {
-    errors, handleSubmit, isValidInput, userEmail
+    errors, handleSubmit, userEmail
   }
 };
 

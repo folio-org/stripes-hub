@@ -1,5 +1,6 @@
 import { Field, Form } from 'react-final-form';
 import { FormattedMessage, useIntl } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import StripesTemplate from './StripesTemplate';
 import { getLoginTenant, hideEmail } from './loginServices';
@@ -112,8 +113,8 @@ const ForgotPassword = ({ branding, config }) => {
 };
 
 ForgotPassword.propTypes = {
-  branding: brandingShape,
-  config: configShape,
+  branding: PropTypes.shape(brandingShape).isRequired,
+  config: PropTypes.shape(configShape).isRequired,
 }
 
 export default ForgotPassword;
