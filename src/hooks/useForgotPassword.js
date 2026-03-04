@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useMutation } from 'react-query';
 
 /**
@@ -11,8 +12,12 @@ import { useMutation } from 'react-query';
  *   }
  *
  */
-const useForgotPasswordMutation = ({ config, tenant }) => {
+const useForgotPassword = ({ config, tenant }) => {
+  const [userEmail, setUserEmail] = useState(null);
+  const [errors, setErrors] = useState([]);
   const pathPrefix = config.authnUrl ? 'users-keycloak' : 'bl-users';
+
+  const processBadResponse = () => Promise.resolve(['boom']);
 
   const mutation = useMutation({
     mutationFn: (id) => fetch(`${config.gatewayUrl}/${pathPrefix}/forgotten/password`, {
@@ -28,8 +33,25 @@ const useForgotPasswordMutation = ({ config, tenant }) => {
     })
   });
 
-  return mutation;
+  const handleSubmit = async (values) => {
+    console.log({ values })
+    setUserEmail(null)
+    setErrors([]);
+    const { userInput } = values;
+    // const { FORGOTTEN_PASSWORD_CLIENT_ERROR } = defaultErrors;
+
+    try {
+      await mutation.mutateAsync(userInput);
+      setUserEmail(userInput);
+    } catch (error) {
+      const res = await processBadResponse(error.response, 'RUH_ROH');
+      setErrors(res);
+    }
+  };
+
+  return {
+    errors, handleSubmit, userEmail
+  }
 };
 
-export default useForgotPasswordMutation;
-
+export default useForgotPassword;

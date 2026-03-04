@@ -694,14 +694,11 @@ export const processBadResponse = async (response, defaultClientError) => {
   return actionPayload;
 };
 
-const signToShow = '*';
-
-const replacer = (string, pattern1, pattern2) => (
-  pattern1.concat(signToShow.repeat(pattern2.length))
-);
-
 /**
- * A function to hide the eternal user email and show it according to the following rules:
+ * hideEmail
+ * Given address@server.domain, return ad*****@s*****.******
+ *
+ * Munge an email address as follows:
  *  - show first two characters for the local-part
  *  - show first character of the domain
  *  - show the dot
@@ -709,10 +706,16 @@ const replacer = (string, pattern1, pattern2) => (
  * @param email      - an email to be formatted
  * @returns {string} - a formatted email string
  */
-export const hideEmail = email => (
-  email
+export const hideEmail = email => {
+  const signToShow = '*';
+
+  const replacer = (_string, pattern1, pattern2) => (
+    pattern1.concat(signToShow.repeat(pattern2.length))
+  );
+
+  return email
     .replace(/(^.{2})(.+?)(?=@)/g, replacer)
     .replace(/(^.+@.)(.+?)(?=\.)/g, replacer)
-    .replace(/(\.)(.+?)(?=$)/g, replacer)
-);
+    .replace(/(\.)(.+?)(?=$)/g, replacer);
+}
 

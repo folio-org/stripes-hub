@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 
 import { Col, OrganizationLogo, Row } from './StripesComponents';
-import styles from './index.css';
+import { brandingShape } from './constants';
 
-function StripesTemplate({ branding, children }) {
+const StripesTemplate = ({ branding, children }) => {
   return (
     <main style={{ width: '100%' }} className="container">
       <div >
@@ -19,10 +19,7 @@ function StripesTemplate({ branding, children }) {
 }
 
 StripesTemplate.propTypes = {
-  branding: PropTypes.shape({
-    logo: PropTypes.string,
-    altText: PropTypes.string,
-  }).isRequired,
+  branding: brandingShape.isRequired,
   children: PropTypes.node.isRequired,
 };
 

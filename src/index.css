@@ -282,6 +282,17 @@ input[type="number"]::-webkit-inner-spin-button {
   --text-weight: calc(var(--text-weight-basis) + ( var(--text-weight-addition-factor) * var(--text-weights-are-bolder)));
   --text-weight-headline: var(--text-weight-bold);
   --text-weight-button: var(--text-weight-bold);
+
+  /* copied from TextLink */
+    --link-color-default: var(--color-link);
+  --link-border-color-default: #d7dfeb;
+  --link-color-hover: #23385a;
+  --link-color-active: var(--color-text);
+  --link-color-visited: var(--color-link-visited);
+  --link-border-color-focus: #3b5f9a;
+  --link-box-shadow-focus: 0 0 0 3px var(--color-fill-focus);
+  --link-box-shadow-current: 0 0 0 3px var(--color-fill-focus-current);
+
 }
 
 
@@ -361,4 +372,9 @@ form button:disabled {
   cursor: default;
   pointer-events: none;
   transition: opacity ease-in-out .5s;
+}
+
+form input:focus, form button:focus {
+    border: 1px solid var(--primary);
+    box-shadow: inset 0 0 0 2px rgba(37 118 195 / 30%);
 }
