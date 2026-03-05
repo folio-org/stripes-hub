@@ -7,8 +7,7 @@ import ForgotDidMutate from './ForgotDidMutate';
 import { getLoginTenant } from './loginServices';
 import useForgotPassword from './hooks/useForgotPassword';
 import {
-  SelectAndDispatchTenant, FieldLabel, Headline, Row, Col,
-  TextField, Button
+  Button, Col, FieldLabel, Headline, Row, TextField
 } from './StripesComponents'
 import { brandingShape, configShape } from './constants';
 
@@ -45,7 +44,6 @@ const ForgotPassword = ({ branding, config }) => {
                 </Headline>
               </Col>
             </Row>
-            <SelectAndDispatchTenant styles={styles} />
             <div data-test-new-username-field>
               <Row center="xs">
                 <Col xs={6}>

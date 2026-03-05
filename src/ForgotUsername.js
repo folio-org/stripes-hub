@@ -3,8 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import PropTypes from 'prop-types';
 
 import {
-  AuthErrorsContainer, Button, Col, FieldLabel, Headline, Row,
-  SelectAndDispatchTenant, TextField,
+  AuthErrorsContainer, Button, Col, FieldLabel, Headline, Row, TextField,
 } from './StripesComponents'
 import useForgotUsername from './hooks/useForgotUsername';
 import { getLoginTenant, hideEmail } from './loginServices';
@@ -46,7 +45,6 @@ const ForgotUsername = ({ branding, config }) => {
                 </Headline>
               </Col>
             </Row>
-            <SelectAndDispatchTenant styles={styles} />
             <div data-test-new-username-field>
               <Row center="xs">
                 <Col xs={6}>
