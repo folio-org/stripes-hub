@@ -25,7 +25,7 @@ const USERS_PATH = 'users-keycloak';
 
 // localstorage keys to-be-ingested by stripes-core
 const DISCOVERY_URL_KEY = 'discoveryUrl';
-const HOST_LOCATION_KEY = 'hostLocation';
+const HOST_URL_KEY = 'hostUrl';
 const REMOTE_LIST_KEY = 'entitlements';
 
 /**
@@ -174,7 +174,7 @@ const useInitSession = (config, branding, loginUrl) => {
 
         await localforage.setItem(DISCOVERY_URL_KEY, config.discoveryUrl ?? config.gatewayUrl);
         await localforage.setItem(HOST_APP_NAME, HOST_APP_NAME);
-        await localforage.setItem(HOST_LOCATION_KEY, stripesCore.location);
+        await localforage.setItem(HOST_URL_KEY, stripesCore.location);
 
         // REMOTE_LIST_KEY stores the list of apps that stripes will load,
         // so we have to remove stripes from that list. Otherwise, Malkovich.
