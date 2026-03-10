@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { FormattedMessage } from 'react-intl';
 
 import useInitSession from './hooks/useInitSession';
+import { sharedMessages } from './constants/sharedMessages';
 import { urlPaths } from './constants';
 import FatalError from './FatalError';
 import { Col, Row } from './StripesComponents';
@@ -19,8 +20,9 @@ function StripesHub({ branding, config }) {
     sessionError,
   } = useInitSession(config, branding, urlPaths.AUTHN_LOGIN);
 
-  if (discoveryError || entitlementError || stripesError || sessionError) {
-    const error = discoveryError || entitlementError || stripesError || sessionError;
+  const error = discoveryError || entitlementError || stripesError || sessionError;
+
+  if (error) {
     return <FatalError branding={branding} config={config} error={error} />;
   }
 
@@ -29,10 +31,10 @@ function StripesHub({ branding, config }) {
       <Row center="xs">
         <Col xs={12}>
           <div data-testid="StripesHub">
-            {isLoadingEntitlement && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingEntitlements" /></h1>}
-            {isLoadingDiscovery && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingDiscovery" /></h1>}
-            {isLoadingSession && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingSession" /></h1>}
-            {isLoadingStripes && <h1><FormattedMessage id="stripes-hub.StripesHub.loadingStripes" /></h1>}
+            {isLoadingEntitlement && <h1><FormattedMessage {...sharedMessages.loadingEntitlements} /></h1>}
+            {isLoadingDiscovery && <h1><FormattedMessage {...sharedMessages.loadingDiscovery} /></h1>}
+            {isLoadingSession && <h1><FormattedMessage {...sharedMessages.loadingSession} /></h1>}
+            {isLoadingStripes && <h1><FormattedMessage {...sharedMessages.loadingStripes} /></h1>}
           </div>
         </Col>
       </Row>
