@@ -6,7 +6,7 @@ import {
   AuthErrorsContainer, Button, Col, FieldLabel, Headline, Row, TextField,
 } from './StripesComponents'
 import useForgotUsername from './hooks/useForgotUsername';
-import { getLoginTenant, hideEmail } from './loginServices';
+import { getLoginTenant } from './loginServices';
 import StripesTemplate from './StripesTemplate';
 import ForgotDidMutate from './ForgotDidMutate';
 import { brandingShape, configShape } from './constants';
