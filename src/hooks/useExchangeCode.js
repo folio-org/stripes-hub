@@ -2,10 +2,11 @@ import { useQuery } from 'react-query';
 import { useIntl } from 'react-intl';
 import noop from 'lodash/noop';
 
+import { sharedMessages } from '../constants/sharedMessages';
 import { getLoginTenant, getHeaders, StripesHubError } from '../loginServices';
 
 const useExchangeCode = (config, initSession = noop) => {
-  const intl = useIntl();
+  const { $t } = useIntl();
   const urlParams = new URLSearchParams(globalThis.location.search);
   const code = urlParams.get('code');
   const loginTenant = getLoginTenant();
@@ -43,7 +44,7 @@ const useExchangeCode = (config, initSession = noop) => {
         }
       }
 
-      throw intl.formatMessage({ id: 'stripes-core.oidc.otp.missingCode' });
+      throw $t(sharedMessages.oidcOtpMissingCode);
     },
     {
       retry: false,

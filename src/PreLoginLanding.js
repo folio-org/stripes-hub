@@ -4,8 +4,9 @@ import PropTypes from 'prop-types';
 
 import { Button, Col, Row, Select } from './StripesComponents';
 import { getLoginUrl, getCurrentTenant } from './loginServices';
-import styles from './index.css';
 import StripesTemplate from './StripesTemplate';
+import { sharedMessages } from './constants/sharedMessages';
+import styles from './index.css';
 
 export function sortedTenantOptions(tenantOptions) {
   return Object.values(tenantOptions)
@@ -18,7 +19,7 @@ export function sortedTenantOptions(tenantOptions) {
 }
 
 function PreLoginLanding({ branding, config, onSelectTenant, tenantOptions }) {
-  const intl = useIntl();
+  const { $t } = useIntl();
 
   const options = sortedTenantOptions(tenantOptions);
 
@@ -50,17 +51,17 @@ function PreLoginLanding({ branding, config, onSelectTenant, tenantOptions }) {
       <Row center="xs">
         <Col xs={3}>
           <Select
-            label={intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantLibrary' })}
+            label={$t(sharedMessages.tenantLibrary)}
             defaultValue=""
             onChange={handleChangeTenant}
-            dataOptions={[...options, { value: '', label: intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantChoose' }) }]}
+            dataOptions={[...options, { value: '', label: $t(sharedMessages.tenantChoose) }]}
           />
           <Button
             className={styles.submitButton}
             disabled={isButtonDisabled}
             onClick={redirectToLogin}
           >
-            {intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.button.continue' })}
+            {$t(sharedMessages.continueButton)}
           </Button>
         </Col>
       </Row>
