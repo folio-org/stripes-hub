@@ -1,68 +1,9 @@
 import PropTypes from 'prop-types';
 
-export const OrganizationLogo = ({ branding }) => <img src={branding.logo.src} alt={branding.logo.alt} width="300px" />;
-OrganizationLogo.propTypes = {
-  branding: PropTypes.shape({
-    logo: PropTypes.shape({
-      src: PropTypes.string,
-      alt: PropTypes.string,
-    })
-  })
-}
-
-export const SelectAndDispatchTenant = () => { };
-export const FieldLabel = (props) => {
-  const { children, ...rest } = props;
-  return <label htmlFor={props.htmlFor} {...rest}>{children}</label>;
-}
-FieldLabel.propTypes = {
-  children: PropTypes.node,
-  htmlFor: PropTypes.string,
-}
-export const Headline = ({ children }) => <h1>{children}</h1>;
-Headline.propTypes = {
-  children: PropTypes.node,
-}
-export const Row = ({ children }) => <div>{children}</div>;
-Row.propTypes = {
-  children: PropTypes.node,
-}
-export const Col = ({ children }) => <span>{children}</span>;
-Col.propTypes = {
-  children: PropTypes.node,
-}
-export const Select = (props) => {
-  const { dataOptions, readOnly, ...rest } = props;
-  const options = [];
-  if (dataOptions) {
-    dataOptions.forEach((option, i) => {
-      options.push(
-        <option
-          value={option.value}
-          key={option.id || `option-${i}`}
-          disabled={option.disabled || (readOnly && option.value !== this.props.value)}
-        >
-          {option.label}
-        </option>
-      );
-    });
-  }
-  return <select {...rest}>{options}</select>
-}
-Select.propTypes = {
-  children: PropTypes.node,
-  dataOptions: PropTypes.arrayOf(PropTypes.shape({
-    disabled: PropTypes.bool,
-    value: PropTypes.string,
-    label: PropTypes.string
-  })),
-  readOnly: PropTypes.bool,
-}
-
-export const TextField = (props) => <input {...props.input} />;
-TextField.propTypes = {
-  input: PropTypes.object,
-}
+export const AuthErrorsContainer = ({ errors }) => errors.length ? <div className="errorContainer"><h2>⚠️ {errors}</h2></div> : null;
+AuthErrorsContainer.propTypes = {
+  errors: PropTypes.array
+};
 
 export const Button = (props) => {
   const { buttonRef, css, children, disabled, onClick, to, type, ref } = props;
@@ -98,10 +39,71 @@ Button.propTypes = {
   ]),
   to: PropTypes.string,
   type: PropTypes.string,
-
 }
 
-export const AuthErrorsContainer = ({ errors }) => errors.length ? <div><pre>{JSON.stringify(errors)}</pre></div> : null;
-AuthErrorsContainer.propTypes = {
-  errors: PropTypes.array
-};
+export const Col = ({ children }) => <span>{children}</span>;
+Col.propTypes = {
+  children: PropTypes.node,
+}
+
+export const FieldLabel = (props) => {
+  const { children, ...rest } = props;
+  return <label htmlFor={props.htmlFor} {...rest}>{children}</label>;
+}
+FieldLabel.propTypes = {
+  children: PropTypes.node,
+  htmlFor: PropTypes.string,
+}
+
+export const Headline = ({ children }) => <h1>{children}</h1>;
+Headline.propTypes = {
+  children: PropTypes.node,
+}
+
+export const OrganizationLogo = ({ branding }) => <img src={branding.logo.src} alt={branding.logo.alt} width="300px" />;
+OrganizationLogo.propTypes = {
+  branding: PropTypes.shape({
+    logo: PropTypes.shape({
+      src: PropTypes.string,
+      alt: PropTypes.string,
+    })
+  })
+}
+
+export const Row = ({ children }) => <div>{children}</div>;
+Row.propTypes = {
+  children: PropTypes.node,
+}
+
+export const Select = (props) => {
+  const { dataOptions, readOnly, ...rest } = props;
+  const options = [];
+  if (dataOptions) {
+    dataOptions.forEach((option, i) => {
+      options.push(
+        <option
+          value={option.value}
+          key={option.id || `option-${i}`}
+          disabled={option.disabled || (readOnly && option.value !== this.props.value)}
+        >
+          {option.label}
+        </option>
+      );
+    });
+  }
+  return <select {...rest}>{options}</select>
+}
+Select.propTypes = {
+  children: PropTypes.node,
+  dataOptions: PropTypes.arrayOf(PropTypes.shape({
+    disabled: PropTypes.bool,
+    value: PropTypes.string,
+    label: PropTypes.string
+  })),
+  readOnly: PropTypes.bool,
+}
+
+export const TextField = (props) => <div className='formControl'><input {...props.input} /></div>;
+TextField.propTypes = {
+  input: PropTypes.object,
+}

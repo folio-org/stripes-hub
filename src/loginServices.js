@@ -76,11 +76,18 @@ export const getSession = async () => {
  *
  * @returns { tenant: string, clientId: string }
  */
-export const getLoginTenant = () => {
+export const getLoginTenant = (config) => {
   // derive from the URL
   const urlParams = new URLSearchParams(globalThis.location.search);
   let name = urlParams.get('tenant');
   let clientId = urlParams.get('client_id');
+
+  // derive from stripes.config.js::config::tenantOptions
+  if (config?.tenantOptions && Object.keys(config?.tenantOptions).length === 1) {
+    const key = Object.keys(config.tenantOptions)[0];
+    name ||= config.tenantOptions[key]?.name;
+    clientId ||= config.tenantOptions[key]?.clientId;
+  }
 
   return {
     name,
@@ -686,3 +693,29 @@ export const processBadResponse = async (response, defaultClientError) => {
 
   return actionPayload;
 };
+
+/**
+ * hideEmail
+ * Given address@server.domain, return ad*****@s*****.******
+ *
+ * Munge an email address as follows:
+ *  - show first two characters for the local-part
+ *  - show first character of the domain
+ *  - show the dot
+ * Each replacement step performs formatting as it mentioned above
+ * @param email      - an email to be formatted
+ * @returns {string} - a formatted email string
+ */
+export const hideEmail = email => {
+  const signToShow = '*';
+
+  const replacer = (_string, pattern1, pattern2) => (
+    pattern1.concat(signToShow.repeat(pattern2.length))
+  );
+
+  return email
+    .replace(/(^.{2})(.+?)(?=@)/g, replacer)
+    .replace(/(^.+@.)(.+?)(?=\.)/g, replacer)
+    .replace(/(\.)(.+?)(?=$)/g, replacer);
+}
+
