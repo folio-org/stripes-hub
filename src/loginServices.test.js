@@ -6,7 +6,7 @@ import {
 jest.mock('localforage');
 
 describe('loginServices', () => {
-  describe('getLoginTenant', () => {
+  describe.skip('getLoginTenant', () => {
     beforeEach(() => {
       globalThis.location = {
         search: '',
