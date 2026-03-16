@@ -129,7 +129,7 @@ export const storeCurrentTenant = (name, clientId) => {
 const UNAUTHORIZED_PATH = 'unauthorized_path';
 export const removeUnauthorizedPathFromSession = () => sessionStorage.removeItem(UNAUTHORIZED_PATH);
 export const setUnauthorizedPathToSession = (pathname) => {
-  const path = pathname ?? `${window.location.pathname}${window.location.search}`;
+  const path = pathname ?? `${globalThis.location.pathname}${globalThis.location.search}`;
   if (!path.startsWith(urlPaths.LOGOUT) && !path.startsWith(urlPaths.AUTHN_LOGIN)) {
     sessionStorage.setItem(UNAUTHORIZED_PATH, path);
   }
@@ -701,21 +701,20 @@ export const processBadResponse = async (response, defaultClientError) => {
  * Munge an email address as follows:
  *  - show first two characters for the local-part
  *  - show first character of the domain
- *  - show the dot
- * Each replacement step performs formatting as it mentioned above
+ *  - show the dots
+ *
  * @param email      - an email to be formatted
  * @returns {string} - a formatted email string
  */
 export const hideEmail = email => {
-  const signToShow = '*';
+  const parts = email.split('@');
+  const hidden = [];
 
-  const replacer = (_string, pattern1, pattern2) => (
-    pattern1.concat(signToShow.repeat(pattern2.length))
-  );
+  const usernameReplacer = (match, p1, p2) => p1 + p2.replaceAll(/./g, '*');
+  hidden.push(parts[0].replace(/^(.{2})(.*)$/, usernameReplacer));
 
-  return email
-    .replace(/(^.{2})(.+?)(?=@)/g, replacer)
-    .replace(/(^.+@.)(.+?)(?=\.)/g, replacer)
-    .replace(/(\.)(.+?)(?=$)/g, replacer);
+  const serverReplacer = (match, p1, p2) => p1 + p2.replaceAll(/[^.]/g, '*');
+  hidden.push(parts[1].replace(/^(.{1})(.*)$/, serverReplacer));
+
+  return hidden.join('@');
 }
-
