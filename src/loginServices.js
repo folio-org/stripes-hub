@@ -714,7 +714,7 @@ export const hideEmail = email => {
   hidden.push(parts[0].replace(/^(.{2})(.*)$/, usernameReplacer));
 
   const serverReplacer = (match, p1, p2) => p1 + p2.replaceAll(/[^.]/g, '*');
-  hidden.push(parts[1].replace(/^(.{1})(.*)$/, serverReplacer));
+  hidden.push(parts[1].replace(/^(.)(.*)$/, serverReplacer));
 
   return hidden.join('@');
 }
