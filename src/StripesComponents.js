@@ -84,7 +84,7 @@ export const Select = (props) => {
         <option
           value={option.value}
           key={option.id || `option-${i}`}
-          disabled={option.disabled || (readOnly && option.value !== this.props.value)}
+          disabled={option.disabled || (readOnly && option.value !== props.value)}
         >
           {option.label}
         </option>
@@ -101,6 +101,7 @@ Select.propTypes = {
     label: PropTypes.string
   })),
   readOnly: PropTypes.bool,
+  value: PropTypes.string,
 }
 
 export const TextField = (props) => <div className='formControl'><input {...props.input} /></div>;
