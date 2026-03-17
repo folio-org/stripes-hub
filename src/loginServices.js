@@ -76,11 +76,18 @@ export const getSession = async () => {
  *
  * @returns { tenant: string, clientId: string }
  */
-export const getLoginTenant = () => {
+export const getLoginTenant = (config) => {
   // derive from the URL
   const urlParams = new URLSearchParams(globalThis.location.search);
   let name = urlParams.get('tenant');
   let clientId = urlParams.get('client_id');
+
+  // derive from stripes.config.js::config::tenantOptions
+  if (config?.tenantOptions && Object.keys(config?.tenantOptions).length === 1) {
+    const key = Object.keys(config.tenantOptions)[0];
+    name ||= config.tenantOptions[key]?.name;
+    clientId ||= config.tenantOptions[key]?.clientId;
+  }
 
   return {
     name,
@@ -122,7 +129,7 @@ export const storeCurrentTenant = (name, clientId) => {
 const UNAUTHORIZED_PATH = 'unauthorized_path';
 export const removeUnauthorizedPathFromSession = () => sessionStorage.removeItem(UNAUTHORIZED_PATH);
 export const setUnauthorizedPathToSession = (pathname) => {
-  const path = pathname ?? `${window.location.pathname}${window.location.search}`;
+  const path = pathname ?? `${globalThis.location.pathname}${globalThis.location.search}`;
   if (!path.startsWith(urlPaths.LOGOUT) && !path.startsWith(urlPaths.AUTHN_LOGIN)) {
     sessionStorage.setItem(UNAUTHORIZED_PATH, path);
   }
@@ -686,3 +693,28 @@ export const processBadResponse = async (response, defaultClientError) => {
 
   return actionPayload;
 };
+
+/**
+ * hideEmail
+ * Given address@server.domain, return ad*****@s*****.******
+ *
+ * Munge an email address as follows:
+ *  - show first two characters for the local-part
+ *  - show first character of the domain
+ *  - show the dots
+ *
+ * @param email      - an email to be formatted
+ * @returns {string} - a formatted email string
+ */
+export const hideEmail = email => {
+  const parts = email.split('@');
+  const hidden = [];
+
+  const usernameReplacer = (match, p1, p2) => p1 + p2.replaceAll(/./g, '*');
+  hidden.push(parts[0].replace(/^(.{2})(.*)$/, usernameReplacer));
+
+  const serverReplacer = (match, p1, p2) => p1 + p2.replaceAll(/[^.]/g, '*');
+  hidden.push(parts[1].replace(/^(.)(.*)$/, serverReplacer));
+
+  return hidden.join('@');
+}

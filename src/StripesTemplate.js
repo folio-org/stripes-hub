@@ -1,30 +1,25 @@
 import PropTypes from 'prop-types';
 
 import { Col, OrganizationLogo, Row } from './StripesComponents';
-import styles from './index.css';
+import { brandingShape } from './constants';
 
-function StripesTemplate({ branding, children }) {
+const StripesTemplate = ({ branding, children }) => {
   return (
-    <main style={{ width: '100%' }}>
-      <div>
-        <div className={styles.container}>
-          <Row center="xs">
-            <Col xs={12}>
-              <OrganizationLogo branding={branding} />
-            </Col>
-          </Row>
-          {children}
-        </div>
+    <main style={{ width: '100%' }} className="container">
+      <div >
+        <Row center="xs">
+          <Col xs={12}>
+            <OrganizationLogo branding={branding} />
+          </Col>
+        </Row>
+        {children}
       </div>
     </main>
   );
 }
 
 StripesTemplate.propTypes = {
-  branding: PropTypes.shape({
-    logo: PropTypes.string,
-    altText: PropTypes.string,
-  }).isRequired,
+  branding: brandingShape.isRequired,
   children: PropTypes.node.isRequired,
 };
 
