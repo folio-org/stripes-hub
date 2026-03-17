@@ -10,7 +10,7 @@ import OidcLanding from './OidcLanding';
 import ForgotPassword from './ForgotPassword';
 import ForgotUsername from './ForgotUsername';
 import { urlPaths } from './constants';
-import rawTranslations from './translations/stripes-hub/en_US.json';
+import rawTranslations from '../translations/stripes-hub/en_US.json';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const config = FOLIO_CONFIG || {}; // eslint-disable-line no-undef
