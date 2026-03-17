@@ -10,7 +10,7 @@ import OidcLanding from './OidcLanding';
 import ForgotPassword from './ForgotPassword';
 import ForgotUsername from './ForgotUsername';
 import { urlPaths } from './constants';
-import rawTranslations from '../translations/stripes-hub/en_US.json';
+import { loadTranslations } from './loadTranslations';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const config = FOLIO_CONFIG || {}; // eslint-disable-line no-undef
@@ -20,6 +20,9 @@ const OidcLandingComponent = () => <OidcLanding config={config} branding={brandi
 const StripesHubComponent = () => <StripesHub config={config} branding={branding} />;
 const ForgotPasswordComponent = () => <ForgotPassword config={config} branding={branding} />
 const ForgotUsernameComponent = () => <ForgotUsername config={config} branding={branding} />
+
+const locale = config.locale || navigator.language || 'en-US';
+const rawTranslations = loadTranslations(locale);
 
 const reactQueryClient = createReactQueryClient();
 const pathName = globalThis.location.pathname;
@@ -50,7 +53,7 @@ switch (pathName) {
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={reactQueryClient}>
-      <IntlProvider locale={config.locale || navigator.language || 'en-US'} messages={translations} >
+      <IntlProvider locale={locale} messages={translations} >
         <LandingComponent />
       </IntlProvider>
     </QueryClientProvider>

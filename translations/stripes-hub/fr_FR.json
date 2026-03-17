@@ -1,0 +1,33 @@
+{
+  "StripesHub.loadingEntitlements": "Chargement des droits...",
+  "StripesHub.loadingDiscovery": "Chargement de la découverte...",
+  "StripesHub.loadingSession": "Chargement de la session...",
+  "StripesHub.loadingStripes": "Chargement de Stripes...",
+
+  "OidcLanding.initializingSession": "Chargement de la session...",
+
+  "PreLoginLanding.tenantChoose": "Choisissez votre locataire",
+  "PreLoginLanding.tenantLibrary": "Localisateur / Bibliothèque",
+  "PreLoginLanding.button.continue": "Continuer",
+
+  "FatalError.headline": "Oups ! Vous vous êtes connecté(e) avec succès, mais FOLIO n'a pas pu se charger en raison d'une erreur 😢. Si le problème persiste, veuillez contacter votre administrateur système.",
+  "FatalError.tryAgain": "Réessayez",
+  "FatalError.logout": "Déconnexion",
+
+  "ForgotPassword.title": "Mot de passe oublié ?",
+  "ForgotPassword.placeholder": "Saisissez votre nom d'utilisateur, votre adresse e-mail ou votre numéro de téléphone",
+  "ForgotUsername.title": "Nom d'utilisateur oublié ?",
+  "ForgotUsername.placeholder": "Saisissez votre adresse e-mail ou votre numéro de téléphone",
+  "ForgotUsername.error": "Veuillez saisir une adresse e-mail valide",
+  "ForgotDidMutate.checkYourEmail": "Consultez votre messagerie",
+  "ForgotDidMutate.sent": "Un e-mail a été envoyé à votre adresse e-mail.",
+  "ForgotDidMutate.missing": "Si vous n'avez pas reçu l'e-mail, vérifiez vos dossiers de courriers indésirables, de réseaux sociaux ou autres. Vous pouvez également contacter votre administrateur système FOLIO.",
+
+  "button.continue": "Continuer",
+
+  "error.entitlementFetch": "Erreur de récupération des droits à {url}",
+  "error.discoveryFetch": "Erreur de récupération de la découverte à {url}",
+  "error.sessionFetch": "Erreur de récupération de la session à {url}",
+  "error.tokenExchangeFailure": "Échec de l'échange de jetons",
+  "error.stripesFetchFailure": "Erreur de récupération Stripes à {url}"
+}
