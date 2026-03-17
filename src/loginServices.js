@@ -2,6 +2,7 @@ import localforage from 'localforage';
 import isObject from 'lodash/isObject';
 
 import { defaultErrors, urlPaths } from './constants';
+import { sharedMessages } from './constants/sharedMessages';
 
 /** name for the session key in local storage */
 export const SESSION_NAME = 'okapiSess';
@@ -195,7 +196,7 @@ export const fetchEntitlements = async (config, tenant) => {
     const json = error?.options?.json || null;
     throw new StripesHubError(
       `Entitlement fetch error at ${url}`,
-      { json, url, id: 'stripes-hub.error.entitlementFetch', cause: error }
+      { json, url, id: sharedMessages.errorEntitlementFetch.id, cause: error }
     );
   }
 };
@@ -251,7 +252,7 @@ const fetchCustomDiscovery = async (config, tenant) => {
 
   throw new StripesHubError(
     `Discovery fetch error at ${config.discoveryUrl}`,
-    { json, url: config.discoveryUrl, id: 'stripes-hub.error.discoveryFetch' }
+    { json, url: config.discoveryUrl, id: sharedMessages.errorDiscoveryFetch.id }
   );
 };
 
@@ -288,7 +289,7 @@ const fetchDefaultDiscovery = async (config, tenant, entitlement) => {
     const json = error?.options?.json || null;
     throw new StripesHubError(
       `Discovery fetch error at ${url}`,
-      { json, url, id: 'stripes-hub.error.discoveryFetch', cause: error }
+      { json, url, id: sharedMessages.errorDiscoveryFetch.id, cause: error }
     );
   };
 };
@@ -373,7 +374,7 @@ export const loadStripes = async (stripesCore) => {
     const json = error?.options?.json || null;
     throw new StripesHubError(
       `Stripes init error at ${url}`,
-      { json, url, id: 'stripes-hub.error.stripesFetchFailure', cause: error }
+      { json, url, id: sharedMessages.errorStripesFetchFailure.id, cause: error }
     );
   }
 }

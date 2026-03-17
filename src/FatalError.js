@@ -2,6 +2,7 @@ import { useIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
 
 import { Button, Col, Row } from './StripesComponents';
+import { sharedMessages } from './constants/sharedMessages';
 import StripesTemplate from './StripesTemplate';
 import styles from './index.css';
 
@@ -37,7 +38,7 @@ function FatalError({ branding, config, error }) {
     <StripesTemplate branding={branding}>
       <Row center="xs">
         <Col xs={12}>
-          <h1><FormattedMessage id="stripes-hub.FatalError.headline" /></h1>
+          <h1><FormattedMessage {...sharedMessages.fatalErrorHeadline} /></h1>
           <h2>{l10nMessage}</h2>
           <h3>{message}</h3>
           <h3>{subMessage}</h3>
@@ -49,7 +50,7 @@ function FatalError({ branding, config, error }) {
             className={styles.submitButton}
             onClick={handleReload}
           >
-            <FormattedMessage id="stripes-hub.FatalError.tryAgain" />
+            <FormattedMessage {...sharedMessages.fatalErrorTryAgain} />
           </Button>
         </Col>
         <Col xs={6}>
@@ -57,7 +58,7 @@ function FatalError({ branding, config, error }) {
             className={styles.submitButton}
             onClick={handleLogout}
           >
-            <FormattedMessage id="stripes-hub.FatalError.logout" />
+            <FormattedMessage {...sharedMessages.fatalErrorLogout} />
           </Button>
         </Col>
       </Row>

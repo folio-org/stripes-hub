@@ -10,6 +10,7 @@ import {
   storeCurrentTenant,
 } from './loginServices';
 
+import { sharedMessages } from './constants/sharedMessages';
 import useExchangeCode from './hooks/useExchangeCode';
 import FatalError from './FatalError';
 import StripesTemplate from './StripesTemplate';
@@ -68,8 +69,8 @@ const OidcLanding = ({ branding, config }) => {
     <StripesTemplate branding={branding}>
       <div data-test-saml-success>
         <div>
-          {isLoading && <h1><FormattedMessage id="stripes-hub.OidcLanding.validatingAuthenticationToken" /></h1>}
-          {tokenData && <h1><FormattedMessage id="stripes-hub.OidcLanding.initializingSession" /></h1>}
+          {isLoading && <h1><FormattedMessage {...sharedMessages.validatingAuthenticationToken} /></h1>}
+          {tokenData && <h1><FormattedMessage {...sharedMessages.initializingSession} /></h1>}
         </div>
       </div>
     </StripesTemplate>

@@ -1,17 +1,27 @@
 {
-  "StripesHub.loadingEntitlements": "Loading entitlements ...",
-  "StripesHub.loadingDiscovery": "Loading discovery ...",
-  "StripesHub.loadingSession": "Loading session ...",
-  "StripesHub.loadingStripes": "Loading Stripes ...",
+  "error.entitlementFetch": "Entitlement fetch error at {url}",
+  "error.discoveryFetch": "Discovery fetch error at {url}",
+  "error.sessionFetch": "Session fetch error at {url}",
+  "error.tokenExchangeFailure": "Token exchange failed",
+  "error.stripesFetchFailure": "Stripes fetch error at {url}",
 
-  "OidcLanding.initializingSession": "Loading session ...",
-  "PreLoginLanding.tenantChoose": "Choose your tenant",
-  "PreLoginLanding.tenantLibrary": "Tenant / Library",
-  "PreLoginLanding.button.continue": "Continue",
+  "oidc.otp.missingCode": "Missing code in the URL",
+
   "FatalError.headline": "Oh, snap. You successfully signed in, but FOLIO failed to load because of an error 😢. If the problem persists please contact your system administrator.",
   "FatalError.tryAgain": "Try again",
   "FatalError.logout": "Log out",
 
+  "OidcLanding.initializingSession": "Loading session ...",
+  "OidcLanding.validatingAuthenticationToken": "Validating authentication token...",
+
+  "PreLoginLanding.tenantChoose": "Choose your tenant",
+  "PreLoginLanding.tenantLibrary": "Tenant / Library",
+  "PreLoginLanding.button.continue": "Continue",
+
+  "StripesHub.loadingEntitlements": "Loading entitlements ...",
+  "StripesHub.loadingDiscovery": "Loading discovery ...",
+  "StripesHub.loadingSession": "Loading session ...",
+  "StripesHub.loadingStripes": "Loading Stripes ..."
   "ForgotPassword.title": "Forgot password?",
   "ForgotPassword.placeholder": "Enter username, email, or phone",
   "ForgotUsername.title": "Forgot username?",
