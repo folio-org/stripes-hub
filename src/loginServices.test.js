@@ -31,16 +31,6 @@ import { defaultErrors } from './constants';
 
 // Mock dependencies
 jest.mock('localforage');
-jest.mock('./constants', () => ({
-  defaultErrors: {
-    DEFAULT_LOGIN_CLIENT_ERROR: { message: 'Client error' },
-    DEFAULT_LOGIN_SERVER_ERROR: { message: 'Server error' },
-  },
-  urlPaths: {
-    LOGOUT: '/logout',
-    AUTHN_LOGIN: '/authn-login',
-  },
-}));
 
 // Mock globalThis.location
 delete globalThis.location;
@@ -57,19 +47,20 @@ globalThis.fetch = jest.fn();
 // Mock dynamic imports used by loadStripes
 jest.mock('https://stripes.example.com/main.js', () => jest.fn(), { virtual: true });
 
+// utility used across tests for mocking respponses.
+const makeFetchResponse = ({ ok = true, jsonData = {}, status = 200, statusText = 'OK', headers = {} } = {}) => ({
+  ok,
+  status,
+  statusText,
+  json: jest.fn().mockResolvedValue(jsonData),
+  headers: { get: jest.fn().mockReturnValue(null), ...headers },
+});
+
 describe('loginServices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
     sessionStorage.clear();
-  });
-
-  const makeFetchResponse = ({ ok = true, jsonData = {}, status = 200, statusText = 'OK', headers = {} } = {}) => ({
-    ok,
-    status,
-    statusText,
-    json: jest.fn().mockResolvedValue(jsonData),
-    headers: { get: jest.fn().mockReturnValue(null), ...headers },
   });
 
   const defaultConfig = { gatewayUrl: 'https://gateway.example.com' };
@@ -210,7 +201,7 @@ describe('loginServices', () => {
 
       const config = { ...defaultConfig };
       const result = await fetchDiscovery(config, 'test-tenant', entitlement);
-      expect(result.mod1.location).toBe('https://mod1.example.com');
+      expect(result.mod1.location).toBe(mockJson.discovery[0].location);
       expect(result.mod1.module).toBe('@folio/mod1');
     });
 
@@ -218,17 +209,18 @@ describe('loginServices', () => {
     it('uses custom discovery URL when provided', async () => {
       const entitlement = { mod2: { name: 'folio_mod2', applicationId: 'app2' } };
       const mockJson = { discovery: [{ id: 'mod2', name: 'folio_mod2', location: 'https://mod2.example.com' }] };
+      const tenant = 'test-tenant';
       globalThis.fetch.mockResolvedValue(makeFetchResponse({ jsonData: mockJson }));
 
       const config = { ...defaultConfig, discoveryUrl: 'https://local.discovery' };
-      const result = await fetchDiscovery(config, 'test-tenant', entitlement);
+      const result = await fetchDiscovery(config, tenant, entitlement);
 
-      expect(globalThis.fetch).toHaveBeenCalledWith('https://local.discovery', expect.objectContaining({
-        headers: expect.objectContaining({ 'X-Okapi-Tenant': 'test-tenant' }),
+      expect(globalThis.fetch).toHaveBeenCalledWith(config.discoveryUrl, expect.objectContaining({
+        headers: expect.objectContaining({ 'X-Okapi-Tenant': tenant }),
         mode: 'cors',
       }));
 
-      expect(result.mod2.location).toBe('https://mod2.example.com');
+      expect(result.mod2.location).toBe(mockJson.discovery[0].location);
       expect(result.mod2.module).toBe('@folio/mod2');
     });
   });
@@ -288,14 +280,15 @@ describe('loginServices', () => {
   describe('setTokenExpiry', () => {
     it('sets token expiry in session', async () => {
       const sess = { user: 'test' };
+      const tokenData = { atExpires: 1000, rtExpires: 2000 };
       localforage.getItem.mockResolvedValue(sess);
       localforage.setItem.mockResolvedValue();
 
-      await setTokenExpiry({ atExpires: 1000, rtExpires: 2000 });
+      await setTokenExpiry(tokenData);
       expect(localforage.setItem).toHaveBeenCalledWith(SESSION_NAME, expect.objectContaining({
         tokenExpiration: {
-          atExpires: 1000,
-          rtExpires: 2000,
+          atExpires: tokenData.atExpires,
+          rtExpires: tokenData.rtExpires,
           accessTokenExpiration: '1970-01-01T00:00:01.000Z',
           refreshTokenExpiration: '1970-01-01T00:00:02.000Z',
         },
@@ -362,11 +355,7 @@ describe('loginServices', () => {
       globalThis.fetch.mockResolvedValue(mockResp);
 
       const config = { ...defaultConfig };
-      try {
-        await requestUserWithPerms(config, 'test-tenant', 'token');
-      } catch (err) {
-        expect(err).toEqual(mockError);
-      }
+      await expect(requestUserWithPerms(config, 'test-tenant', 'token')).rejects.toEqual(mockError);
     });
   });
 
@@ -414,12 +403,8 @@ describe('loginServices', () => {
     });
 
     it('returns default error when payload is invalid JSON', () => {
-      try {
-        const errors = getLoginErrors('not-json');
-        expect(errors).toEqual([defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR]);
-      } catch (err) {
-        expect(err).toBeDefined();
-      }
+      const errors = getLoginErrors('not-json');
+      expect(errors).toEqual([defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR]);
     });
   });
 
@@ -434,12 +419,8 @@ describe('loginServices', () => {
     it('uses default error when response.json throws', async () => {
       const mockResp = { status: 500, json: jest.fn(() => { throw new Error('boom'); }) };
 
-      try {
-        const result = await processBadResponse(mockResp);
-        expect(result).toEqual([defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR]);
-      } catch (err) {
-        expect(err).toBeDefined();
-      }
+      const result = await processBadResponse(mockResp);
+      expect(result).toEqual([defaultErrors.DEFAULT_LOGIN_CLIENT_ERROR]);
     });
   });
 });
