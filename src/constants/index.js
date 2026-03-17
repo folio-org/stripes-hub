@@ -4,3 +4,4 @@ export { default as changePasswordErrorCodes } from './changePasswordErrorCodes'
 export { default as ssoErrorCodes } from './ssoErrorCodes';
 export { default as defaultErrors } from './defaultErrors';
 export { default as urlPaths } from './urlPaths';
+export { brandingShape, configShape } from './propTypesShape';
