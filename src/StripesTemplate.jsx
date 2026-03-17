@@ -2,10 +2,11 @@ import PropTypes from 'prop-types';
 
 import { Col, OrganizationLogo, Row } from './StripesComponents';
 import { brandingShape } from './constants';
+import styles from './index.module.css';
 
 const StripesTemplate = ({ branding, children }) => {
   return (
-    <main style={{ width: '100%' }} className="container">
+    <main style={{ width: '100%' }} className={styles.container}>
       <div >
         <Row center="xs">
           <Col xs={12}>
@@ -19,7 +20,7 @@ const StripesTemplate = ({ branding, children }) => {
 }
 
 StripesTemplate.propTypes = {
-  branding: brandingShape.isRequired,
+  branding: PropTypes.shape(brandingShape).isRequired,
   children: PropTypes.node.isRequired,
 };
 

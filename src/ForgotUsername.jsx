@@ -84,7 +84,6 @@ const ForgotUsername = ({ branding, config }) => {
               <Col xs={6}>
                 <div className={styles.formGroup}>
                   <Button
-                    buttonStyle="primary"
                     id="clickable-login"
                     type="submit"
                     disabled={pristine || !tenant}
