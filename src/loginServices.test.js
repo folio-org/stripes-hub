@@ -6,6 +6,7 @@ import {
 jest.mock('localforage');
 
 describe('loginServices', () => {
+  // this fails in CI but runs fine locally. what the ...?
   describe.skip('getLoginTenant', () => {
     beforeEach(() => {
       globalThis.location = {
