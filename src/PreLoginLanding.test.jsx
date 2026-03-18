@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@folio/jest-config-stripes/testing-library/react';
+import { render, screen } from '@folio/jest-config-stripes/testing-library/react';
 import userEvent from '@folio/jest-config-stripes/testing-library/user-event'
 import { IntlProvider } from 'react-intl';
 import PreLoginLanding, { sortedTenantOptions } from './PreLoginLanding';
@@ -40,7 +40,7 @@ const renderWithIntl = (component) => {
 describe('PreLoginLanding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    global.window = {
+    globalThis.window = {
       location: {
         assign: jest.fn(),
       },

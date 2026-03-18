@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@folio/jest-config-stripes/testing-library/react';
+import { render, screen } from '@folio/jest-config-stripes/testing-library/react';
 import userEvent from '@folio/jest-config-stripes/testing-library/user-event'
 import {
   AuthErrorsContainer,
@@ -54,11 +54,6 @@ describe('StripesComponents', () => {
 
       await user.click(screen.getByRole('button'));
       expect(handleClick).toHaveBeenCalled();
-      //   aw
-      // await user.click(screen.getByRole('button', { name: /button.continue/ }))
-
-      //   fireEvent.click(screen.getByRole('button'));
-      //   expect(handleClick).toHaveBeenCalled();
     });
 
     it('can be disabled', () => {

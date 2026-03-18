@@ -97,7 +97,7 @@ describe('ForgotUsername', () => {
       isError: true,
     });
 
-    const { container } = renderWithIntl(
+    renderWithIntl(
       <ForgotUsername branding={mockBranding} config={mockConfig} />
     );
 
