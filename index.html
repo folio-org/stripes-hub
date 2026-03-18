@@ -9,16 +9,13 @@
     <link rel="icon" href="/tenant-assets/folio-favicon.png" />
     <script lang="js">
       const FOLIO_CONFIG = {
-        gatewayUrl: 'https://folio-etesting-snapshot-kong.ci.folio.org',
-        authnUrl: 'https://folio-etesting-snapshot-keycloak.ci.folio.org',
+        gatewayUrl: 'https://gateway-server.example.edu',
+        authnUrl: 'https://authentication-server.example.edu',
 
         tenantOptions: {
           diku: {
             name: 'diku', clientId: 'diku-application'
-          },
-          college: {
-            name: 'college', clientId: 'college-application'
-          },
+          }
         },
         preserveConsole: true
       };
