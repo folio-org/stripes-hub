@@ -15,7 +15,8 @@
     "start": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "jest"
+    "test:jest": "jest --ci --coverage --colors",
+    "test": "yarn test:jest"
   },
   "dependencies": {
     "final-form": "^5.0.0",
