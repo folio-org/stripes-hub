@@ -22,15 +22,11 @@ const ForgotPasswordComponent = () => <ForgotPassword config={config} branding={
 const ForgotUsernameComponent = () => <ForgotUsername config={config} branding={branding} />
 
 const locale = config.locale || navigator.language || 'en-US';
-const rawTranslations = loadTranslations(locale);
+const translations = loadTranslations(locale);
 
 const reactQueryClient = createReactQueryClient();
 const pathName = globalThis.location.pathname;
 let LandingComponent;
-const translations = Object.keys(rawTranslations).reduce((acc, key) => {
-  acc[`stripes-hub.${key}`] = rawTranslations[key];
-  return acc;
-}, {});
 
 switch (pathName) {
   case urlPaths.AUTHN_LOGIN:
