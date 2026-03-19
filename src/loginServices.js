@@ -361,7 +361,7 @@ export const loadStripes = async (stripesCore) => {
       for (const jsRef of jsImports) {
         const jsFile = manifest.assets[jsRef].file;
         console.log(`Loading stripes asset ${stripesCore.location}${jsFile}...`)
-        await import(/* webpackIgnore: true */ `${stripesCore.location}${jsFile}`);
+        await import(/* @vite-ignore */ /* webpackIgnore: true */ `${stripesCore.location}${jsFile}`);
       }
       return;
     }

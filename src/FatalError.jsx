@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { Button, Col, Row } from './StripesComponents';
 import StripesTemplate from './StripesTemplate';
-import styles from './index.css';
+import styles from './index.module.css';
 
 function FatalError({ branding, config, error }) {
   const intl = useIntl();
@@ -13,7 +13,7 @@ function FatalError({ branding, config, error }) {
     await fetch(`${config.gatewayUrl}/logout`, {
       method: 'POST',
       credentials: 'include',
-    }); 
+    });
     globalThis.location.assign(location.origin);
   }
 
@@ -62,7 +62,6 @@ function FatalError({ branding, config, error }) {
         </Col>
       </Row>
     </StripesTemplate>
-
   );
 }
 

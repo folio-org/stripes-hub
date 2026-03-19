@@ -14,7 +14,7 @@ export default defineConfig([
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat['jsx-runtime'],
   {
-    files: ['**/*.test.js'],
+    files: ['**/*.test.{js,jsx}'],
     plugins: { jest: pluginJest },
     languageOptions: {
       globals: pluginJest.environments.globals.globals,

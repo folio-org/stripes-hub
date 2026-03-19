@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 
 import {
   AuthErrorsContainer, Button, Col, FieldLabel, Headline, Row, TextField,
-} from './StripesComponents'
+} from './StripesComponents';
 import useForgotUsername from './hooks/useForgotUsername';
 import { getLoginTenant } from './loginServices';
 import StripesTemplate from './StripesTemplate';
@@ -84,7 +84,6 @@ const ForgotUsername = ({ branding, config }) => {
               <Col xs={6}>
                 <div className={styles.formGroup}>
                   <Button
-                    buttonStyle="primary"
                     id="clickable-login"
                     type="submit"
                     disabled={pristine || !tenant}
