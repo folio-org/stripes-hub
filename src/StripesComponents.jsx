@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
+import styles from './index.module.css';
 
-export const AuthErrorsContainer = ({ errors }) => errors.length ? <div className="errorContainer"><h2>⚠️ {errors}</h2></div> : null;
+export const AuthErrorsContainer = ({ errors }) => errors.length ? <div className={styles.errorContainer}><h2>⚠️ {errors}</h2></div> : null;
 AuthErrorsContainer.propTypes = {
   errors: PropTypes.array
 };
@@ -104,7 +105,7 @@ Select.propTypes = {
   value: PropTypes.string,
 }
 
-export const TextField = (props) => <div className='formControl'><input {...props.input} /></div>;
+export const TextField = (props) => <div className={styles.formControl}><input {...props.input} /></div>;
 TextField.propTypes = {
   input: PropTypes.object,
 }

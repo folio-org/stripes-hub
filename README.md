@@ -35,4 +35,3 @@ See project [STHUB](https://folio-org.atlassian.net/jira/software/c/projects/STH
 at the [FOLIO issue tracker](https://folio-org.atlassian.net/jira).
 
 Other FOLIO Developer documentation is at [dev.folio.org](https://dev.folio.org/)
-

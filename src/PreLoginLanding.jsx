@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 
 import { Button, Col, Row, Select } from './StripesComponents';
 import { getLoginUrl, getCurrentTenant } from './loginServices';
-import styles from './index.css';
+import styles from './index.module.css';
 import StripesTemplate from './StripesTemplate';
 
 export function sortedTenantOptions(tenantOptions) {
