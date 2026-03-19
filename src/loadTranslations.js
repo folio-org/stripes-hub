@@ -15,9 +15,10 @@ const DEFAULT_LOCALE = 'en-US';
  * @returns translations for the specified locale or default locale if not found.
  */
 export const loadTranslations = (locale) => {
-  let translations = {};
+  let translations = messages[locale] || messages[DEFAULT_LOCALE] || {};
 
-  translations = messages[locale] || messages[DEFAULT_LOCALE];
-
-  return translations;
+  return Object.keys(translations).reduce((acc, key) => {
+    acc[`stripes-hub.${key}`] = translations[key];
+    return acc;
+  }, {});
 };
