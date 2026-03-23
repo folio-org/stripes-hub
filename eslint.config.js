@@ -20,6 +20,7 @@ export default defineConfig([
       globals: pluginJest.environments.globals.globals,
     },
     rules: {
+      'react/prop-types': 'off',
       'jest/no-disabled-tests': 'warn',
       'jest/no-focused-tests': 'error',
       'jest/no-identical-title': 'error',

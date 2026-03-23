@@ -44,11 +44,6 @@ const mockEntitlement = {
   'folio_stripes-core': { name: 'folio_stripes-core' },
 };
 
-const mockDiscovery = {
-  'folio_stripes-core': { name: 'folio_stripes-core', location: 'https://stripes.example.com' },
-  app1: { name: 'app1', location: 'https://app1.example.com' },
-};
-
 describe('useInitSession', () => {
   beforeEach(() => {
     jest.clearAllMocks();

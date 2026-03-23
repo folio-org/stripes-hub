@@ -16,13 +16,12 @@ const locale = config.locale || navigator.language || 'en-US';
 const translations = loadTranslations(locale);
 
 const reactQueryClient = createReactQueryClient();
-const LandingComponent = Router(config, branding, pathName);
 
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={reactQueryClient}>
       <IntlProvider locale={locale} messages={translations} >
-        <LandingComponent />
+        <Router config={config} branding={branding} pathName={pathName} />
       </IntlProvider>
     </QueryClientProvider>
   </React.StrictMode>

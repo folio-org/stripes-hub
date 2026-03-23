@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 import AuthnLogin from './AuthnLogin';
 import StripesHub from './StripesHub';
 import OidcLanding from './OidcLanding';
@@ -13,34 +15,38 @@ import { urlPaths } from './constants';
  * @param {*} pathName the current path name.
  * @returns the landing page component to render.
  */
-const Router = (config, branding, pathName) => {
-  const AuthnLoginComponent = () => <AuthnLogin config={config} branding={branding} />;
-  const OidcLandingComponent = () => <OidcLanding config={config} branding={branding} />;
-  const StripesHubComponent = () => <StripesHub config={config} branding={branding} />;
-  const ForgotPasswordComponent = () => <ForgotPassword config={config} branding={branding} />
-  const ForgotUsernameComponent = () => <ForgotUsername config={config} branding={branding} />
-
-  let LandingComponent;
+const Router = ({config, branding, pathName}) => {
+  const props = { config, branding };
 
   switch (pathName) {
     case urlPaths.AUTHN_LOGIN:
-      LandingComponent = AuthnLoginComponent;
-      break;
+      return <AuthnLogin {...props} />;
     case urlPaths.FORGOT_PASSWORD:
-      LandingComponent = ForgotPasswordComponent;
-      break;
+      return <ForgotPassword {...props} />;
     case urlPaths.FORGOT_USERNAME:
-      LandingComponent = ForgotUsernameComponent;
-      break;
+      return <ForgotUsername {...props} />;
     case urlPaths.OIDC_LANDING:
-      LandingComponent = OidcLandingComponent;
-      break;
+      return <OidcLanding {...props} />;
     default:
-      LandingComponent = StripesHubComponent;
-      break;
+      return <StripesHub {...props} />;
   }
+};
 
-  return LandingComponent;
+Router.propTypes = {
+  config: PropTypes.shape({
+    authnUrl: PropTypes.string,
+    tenantOptions: PropTypes.object,
+  }).isRequired,
+  branding: PropTypes.shape({
+    logo: PropTypes.shape({
+      src: PropTypes.string,
+      alt: PropTypes.string,
+    }),
+    favicon: PropTypes.shape({
+      src: PropTypes.string,
+    }),
+  }),
+  pathName: PropTypes.string.isRequired,
 };
 
 export default Router;
