@@ -6,9 +6,9 @@ import pluginJest from "eslint-plugin-jest";
 
 export default defineConfig([
   {
-    files: ["**/*.{js,mjs,cjs,jsx}"],
+    files: ['**/*.{js,mjs,cjs,jsx}'],
     plugins: { js },
-    extends: ["js/recommended"],
+    extends: ['js/recommended'],
     languageOptions: { globals: globals.browser },
   },
   pluginReact.configs.flat.recommended,
@@ -20,7 +20,9 @@ export default defineConfig([
       globals: pluginJest.environments.globals.globals,
     },
     rules: {
+      'no-undef' : 'off',
       'react/prop-types': 'off',
+      'react/display-name': 'off',
       'jest/no-disabled-tests': 'warn',
       'jest/no-focused-tests': 'error',
       'jest/no-identical-title': 'error',
