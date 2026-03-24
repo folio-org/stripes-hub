@@ -12,13 +12,13 @@ import { urlPaths } from './constants';
  * 
  * @param {*} config the configuration object.
  * @param {*} branding the branding configuration object.
- * @param {*} pathName the current path name.
+ * @param {*} path the current path name.
  * @returns the landing page component to render.
  */
-const Router = ({config, branding, pathName}) => {
+const Router = ({config, branding, path}) => {
   const props = { config, branding };
 
-  switch (pathName) {
+  switch (path) {
     case urlPaths.AUTHN_LOGIN:
       return <AuthnLogin {...props} />;
     case urlPaths.FORGOT_PASSWORD:
