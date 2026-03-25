@@ -81,7 +81,7 @@ export const Row = ({ center, children }) => {
   return <div className={rowClasses.join(' ')}>{children}</div>;
 };
 Row.propTypes = {
-  center: PropTypes.bool,
+  center: PropTypes.string,
   children: PropTypes.node,
 }
 

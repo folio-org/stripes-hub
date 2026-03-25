@@ -79,10 +79,10 @@ describe('StripesComponents', () => {
   });
 
   describe('Col', () => {
-    it('renders span element', () => {
+    it('renders div element', () => {
       const { container } = render(<Col>Content</Col>);
 
-      expect(container.querySelector('span')).toBeInTheDocument();
+      expect(container.querySelector('div')).toBeInTheDocument();
     });
 
     it('renders children', () => {
