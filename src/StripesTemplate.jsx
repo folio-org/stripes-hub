@@ -6,7 +6,7 @@ import styles from './index.module.css';
 
 const StripesTemplate = ({ branding, children }) => {
   return (
-    <main style={{ width: '100%' }} className={styles.container}>
+    <main style={{ width: '100%' }} className={`${styles.container} ${styles.containerVars}`}>
       <div >
         <Row center="xs">
           <Col xs={12}>

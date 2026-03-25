@@ -10,12 +10,12 @@ import { getLoginTenant } from './loginServices';
 import StripesTemplate from './StripesTemplate';
 import ForgotDidMutate from './ForgotDidMutate';
 import { brandingShape, configShape } from './constants';
+import styles from './index.module.css';
 
 const ForgotUsername = ({ branding, config }) => {
   const { name: tenant } = getLoginTenant(config);
   const { isError, handleSubmit, didMutate } = useForgotUsername({ config, tenant });
 
-  const styles = {};
   const intl = useIntl();
   const forgotUsernamePlaceholder = intl.formatMessage({ id: 'stripes-hub.ForgotUsername.placeholder' });
 
@@ -30,7 +30,7 @@ const ForgotUsername = ({ branding, config }) => {
         onSubmit={handleSubmit}
         render={({ handleSubmit, pristine }) => (
           <form
-            className={styles.form}
+            className={styles.hubForm}
             data-form="forgot"
             onSubmit={handleSubmit}
           >
@@ -69,7 +69,7 @@ const ForgotUsername = ({ branding, config }) => {
                     type="text"
                     marginBottom0
                     fullWidth
-                    inputClass={styles.loginInput}
+                    inputClass={styles.hubInput}
                     validationEnabled={false}
                     hasClearIcon={false}
                     autoCapitalize="none"
@@ -87,6 +87,7 @@ const ForgotUsername = ({ branding, config }) => {
                     id="clickable-login"
                     type="submit"
                     disabled={pristine || !tenant}
+                    className={styles.hubButton}
                   >
                     <FormattedMessage id="stripes-hub.button.continue" />
                   </Button>

@@ -56,7 +56,7 @@ function PreLoginLanding({ branding, config, onSelectTenant, tenantOptions }) {
             dataOptions={[...options, { value: '', label: intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantChoose' }) }]}
           />
           <Button
-            className={styles.submitButton}
+            className={styles.hubButton}
             disabled={isButtonDisabled}
             onClick={redirectToLogin}
           >

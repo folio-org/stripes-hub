@@ -9,13 +9,13 @@ import { urlPaths } from './constants';
 
 /**
  * Router component to determine which landing page to render based on the current path.
- * 
+ *
  * @param {*} config the configuration object.
  * @param {*} branding the branding configuration object.
  * @param {*} path the current path name.
  * @returns the landing page component to render.
  */
-const Router = ({config, branding, path}) => {
+const Router = ({ config, branding, path }) => {
   const props = { config, branding };
 
   switch (path) {
@@ -46,7 +46,7 @@ Router.propTypes = {
       src: PropTypes.string,
     }),
   }),
-  pathName: PropTypes.string.isRequired,
+  path: PropTypes.string.isRequired,
 };
 
 export default Router;
