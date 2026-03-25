@@ -323,38 +323,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 }
 
-.container {
-  display: flex;
-  justify-content: center;
-}
-
-.container > div {
-  max-width: 500px;
-  width: 100%;
-  padding: 30px 15px;
-  text-align: center;
-}
-
-.formControl {
-  align-items: center;
-  background-color: var(--color-fill-form-element);
-  border: 1px solid var(--color-border-form);
-  border-radius: 0;
-  color: var(--color-text);
-  display: flex;
-  letter-spacing: .4px;
-  min-height: var(--control-min-size-desktop);
-  width: 100%;
-  outline: 0;
-}
-
-.hubSubmitButton {
-  &.secondary {
-    background-color: transparent;
-    border: 1px solid var(--primary);
-    color: var(--primary);
-  }
-
+.interactive {
   &:focus {
     text-decoration: underline;
     text-decoration-thickness: 2px;
@@ -384,6 +353,41 @@ input[type="number"]::-webkit-inner-spin-button {
       z-index: 2;
       background-color: #000;
     }
+  }
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+}
+
+.container > div {
+  max-width: 500px;
+  width: 100%;
+  padding: 30px 15px;
+  text-align: center;
+}
+
+.formControl {
+  align-items: center;
+  background-color: var(--color-fill-form-element);
+  border: 1px solid var(--color-border-form);
+  border-radius: 0;
+  color: var(--color-text);
+  display: flex;
+  letter-spacing: .4px;
+  min-height: var(--control-min-size-desktop);
+  width: 100%;
+  outline: 0;
+}
+
+.hubSubmitButton {
+  composes: interactive;
+
+  &.secondary {
+    background-color: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
   }
 
   position: relative;
@@ -445,6 +449,9 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .hubButton {
+  composes: interactive;
+
+  position: relative;
   appearance: none;
   align-items: center;
   background-color: var(--primary);
