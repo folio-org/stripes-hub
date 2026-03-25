@@ -7,7 +7,7 @@ AuthErrorsContainer.propTypes = {
 };
 
 export const Button = (props) => {
-  const { buttonRef, css, children, disabled, onClick, to, type, ref } = props;
+  const { buttonRef, className, css, children, disabled, onClick, to, type, ref } = props;
   return (
     <button
       type={type}
@@ -16,6 +16,7 @@ export const Button = (props) => {
       to={to}
       {...props}
       ref={buttonRef || ref}
+      className={className}
     >
       <span className={css?.inner}>
         {children}
@@ -29,6 +30,7 @@ Button.propTypes = {
     PropTypes.shape({ current: PropTypes.instanceOf(Element) })
   ]),
   children: PropTypes.node,
+  className: PropTypes.string,
   css: PropTypes.shape({
     inner: PropTypes.string,
   }),
@@ -42,14 +44,14 @@ Button.propTypes = {
   type: PropTypes.string,
 }
 
-export const Col = ({ children }) => <span>{children}</span>;
+export const Col = ({ children }) => <div className={styles.rowChild}>{children}</div>;
 Col.propTypes = {
   children: PropTypes.node,
 }
 
 export const FieldLabel = (props) => {
   const { children, ...rest } = props;
-  return <label htmlFor={props.htmlFor} {...rest}>{children}</label>;
+  return <label className={styles.label} htmlFor={props.htmlFor} {...rest}>{children}</label>;
 }
 FieldLabel.propTypes = {
   children: PropTypes.node,
@@ -71,8 +73,15 @@ OrganizationLogo.propTypes = {
   })
 }
 
-export const Row = ({ children }) => <div>{children}</div>;
+export const Row = ({ center, children }) => {
+  const rowClasses = [styles.row];
+  if (center) {
+    rowClasses.push(styles.center);
+  }
+  return <div className={rowClasses.join(' ')}>{children}</div>;
+};
 Row.propTypes = {
+  center: PropTypes.bool,
   children: PropTypes.node,
 }
 
@@ -92,7 +101,7 @@ export const Select = (props) => {
       );
     });
   }
-  return <select {...rest}>{options}</select>
+  return <select {...rest} className={styles.hubSelect}>{options}</select>
 }
 Select.propTypes = {
   children: PropTypes.node,
@@ -105,8 +114,9 @@ Select.propTypes = {
   value: PropTypes.string,
 }
 
-export const TextField = (props) => <div className={styles.formControl}><input {...props.input} id={props.id} /></div>;
+export const TextField = (props) => <div className={styles.formControl}><input {...props.input} className={props.inputClass} id={props.id} /></div>;
 TextField.propTypes = {
   id: PropTypes.string,
   input: PropTypes.object,
+  inputClass: PropTypes.string,
 }

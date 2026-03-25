@@ -46,7 +46,7 @@ function FatalError({ branding, config, error }) {
       <Row center="xs">
         <Col xs={6}>
           <Button
-            className={styles.submitButton}
+            className={`${styles.hubSubmitButton} ${styles.secondary}`}
             onClick={handleReload}
           >
             <FormattedMessage id="stripes-hub.FatalError.tryAgain" />
@@ -54,7 +54,7 @@ function FatalError({ branding, config, error }) {
         </Col>
         <Col xs={6}>
           <Button
-            className={styles.submitButton}
+            className={`${styles.hubSubmitButton} ${styles.secondary}`}
             onClick={handleLogout}
           >
             <FormattedMessage id="stripes-hub.FatalError.logout" />

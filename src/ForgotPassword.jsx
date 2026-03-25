@@ -10,10 +10,10 @@ import {
   Button, Col, FieldLabel, Headline, Row, TextField
 } from './StripesComponents'
 import { brandingShape, configShape } from './constants';
+import styles from './index.module.css';
 
 const ForgotPassword = ({ branding, config }) => {
   const intl = useIntl();
-  const styles = {};
   const { name: tenant } = getLoginTenant(config);
 
   const { handleSubmit, didMutate } = useForgotPassword({ config, tenant });
@@ -30,6 +30,7 @@ const ForgotPassword = ({ branding, config }) => {
         onSubmit={handleSubmit}
         render={({ handleSubmit, pristine }) => (
           <form
+            className={styles.hubForm}
             data-form="forgot"
             onSubmit={handleSubmit}
           >
@@ -66,7 +67,7 @@ const ForgotPassword = ({ branding, config }) => {
                     component={TextField}
                     name="userInput"
                     type="text"
-                    inputClass={styles.loginInput}
+                    inputClass={styles.hubInput}
                     validationEnabled={false}
                     hasClearIcon={false}
                     autoCapitalize="none"
@@ -84,6 +85,7 @@ const ForgotPassword = ({ branding, config }) => {
                     id="clickable-login"
                     type="submit"
                     disabled={pristine || !tenant}
+                    className={styles.hubButton}
                   >
                     <FormattedMessage id="stripes-hub.button.continue" />
                   </Button>
