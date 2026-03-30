@@ -27,9 +27,8 @@ function PreLoginLanding({ branding, config, onSelectTenant, tenantOptions }) {
 
     if (!currentTenant?.name) return;
     if (config.authnUrl) {
-      window.location.assign(getLoginUrl(config, currentTenant.name, currentTenant.clientId));
+      globalThis.location.assign(getLoginUrl(config, currentTenant.name, currentTenant.clientId));
     }
-    return;
   };
 
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
