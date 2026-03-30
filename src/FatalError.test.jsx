@@ -80,7 +80,7 @@ describe('FatalError', () => {
     await user.click(screen.getByRole('button', { name: /FatalError.logout/ }))
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'http://gateway.example.com/logout',
+        'http://gateway.example.com/authn/logout',
         {
           method: 'POST',
           credentials: 'include',
