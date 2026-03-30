@@ -1,5 +1,6 @@
 import { render, screen } from '@folio/jest-config-stripes/testing-library/react';
 import { IntlProvider } from 'react-intl';
+import { runAxeTest } from '@folio/stripes-testing';
 import ForgotPassword from './ForgotPassword';
 import * as loginServices from './loginServices';
 import * as useForgotPasswordModule from './hooks/useForgotPassword';
@@ -93,6 +94,15 @@ describe('ForgotPassword', () => {
     expect(useForgotPasswordModule.default).toHaveBeenCalledWith({
       config: mockConfig,
       tenant: 'diku',
+    });
+  });
+
+  it('should render with no axe errors', async () => {
+    renderWithIntl(
+      <ForgotPassword branding={mockBranding} config={mockConfig} />
+    );
+    await runAxeTest({
+      rootNode: document.body,
     });
   });
 });

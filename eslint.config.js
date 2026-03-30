@@ -6,7 +6,7 @@ import pluginJest from "eslint-plugin-jest";
 
 export default defineConfig([
   {
-    files: ['**/*.{js,mjs,cjs,jsx}'],
+    files: ['src/**/*.{js,mjs,cjs,jsx}'],
     plugins: { js },
     extends: ['js/recommended'],
     languageOptions: { globals: globals.browser },
