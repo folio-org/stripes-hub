@@ -11,7 +11,7 @@ function FatalError({ branding, config, error }) {
   console.error({ error })
   const handleLogout = async (event) => {
     event.preventDefault();
-    await fetch(`${config.gatewayUrl}/logout`, {
+    await fetch(`${config.gatewayUrl}/authn/logout`, {
       method: 'POST',
       credentials: 'include',
     });
