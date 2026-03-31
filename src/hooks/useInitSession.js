@@ -182,7 +182,7 @@ const useInitSession = (config, branding, loginUrl) => {
         await localforage.setItem(REMOTE_LIST_KEY, Object.values(discovery).filter(module => module.name !== 'folio_stripes-core'));
 
         await loadStripes(stripesCore);
-        return Promise.resolve(true);
+        return true;
       }
 
       throw new Error('Stripes core module not found in discovery data');
