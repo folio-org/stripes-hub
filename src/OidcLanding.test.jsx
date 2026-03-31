@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@folio/jest-config-stripes/testing-library/react';
 import { IntlProvider } from 'react-intl';
+import { runAxeTest } from '@folio/stripes-testing';
 import OidcLanding from './OidcLanding';
 import * as loginServices from './loginServices';
 import * as useExchangeCodeModule from './hooks/useExchangeCode';
@@ -126,6 +127,15 @@ describe('OidcLanding', () => {
       expect(loginServices.setTokenExpiry).toHaveBeenCalled();
       expect(loginServices.storeCurrentTenant).toHaveBeenCalledWith('diku', 'diku-app');
       expect(loginServices.requestUserWithPerms).toHaveBeenCalled();
+    });
+  });
+
+  it('should render with no axe errors', async () => {
+    renderWithIntl(
+      <OidcLanding branding={mockBranding} config={mockConfig} />
+    );
+    await runAxeTest({
+      rootNode: document.body,
     });
   });
 });

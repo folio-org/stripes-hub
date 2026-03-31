@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import PropTypes from 'prop-types';
 
-import { Button, Col, Row, Select } from './StripesComponents';
+import { Button, Col, FieldLabel, Row, Select } from './StripesComponents';
 import { getLoginUrl, getCurrentTenant } from './loginServices';
 import styles from './index.module.css';
 import StripesTemplate from './StripesTemplate';
@@ -27,14 +27,14 @@ function PreLoginLanding({ branding, config, onSelectTenant, tenantOptions }) {
 
     if (!currentTenant?.name) return;
     if (config.authnUrl) {
-      window.location.assign(getLoginUrl(config, currentTenant.name, currentTenant.clientId));
+      globalThis.location.assign(getLoginUrl(config, currentTenant.name, currentTenant.clientId));
     }
-    return;
   };
 
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
   const handleChangeTenant = (e) => {
+    e.preventDefault();
     const tenantName = e.target.value;
     setIsButtonDisabled(!tenantName);
     if (tenantName === '') {
@@ -47,23 +47,29 @@ function PreLoginLanding({ branding, config, onSelectTenant, tenantOptions }) {
 
   return (
     <StripesTemplate branding={branding}>
-      <Row center="xs">
-        <Col xs={3}>
-          <Select
-            label={intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantLibrary' })}
-            defaultValue=""
-            onChange={handleChangeTenant}
-            dataOptions={[...options, { value: '', label: intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantChoose' }) }]}
-          />
-          <Button
-            className={styles.hubButton}
-            disabled={isButtonDisabled}
-            onClick={redirectToLogin}
-          >
-            {intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.button.continue' })}
-          </Button>
-        </Col>
-      </Row>
+      <form
+        className={styles.hubForm} >
+        <Row center="xs">
+          <Col xs={3}>
+            <FieldLabel htmlFor="tenantName">
+              <FormattedMessage id="stripes-hub.PreLoginLanding.tenantChoose" />
+            </FieldLabel>
+            <Select
+              defaultValue=""
+              onChange={handleChangeTenant}
+              dataOptions={[...options, { value: '', label: intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.tenantLibrary' }) }]}
+              id="tenantName"
+            />
+            <Button
+              className={styles.hubButton}
+              disabled={isButtonDisabled}
+              onClick={redirectToLogin}
+            >
+              {intl.formatMessage({ id: 'stripes-hub.PreLoginLanding.button.continue' })}
+            </Button>
+          </Col>
+        </Row>
+      </form>
     </StripesTemplate>
   );
 }

@@ -9,15 +9,17 @@ function FatalError({ branding, config, error }) {
   const intl = useIntl();
 
   console.error({ error })
-  const handleLogout = async () => {
-    await fetch(`${config.gatewayUrl}/logout`, {
+  const handleLogout = async (event) => {
+    event.preventDefault();
+    await fetch(`${config.gatewayUrl}/authn/logout`, {
       method: 'POST',
       credentials: 'include',
     });
     globalThis.location.assign(location.origin);
   }
 
-  const handleReload = () => {
+  const handleReload = (event) => {
+    event.preventDefault();
     location.reload();
   }
 
@@ -26,7 +28,7 @@ function FatalError({ branding, config, error }) {
   let subMessage = null;
   if (error?.options?.json?.errors?.[0]?.message) {
     message = error?.options?.json?.errors[0]?.message;
-    subMessage = error?.options?.json?.errors[0]?.parameters?.[0].value;
+    subMessage = error?.options?.json?.errors[0]?.parameters?.[0]?.value;
   } else if (error?.options?.json?.message) {
     message = error?.options?.json?.message;
   }

@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@folio/jest-config-stripes/testing-library/react';
 import userEvent from '@folio/jest-config-stripes/testing-library/user-event'
+import { runAxeTest } from '@folio/stripes-testing';
 import { IntlProvider } from 'react-intl';
 import ForgotUsername from './ForgotUsername';
 import * as loginServices from './loginServices';
@@ -120,4 +121,14 @@ describe('ForgotUsername', () => {
       tenant: 'diku',
     });
   });
+
+  it('should render with no axe errors', async () => {
+    renderWithIntl(
+      <ForgotUsername branding={mockBranding} config={mockConfig} />
+    );
+    await runAxeTest({
+      rootNode: document.body,
+    });
+  });
+
 });

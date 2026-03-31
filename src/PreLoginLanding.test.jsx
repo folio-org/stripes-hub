@@ -1,6 +1,7 @@
 import { render, screen } from '@folio/jest-config-stripes/testing-library/react';
 import userEvent from '@folio/jest-config-stripes/testing-library/user-event'
 import { IntlProvider } from 'react-intl';
+import { runAxeTest } from '@folio/stripes-testing';
 import PreLoginLanding, { sortedTenantOptions } from './PreLoginLanding';
 import * as loginServices from './loginServices';
 
@@ -244,6 +245,21 @@ describe('sortedTenantOptions', () => {
 
     options.forEach((option) => {
       expect(['diku', 'supertenant', 'alpha']).toContain(option.value);
+    });
+  });
+
+  it('should render with no axe errors', async () => {
+    renderWithIntl(
+      <PreLoginLanding
+        branding={mockBranding}
+        config={mockConfig}
+        onSelectTenant={jest.fn()}
+        tenantOptions={mockTenantOptions}
+      />
+    );
+
+    await runAxeTest({
+      rootNode: document.body,
     });
   });
 });
