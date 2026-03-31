@@ -1,18 +1,22 @@
 import { render, screen, waitFor } from '@folio/jest-config-stripes/testing-library/react';
 import userEvent from '@folio/jest-config-stripes/testing-library/user-event'
 import { IntlProvider } from 'react-intl';
+import { runAxeTest } from '@folio/stripes-testing';
+
 import FatalError from './FatalError';
 
-const mockBranding = {
-  altText: 'Branding Alt',
-  logo: 'http://logo.png',
+const branding = {
+  logo: {
+    src: 'http://logo.png',
+    alt: 'Some alt'
+  }
 };
 
-const mockConfig = {
+const config = {
   gatewayUrl: 'http://gateway.example.com',
 };
 
-const mockError = {
+const error = {
   message: 'Test error message',
   options: {
     id: 'stripes-hub.FatalError.some-fatal-error',
@@ -46,7 +50,7 @@ describe('FatalError', () => {
 
   it('renders headline and "try again"/"reload" buttons', () => {
     renderWithIntl(
-      <FatalError branding={mockBranding} config={mockConfig} error={mockError} />
+      <FatalError branding={branding} config={config} error={error} />
     );
 
     screen.getByText('stripes-hub.FatalError.headline')
@@ -58,7 +62,7 @@ describe('FatalError', () => {
   it('calls location.reload when try again button is clicked', async () => {
     const user = userEvent.setup()
     renderWithIntl(
-      <FatalError branding={mockBranding} config={mockConfig} error={mockError} />
+      <FatalError branding={branding} config={config} error={error} />
     );
 
     await user.click(screen.getByRole('button', { name: /FatalError.tryAgain/ }))
@@ -70,13 +74,13 @@ describe('FatalError', () => {
     globalThis.fetch.mockResolvedValueOnce({ ok: true });
 
     renderWithIntl(
-      <FatalError branding={mockBranding} config={mockConfig} error={mockError} />
+      <FatalError branding={branding} config={config} error={error} />
     );
 
     await user.click(screen.getByRole('button', { name: /FatalError.logout/ }))
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        'http://gateway.example.com/logout',
+        'http://gateway.example.com/authn/logout',
         {
           method: 'POST',
           credentials: 'include',
@@ -102,7 +106,7 @@ describe('FatalError', () => {
     };
 
     renderWithIntl(
-      <FatalError branding={mockBranding} config={mockConfig} error={errorWithJson} />
+      <FatalError branding={branding} config={config} error={errorWithJson} />
     );
 
     expect(screen.getByText('API error message')).toBeInTheDocument();
@@ -120,7 +124,7 @@ describe('FatalError', () => {
     };
 
     renderWithIntl(
-      <FatalError branding={mockBranding} config={mockConfig} error={errorWithMessage} />
+      <FatalError branding={branding} config={config} error={errorWithMessage} />
     );
 
     expect(screen.getByText('JSON message only')).toBeInTheDocument();
@@ -128,9 +132,18 @@ describe('FatalError', () => {
 
   it('logs error to console', () => {
     renderWithIntl(
-      <FatalError branding={mockBranding} config={mockConfig} error={mockError} />
+      <FatalError branding={branding} config={config} error={error} />
     );
 
-    expect(console.error).toHaveBeenCalledWith({ error: mockError });
+    expect(console.error).toHaveBeenCalledWith({ error: error });
+  });
+
+  it('should render with no axe errors', async () => {
+    renderWithIntl(
+      <FatalError branding={branding} config={config} error={error} />
+    );
+    await runAxeTest({
+      rootNode: document.body,
+    });
   });
 });
