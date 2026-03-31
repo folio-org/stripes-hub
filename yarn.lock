@@ -13287,6 +13287,13 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
+vite-yaml-plugin@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/vite-yaml-plugin/-/vite-yaml-plugin-2.0.3.tgz#2146cb459ceec8b53520394f09e6383de7039eef"
+  integrity sha512-14erxO0pTQt22m1QWAxcDHuL0yYgh4FEayqf53bTQbEH8s9OaQ0xmqaVuR0uqmXmvS6HoJe8qWPd5nWr7hffyA==
+  dependencies:
+    js-yaml "^4.1.1"
+
 vite@^8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/vite/-/vite-8.0.0.tgz#d749f9bf5be196635982bc16ec0c6faf2b31f3a4"
