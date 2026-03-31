@@ -1,0 +1,15 @@
+# config:
+#   gatewayUrl: https://gateway-yaml.ci.folio.org
+#   authnUrl: https://authn-yaml.ci.folio.org
+#   tenantOptions:
+#     diku:
+#       name: diku
+#       clientId: diku-application
+#   preserveConsole: true
+
+# branding:
+#   logo:
+#     src: /tenant-assets/opentown-libraries-logo.png
+#     alt: Opentown Libraries
+#   favicon:
+#     src: /tenant-assets/folio-favicon.png
