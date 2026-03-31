@@ -19,10 +19,10 @@
   },
   "stripes": {
     "okapiInterfaces": {
+      "discoveries": "2.1",
+      "entitlements": "1.1",
       "login": "7.3",
-      "users-keycloak": "1.0",
-      "/entitlements/{tenantName}/applications": "mgr-tenant-entitlements",
-      "/applications/{id}/discovery": "mgr-applications"
+      "users-keycloak": "1.0"
     }
   },
   "dependencies": {
