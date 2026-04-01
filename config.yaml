@@ -1,0 +1,14 @@
+config:
+  gatewayUrl: https://folio-etesting-snapshot-kong.ci.folio.org
+  authnUrl: https://folio-etesting-snapshot-keycloak.ci.folio.org
+  tenantOptions:
+    diku:
+      name: diku
+      clientId: diku-application
+
+branding:
+  logo:
+    # path inside the ./public directory
+    src: /tenant-assets/opentown-libraries-logo.png
+    alt: Opentown Libraries
+

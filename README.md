@@ -14,7 +14,7 @@ providers), and fetching dynamic data (such as the user's permissions and
 the tenant's entitled applications and their locations) before handing the
 reins to Stripes. The basic steps are:
 
-* read static tenant configuration values
+* read static tenant configuration values from `config.yaml` (or `index.html`)
 * inspect localstorage to see if a session has already been established,
   attempting to make an API call to _self if so, or manage the handoff to/from
   the authentication provider, on the return exchanging its one-time-code for
@@ -26,6 +26,7 @@ reins to Stripes. The basic steps are:
 
 ## See also
 
+* [Detailed deployment instructions](https://folio-org.atlassian.net/wiki/spaces/FOLIJET/pages/1780645891/UI+Module+Federation+Deployment)
 * [stripes](https://www.github.com/folio-org/stripes)
 * [stripes-core](https://www.github.com/folio-org/stripes-core)
 

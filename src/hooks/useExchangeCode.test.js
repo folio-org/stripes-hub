@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { renderHook, waitFor } from '@folio/jest-config-stripes/testing-library/react';
 import { useQuery } from 'react-query';
 import useExchangeCode from './useExchangeCode';
@@ -258,7 +257,6 @@ describe('useExchangeCode', () => {
 
     it('throws error when code is missing', async () => {
       let queryFn;
-      const errorMessage = 'asdf'
       useQuery.mockImplementation((...args) => {
         queryFn = args[1];
         return {
@@ -269,10 +267,6 @@ describe('useExchangeCode', () => {
       });
 
       const { result } = renderHook(() => useExchangeCode(mockConfig));
-
-      // waitFor(async () => {
-      //   await expect(queryFn()).rejects.toThrow('boom');
-      // });
 
       if (queryFn) {
         try {

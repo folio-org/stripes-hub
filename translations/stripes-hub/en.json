@@ -5,10 +5,14 @@
   "StripesHub.loadingStripes": "Loading Stripes ...",
 
   "OidcLanding.initializingSession": "Loading session ...",
+
   "PreLoginLanding.tenantChoose": "Choose your tenant",
   "PreLoginLanding.tenantLibrary": "Tenant / Library",
   "PreLoginLanding.button.continue": "Continue",
-  "FatalError.headline": "Oh, snap. You successfully signed in, but FOLIO failed to load because of an error 😢. If the problem persists please contact your system administrator.",
+
+  "ConfigError.headline": "Oh, snap! The UI is not correctly configured 😢. Please contact your system administrator.",
+
+  "FatalError.headline": "Oh, snap! You successfully signed in, but FOLIO failed to load because of an error 😢. If the problem persists please contact your system administrator.",
   "FatalError.tryAgain": "Try again",
   "FatalError.logout": "Log out",
 
