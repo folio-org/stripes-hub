@@ -27,6 +27,7 @@ import {
   processBadResponse,
   loadStripes,
   hideEmail,
+  isValidConfig
 } from './loginServices';
 import { defaultErrors } from './constants';
 
@@ -594,6 +595,67 @@ describe('loginServices', () => {
     it('should handle emails with subdomains', () => {
       const result = hideEmail('user@mail.example.co.uk');
       expect(result).toContain('us**@m***.*******.**.**');
+    });
+  });
+});
+
+describe('isValidConfig', () => {
+  const validConfig = {
+    gatewayUrl: 'https://folio-etesting-snapshot-kong.ci.folio.org',
+    authnUrl: 'https://folio-etesting-snapshot-keycloak.ci.folio.org',
+    tenantOptions: {
+      foo: { name: 'foo', clientId: 'foo-application' }
+    },
+  }
+  describe('accept valid configs', () => {
+    it('one tenant', () => {
+      expect(isValidConfig(validConfig)).toBe(true);
+    });
+
+    it('multiple tenants', () => {
+      const config = {
+        ...validConfig,
+        bar: { name: 'bar', clientId: 'bar-application' }
+      };
+      expect(isValidConfig(config)).toBe(true);
+    });
+  });
+
+  describe('rejects invalid configs', () => {
+    it('missing gatewayUrl', () => {
+      const config = { ...validConfig };
+      delete config.gatewayUrl;
+      expect(isValidConfig(config)).toBe(false);
+    });
+
+    it('missing authnUrl', () => {
+      const config = { ...validConfig };
+      delete config.authnUrl;
+      expect(isValidConfig(config)).toBe(false);
+    });
+
+    it('missing tenantOptions', () => {
+      const config = { ...validConfig };
+      delete config.tenantOptions;
+      expect(isValidConfig(config)).toBe(false);
+    });
+
+    it('tenantOptions is empty', () => {
+      const config = { ...validConfig };
+      config.tenantOptions = {};
+      expect(isValidConfig(config)).toBe(false);
+    });
+
+    it('tenantOptions entry\'s name do not match its key', () => {
+      const config = { ...validConfig };
+      config.tenantOptions = { foo: { name: "bar", clientId: "bar-application" } };
+      expect(isValidConfig(config)).toBe(false);
+    });
+
+    it('tenantOptions entry is missing clientId', () => {
+      const config = { ...validConfig };
+      config.tenantOptions = { foo: { name: "foo" } };
+      expect(isValidConfig(config)).toBe(false);
     });
   });
 });

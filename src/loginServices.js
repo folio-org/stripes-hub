@@ -718,3 +718,23 @@ export const hideEmail = email => {
 
   return hidden.join('@');
 }
+
+/**
+ * isValidConfig
+ * Validate the shape of the config object, return true if valid, false otherwise.
+ * @param {object} configObject
+ * @returns boolean
+ */
+export const isValidConfig = (configObject) => {
+  if (!configObject.gatewayUrl) return false;
+  if (!configObject.authnUrl) return false;
+  if (!configObject.tenantOptions) return false;
+  if (Object.keys(configObject.tenantOptions).length === 0) return false;
+
+  for (const key in configObject.tenantOptions) {
+    if (key !== configObject.tenantOptions[key].name) return false;
+    if (!configObject.tenantOptions[key].clientId) return false;
+  }
+
+  return true;
+}
