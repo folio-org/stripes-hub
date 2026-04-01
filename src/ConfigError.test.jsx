@@ -1,5 +1,4 @@
-import { render, screen, waitFor } from '@folio/jest-config-stripes/testing-library/react';
-import userEvent from '@folio/jest-config-stripes/testing-library/user-event'
+import { render, screen } from '@folio/jest-config-stripes/testing-library/react';
 import { IntlProvider } from 'react-intl';
 import { runAxeTest } from '@folio/stripes-testing';
 
@@ -14,14 +13,6 @@ const branding = {
 
 const config = {
   gatewayUrl: 'http://gateway.example.com',
-};
-
-const error = {
-  message: 'Test error message',
-  options: {
-    id: 'stripes-hub.FatalError.some-fatal-error',
-    url: 'http://example.com',
-  },
 };
 
 const renderWithIntl = (component) => {

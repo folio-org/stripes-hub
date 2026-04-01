@@ -1,4 +1,3 @@
-/* eslint-disable no-undef, no-unused-vars */
 import { renderHook, act, waitFor } from '@folio/jest-config-stripes/testing-library/react';
 import { useMutation } from 'react-query';
 import useForgotPassword from './useForgotPassword';
@@ -144,7 +143,6 @@ describe('useForgotPassword', () => {
     });
 
     it('sends correct headers with tenant', async () => {
-      const mutationFn = jest.fn();
       useMutation.mockImplementation(({ mutationFn: fn }) => ({
         mutateAsync: fn,
         status: 'idle',
@@ -173,7 +171,6 @@ describe('useForgotPassword', () => {
     });
 
     it('sends POST request with credentials', async () => {
-      const mutationFn = jest.fn();
       useMutation.mockImplementation(({ mutationFn: fn }) => ({
         mutateAsync: fn,
         status: 'idle',
@@ -265,7 +262,6 @@ describe('useForgotPassword', () => {
     });
 
     it('mutationFn makes correct fetch call', async () => {
-      const mutationFn = jest.fn();
       useMutation.mockImplementation(({ mutationFn: fn }) => ({
         mutateAsync: fn,
         status: 'idle',

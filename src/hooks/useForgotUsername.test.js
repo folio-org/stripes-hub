@@ -1,4 +1,3 @@
-/* eslint-disable no-undef, no-unused-vars */
 import { renderHook, act, waitFor } from '@folio/jest-config-stripes/testing-library/react';
 import { useMutation } from 'react-query';
 import useForgotUsername, {
@@ -296,7 +295,6 @@ describe('useForgotUsername', () => {
 
   describe('with keycloak authnUrl', () => {
     it('uses users-keycloak path when authnUrl is present', async () => {
-      const mutationFn = jest.fn();
       useMutation.mockImplementation(({ mutationFn: fn }) => ({
         mutateAsync: fn,
         status: 'idle',
@@ -325,7 +323,6 @@ describe('useForgotUsername', () => {
         gatewayUrl: 'http://gateway.example.com',
       };
 
-      const mutationFn = jest.fn();
       useMutation.mockImplementation(({ mutationFn: fn }) => ({
         mutateAsync: fn,
         status: 'idle',
