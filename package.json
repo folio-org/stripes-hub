@@ -26,7 +26,9 @@
     }
   },
   "dependencies": {
+    "classnames": "^2.2.5",
     "final-form": "^5.0.0",
+    "ky": "^0.23.0",
     "localforage": "^1.5.6",
     "lodash": "^4.17.21",
     "prop-types": "^15.8.1",
@@ -35,6 +37,7 @@
     "react-final-form": "^7.0.0",
     "react-intl": "^6.8.9",
     "react-query": "^3.6.0",
+    "tai-password-strength": "^1.1.1",
     "vite-yaml-plugin": "^2.0.3"
   },
   "devDependencies": {
