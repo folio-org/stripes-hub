@@ -17,7 +17,7 @@ const PasswordSuccessfullyChanged = ({ history, config, branding }) => {
 
   const handleRedirectClick = () => {
     // Go to base URL.
-    history.pushState({}, '', '/');
+    history.push('/');
   };
 
   return (

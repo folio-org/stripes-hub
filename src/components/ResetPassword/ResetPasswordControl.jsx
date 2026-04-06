@@ -63,7 +63,7 @@ class ResetPasswordControl extends Component {
       case 204:
         this.setState(
           isValidToken
-            ? { isSuccessfulPasswordChange: false }
+            ? { isSuccessfulPasswordChange: true }
             : { isValidToken: true }
         );
         break;
