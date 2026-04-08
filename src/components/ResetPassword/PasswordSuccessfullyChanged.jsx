@@ -1,6 +1,5 @@
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
-//import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 import {
@@ -11,13 +10,13 @@ import {
 
 import styles from './PasswordSuccessfullyChanged.module.css';
 
-const PasswordSuccessfullyChanged = ({ history, config, branding }) => {
+const PasswordSuccessfullyChanged = ({ branding }) => {
   const labelNamespace = 'stripes-hub.label';
   const buttonNamespace = 'stripes-hub.button';
 
   const handleRedirectClick = () => {
     // Go to base URL.
-    history.push('/');
+    globalThis.location.href = '/';
   };
 
   return (

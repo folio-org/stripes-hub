@@ -118,11 +118,12 @@ class ResetPassword extends Component {
       submitIsFailed,
       config,
       branding,
-      tenant
+      tenant,
+      errors
     } = this.props;
 
     //const errors = stripes.okapi.authFailure;
-    const errors = []; // stripes.okapi.authFailure; --- IGNORE ---
+    //const errors = []; // stripes.okapi.authFailure; --- IGNORE ---
     const { passwordMasked } = this.state;
     const submissionStatus = submitting || submitIsFailed;
     const passwordType = passwordMasked ? 'password' : 'text';

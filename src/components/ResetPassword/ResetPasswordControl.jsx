@@ -25,16 +25,13 @@ class ResetPasswordControl extends Component {
     branding: PropTypes.object.isRequired
   };
 
-  static defaultProps = {
-    authFailure: [],
-  };
-
   constructor(props) {
     super(props);
 
     this.state = {
       isSuccessfulPasswordChange: false,
       submitIsFailed: false,
+      authFailure: [],
       isValidToken: false,
       isLoading: true,
     };
@@ -52,7 +49,7 @@ class ResetPasswordControl extends Component {
     this._isMounted = false;
   }
 
-  handleResponse = (response) => {
+  handleResponse = (response, action) => {
     // const {
     //   handleBadResponse,
     //   setDefaultAuthError,
@@ -61,17 +58,18 @@ class ResetPasswordControl extends Component {
 
     switch (response.status) {
       case 204:
-        this.setState(
-          isValidToken
-            ? { isSuccessfulPasswordChange: true }
-            : { isValidToken: true }
-        );
+        if (action === 'reset') {
+          this.setState({ isSuccessfulPasswordChange: true });
+        } else if (action === 'validate' && !isValidToken) {
+          this.setState({ isValidToken: true });
+        }
         break;
       case 401:
+      case 422:
         this.setState({
           submitIsFailed: true,
+          authFailure: [...this.state.authFailure, defaultErrors.INVALID_LINK_ERROR]
         });
-        setDefaultAuthError(defaultErrors.INVALID_LINK_ERROR);
         break;
       case 500:
         throw new Error(response.status);
@@ -79,7 +77,7 @@ class ResetPasswordControl extends Component {
         this.setState({
           submitIsFailed: true,
         });
-        //handleBadResponse(response);
+        this.handleBadResponse(response);
     }
   };
 
@@ -100,7 +98,8 @@ class ResetPasswordControl extends Component {
     // This part of the path is optional (hence the ?) and can instead be placed in the URL param `resetToken`
     // to allow for keys longer than the URL length restriction of 2048 characters.
     const resetToken = token ?? params.get('resetToken');
-    const path = `${gatewayUrl}/users-keycloak/password-reset/${isValidToken ? 'reset' : 'validate'}`;
+    const action = isValidToken ? 'reset' : 'validate';
+    const path = `${gatewayUrl}/users-keycloak/password-reset/${action}`;
 
     const res = await fetch(path, {
       method: 'POST',
@@ -117,7 +116,7 @@ class ResetPasswordControl extends Component {
     })
       .then((response) => {
         if (this._isMounted) {
-          this.handleResponse(response);
+          this.handleResponse(response, action);
         }
       })
       .catch(error => {
@@ -151,17 +150,16 @@ class ResetPasswordControl extends Component {
     const params = new URLSearchParams(location.search);
     const tenant = params.get('tenant');
 
-    const authFailure = []; // authFailure; --- IGNORE ---
-
     const {
       isSuccessfulPasswordChange,
       submitIsFailed,
       isValidToken,
       isLoading,
+      authFailure
     } = this.state;
 
     if (isSuccessfulPasswordChange) {
-      return <PasswordSuccessfullyChanged config={config} branding={branding} history={window.history} />;
+      return <PasswordSuccessfullyChanged config={config} branding={branding} />;
     }
 
     if (isLoading) {
@@ -184,6 +182,7 @@ class ResetPasswordControl extends Component {
         onSubmit={this.handleSubmit}
         onPasswordInputFocus={this.clearErrorsAfterSubmit}
         submitIsFailed={submitIsFailed}
+        errors={authFailure}
       />
     );
   }
