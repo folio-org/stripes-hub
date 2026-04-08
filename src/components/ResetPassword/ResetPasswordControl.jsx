@@ -8,6 +8,7 @@ import { OrganizationLogo } from '../../StripesComponents';
 import ResetPassword from './ResetPassword';
 import PasswordNotChanged from './PasswordNotChanged';
 import PasswordSuccessfullyChanged from './PasswordSuccessfullyChanged';
+import { isArray } from 'lodash';
 
 class ResetPasswordControl extends Component {
   static propTypes = {
@@ -128,8 +129,12 @@ class ResetPasswordControl extends Component {
     }
   };
 
-  setAuthError = (error) => {
-    this.setState({ authFailure: [...this.state.authFailure, error] });
+  setAuthErrors = (errors) => {
+    if (isArray(errors)) {
+      this.setState({ authFailure: [...this.state.authFailure, ...errors.filter(e => !this.state.authFailure.some(a => a.code === e.code)) ] });
+    } else if (!this.state.authFailure.some(e => e.code === errors.code)) {
+      this.setState({ authFailure: [...this.state.authFailure, errors] });
+    }
   }
 
   clearAuthErrors = () => {
@@ -179,7 +184,7 @@ class ResetPasswordControl extends Component {
         onPasswordInputFocus={this.clearErrorsAfterSubmit}
         submitIsFailed={submitIsFailed}
         errors={authFailure}
-        setAuthError={this.setAuthError}
+        setAuthErrors={this.setAuthErrors}
         clearAuthErrors={this.clearAuthErrors}
       />
     );

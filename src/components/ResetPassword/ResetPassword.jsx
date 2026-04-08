@@ -91,14 +91,16 @@ class ResetPassword extends Component {
   };
 
   validationHandler = (errors, translationNamespace) => {
-    const { setAuthError } = this.props;
+    const { setAuthErrors } = this.props;
 
-    setAuthError(errors.map((error) => {
+    const error = errors.map((error) => {
       return {
         code: error,
         translationNamespace,
       };
-    }));
+    });
+
+    setAuthErrors(error);
   };
 
   render() {
@@ -121,7 +123,7 @@ class ResetPassword extends Component {
 
     const isButtonDisabled = getState => {
       const { newPassword, confirmPassword } = getState().values;
-      return isEmpty(errors) || submissionStatus || !(newPassword && confirmPassword);
+      return !isEmpty(errors) || submissionStatus || !(newPassword && confirmPassword);
     };
 
     const getPasswordValue = getState => {
