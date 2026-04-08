@@ -60,6 +60,7 @@
     "label.changed.password": "You've successfully changed your password.",
     "title.CreateResetPassword": "Choose a password",
     "title.changePassword": "Change password",
+    "button.hidePassword": "Hide password",
     "button.showPassword": "Show password",
     "button.redirect.login": "Continue to FOLIO",
     "setPassword": "Set password",

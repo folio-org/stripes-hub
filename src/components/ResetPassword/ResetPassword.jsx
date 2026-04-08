@@ -22,9 +22,6 @@ import PasswordStrength from './PasswordStrength';
 
 import PasswordRequirementsList from './PasswordRequirementsList';
 
-//import { setAuthError } from '../../okapiActions';
-//import { stripesShape } from '../../Stripes';
-
 import AuthErrorsContainer from './AuthErrorsContainer';
 import FieldLabel from './FieldLabel';
 
@@ -35,7 +32,7 @@ class ResetPassword extends Component {
     config: PropTypes.object.isRequired,
     branding: PropTypes.object.isRequired,
     onSubmit: PropTypes.func.isRequired,
-    //clearAuthErrors: PropTypes.func.isRequired,
+    clearAuthErrors: PropTypes.func.isRequired,
     onPasswordInputFocus: PropTypes.func.isRequired,
     submitting: PropTypes.bool,
     submitIsFailed: PropTypes.bool,
@@ -81,7 +78,7 @@ class ResetPassword extends Component {
 
   confirmPasswordFieldValidation = (value, { newPassword, confirmPassword } = {}) => {
     const confirmPasswordValid = !(newPassword && confirmPassword && newPassword !== confirmPassword);
-    //const { clearAuthErrors } = this.props;
+    const { clearAuthErrors } = this.props;
 
     if (!confirmPasswordValid) {
       this.validationHandler(
@@ -89,25 +86,19 @@ class ResetPassword extends Component {
         this.translationNamespaces.errors,
       );
     } else {
-      //clearAuthErrors();
+      clearAuthErrors();
     }
   };
 
   validationHandler = (errors, translationNamespace) => {
-    // const {
-    //   stripes: {
-    //     store: {
-    //       dispatch
-    //     }
-    //   }
-    // } = this.props;
+    const { setAuthError } = this.props;
 
-    // dispatch(setAuthError(errors.map((error) => {
-    //   return {
-    //     code: error,
-    //     translationNamespace,
-    //   };
-    // })));
+    setAuthError(errors.map((error) => {
+      return {
+        code: error,
+        translationNamespace,
+      };
+    }));
   };
 
   render() {
@@ -122,8 +113,6 @@ class ResetPassword extends Component {
       errors
     } = this.props;
 
-    //const errors = stripes.okapi.authFailure;
-    //const errors = []; // stripes.okapi.authFailure; --- IGNORE ---
     const { passwordMasked } = this.state;
     const submissionStatus = submitting || submitIsFailed;
     const passwordType = passwordMasked ? 'password' : 'text';
@@ -132,7 +121,7 @@ class ResetPassword extends Component {
 
     const isButtonDisabled = getState => {
       const { newPassword, confirmPassword } = getState().values;
-      return /*!isEmpty(errors) ||*/ submissionStatus || !(newPassword && confirmPassword);
+      return isEmpty(errors) || submissionStatus || !(newPassword && confirmPassword);
     };
 
     const getPasswordValue = getState => {

@@ -1,15 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-// import { withRouter } from 'react-router-dom';
-// import { connect as reduxConnect } from 'react-redux';
 
-//import processBadResponse from '../../processBadResponse';
-//import { stripesShape } from '../../Stripes';
-//import { setAuthError } from '../../okapiActions';
 import { processBadResponse } from '../../loginServices';
 import { defaultErrors } from '../../constants';
-import { Col, OrganizationLogo, Row } from '../../StripesComponents';
-import { getLocationQuery } from '../../locationService';
+import { OrganizationLogo } from '../../StripesComponents';
 
 import ResetPassword from './ResetPassword';
 import PasswordNotChanged from './PasswordNotChanged';
@@ -45,15 +39,11 @@ class ResetPasswordControl extends Component {
   }
 
   componentWillUnmount() {
-    //this.props.clearAuthErrors();
     this._isMounted = false;
+    this.clearAuthErrors();
   }
 
   handleResponse = (response, action) => {
-    // const {
-    //   handleBadResponse,
-    //   setDefaultAuthError,
-    // } = this.props;
     const { isValidToken } = this.state;
 
     switch (response.status) {
@@ -134,14 +124,20 @@ class ResetPasswordControl extends Component {
 
   clearErrorsAfterSubmit = (submissionCompleted) => {
     if (submissionCompleted) {
-      this.setState({ submitIsFailed: false });
-      //this.props.clearAuthErrors();
+      this.setState({ submitIsFailed: false, authFailure: [] });
     }
+  };
+
+  setAuthError = (error) => {
+    this.setState({ authFailure: [...this.state.authFailure, error] });
+  }
+
+  clearAuthErrors = () => {
+    this.setState({ authFailure: [] });
   };
 
   render() {
     const {
-      //authFailure,
       config,
       branding,
       location
@@ -183,16 +179,11 @@ class ResetPasswordControl extends Component {
         onPasswordInputFocus={this.clearErrorsAfterSubmit}
         submitIsFailed={submitIsFailed}
         errors={authFailure}
+        setAuthError={this.setAuthError}
+        clearAuthErrors={this.clearAuthErrors}
       />
     );
   }
 }
-
-// const mapStateToProps = state => ({ authFailure: state.okapi.authFailure });
-// const mapDispatchToProps = dispatch => ({
-//   handleBadResponse: error => processBadResponse(dispatch, error),
-//   clearAuthErrors: () => dispatch(setAuthError([])),
-//   setDefaultAuthError: error => dispatch(setAuthError([error])),
-// });
 
 export default ResetPasswordControl;
