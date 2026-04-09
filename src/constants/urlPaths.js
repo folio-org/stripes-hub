@@ -1,9 +1,9 @@
 const urlPaths = {
   AUTHN_LOGIN: 'authn-login',
   CHECK_EMAIL: 'check-email',
-  FORGOT_PASSWORD: 'forgot-password', // NOSONAR
+  FORGOT_PASSWORD: 'forgot-password', //NOSONAR
   FORGOT_USERNAME: 'forgot-username',
-  RESET_PASSWORD: 'reset-password',
+  RESET_PASSWORD: 'reset-password', //NOSONAR
   LOGOUT: 'logout',
   OIDC_LANDING: 'oidc-landing',
 };

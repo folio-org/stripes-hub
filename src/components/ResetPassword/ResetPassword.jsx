@@ -55,7 +55,7 @@ class ResetPassword extends Component {
       errors: 'stripes-hub.errors',
       button: 'stripes-hub.button',
     };
-    this.passwordMatchErrorCode = 'password.match.error';
+    this.passwordMatchErrorCode = 'password.match.error'; //NOSONAR
     this.validators = {
       confirmPassword: this.confirmPasswordFieldValidation,
     };
