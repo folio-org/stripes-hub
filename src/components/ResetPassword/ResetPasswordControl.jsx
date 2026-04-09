@@ -56,6 +56,7 @@ class ResetPasswordControl extends Component {
         }
         break;
       case 401:
+      case 422:
         this.setState({
           submitIsFailed: true,
           authFailure: [...this.state.authFailure, defaultErrors.INVALID_LINK_ERROR]
