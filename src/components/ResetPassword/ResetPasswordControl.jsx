@@ -58,10 +58,10 @@ class ResetPasswordControl extends Component {
         break;
       case 401:
       case 422:
-        this.setState({
+        this.setState((prevState) => ({
           submitIsFailed: true,
-          authFailure: [...this.state.authFailure, defaultErrors.INVALID_LINK_ERROR]
-        });
+          authFailure: [...prevState.authFailure, defaultErrors.INVALID_LINK_ERROR]
+        }));
         break;
       case 500:
         throw new Error(response.status);
@@ -132,9 +132,13 @@ class ResetPasswordControl extends Component {
 
   setAuthErrors = (errors) => {
     if (isArray(errors)) {
-      this.setState({ authFailure: [...this.state.authFailure, ...errors.filter(e => !this.state.authFailure.some(a => a.code === e.code)) ] });
+      this.setState((prevState) => ({
+        authFailure: [...prevState.authFailure, ...errors.filter(e => !prevState.authFailure.some(a => a.code === e.code))]
+      }));
     } else if (!this.state.authFailure.some(e => e.code === errors.code)) {
-      this.setState({ authFailure: [...this.state.authFailure, errors] });
+      this.setState((prevState) => ({
+        authFailure: [...prevState.authFailure, errors]
+      }));
     }
   }
 
