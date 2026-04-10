@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import { act, render, waitFor } from '@folio/jest-config-stripes/testing-library/react';
 import { IntlProvider } from 'react-intl';
 import ResetPasswordControl from './ResetPasswordControl';

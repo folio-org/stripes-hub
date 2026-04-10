@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@folio/jest-config-stripes/testing-library/react';
 import { IntlProvider } from 'react-intl';
 

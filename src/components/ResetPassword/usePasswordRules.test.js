@@ -1,12 +1,12 @@
 import { renderHook, waitFor } from '@folio/jest-config-stripes/testing-library/react';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import React from 'react';
+
 import usePasswordRules from './usePasswordRules';
 
 jest.mock('ky', () => ({
   __esModule: true,
   default: {
-    create: jest.fn((config) => ({
+    create: jest.fn(() => ({
       get: jest.fn().mockReturnValue({
         json: jest.fn().mockResolvedValue({
           rules: [
