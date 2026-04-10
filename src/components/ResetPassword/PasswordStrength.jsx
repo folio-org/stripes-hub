@@ -1,6 +1,5 @@
 import { Component } from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import camelCase from 'lodash/camelCase';
 import noop from 'lodash/noop';
 
@@ -125,7 +124,7 @@ class PasswordStrength extends Component {
               />
             </div>
             <div
-              className={classNames(css.indicator__container, css[`indicator__container--${output}`])}
+              className={`${css.indicator__container} ${css[`indicator__container--${output}`]}`}
             >
               <div className={css.indicator__item} />
               <div className={css.indicator__item} />
