@@ -112,7 +112,9 @@ class ResetPasswordControl extends Component {
         }
       })
       .catch(error => {
-        processBadResponse(error);
+        this.setState((prevState) => ({
+          authFailure: [...prevState.authFailure, processBadResponse(error)]
+        }));
       });
 
     return res;
