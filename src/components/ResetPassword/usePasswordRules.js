@@ -1,22 +1,7 @@
-import ky from 'ky';
 import { useQuery } from 'react-query';
 
 const usePasswordRules = (rulesLimit, config, tenant, locale = 'en') => {
   //const { locale = 'en', tenant, url } = useStripes().okapi;
-
-  const kyInstance = ky.create({
-    prefixUrl: config.gatewayUrl,
-    hooks: {
-      beforeRequest: [
-        request => {
-          request.headers.set('Accept-Language', locale);
-          request.headers.set('X-Okapi-Tenant', tenant);
-        }
-      ]
-    },
-    retry: 0,
-    timeout: 30000,
-  });
 
   const searchParams = new URLSearchParams({
     limit: rulesLimit,
@@ -25,7 +10,18 @@ const usePasswordRules = (rulesLimit, config, tenant, locale = 'en') => {
   const { data } = useQuery(
     ['requirements-list'],
     async () => {
-      return kyInstance.get(`tenant/rules?${searchParams.toString()}`).json();
+      const response = await fetch(`${config.gatewayUrl}/tenant/rules?${searchParams.toString()}`, {
+        headers: {
+          'Accept-Language': locale,
+          'X-Okapi-Tenant': tenant,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return response.json();
     },
   );
 

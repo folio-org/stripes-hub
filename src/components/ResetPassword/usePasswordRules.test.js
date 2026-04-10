@@ -3,21 +3,19 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 
 import usePasswordRules from './usePasswordRules';
 
-jest.mock('ky', () => ({
-  __esModule: true,
-  default: {
-    create: jest.fn(() => ({
-      get: jest.fn().mockReturnValue({
-        json: jest.fn().mockResolvedValue({
-          rules: [
-            { ruleId: '1', name: 'password_length', description: 'At least 8 characters', expression: '.{8,}' },
-            { ruleId: '2', name: 'numeric_symbol', description: 'At least 1 numeric', expression: '\\d' },
-          ],
-        }),
-      }),
-    })),
-  },
-}));
+const mockRulesData = {
+  rules: [
+    { ruleId: '1', name: 'password_length', description: 'At least 8 characters', expression: '.{8,}' },
+    { ruleId: '2', name: 'numeric_symbol', description: 'At least 1 numeric', expression: '\\d' },
+  ],
+};
+
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve(mockRulesData),
+  })
+);
 
 const mockConfig = {
   gatewayUrl: 'http://example.com',
