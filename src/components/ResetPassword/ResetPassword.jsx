@@ -36,6 +36,9 @@ class ResetPassword extends Component {
     onPasswordInputFocus: PropTypes.func.isRequired,
     submitting: PropTypes.bool,
     submitIsFailed: PropTypes.bool,
+    setAuthErrors: PropTypes.func,
+    tenant: PropTypes.string,
+    errors: PropTypes.array,
   };
 
   static defaultProps = {

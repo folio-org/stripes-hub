@@ -63,6 +63,7 @@ PasswordSuccessfullyChanged.propTypes = {
     push: PropTypes.func.isRequired,
   }).isRequired,
   stripes: PropTypes.object,
+  branding: PropTypes.object,
 };
 
 export default PasswordSuccessfullyChanged;

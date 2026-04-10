@@ -99,6 +99,8 @@ const PasswordRequirementsList = ({ passwordValue, config, tenant }) => {
 
 PasswordRequirementsList.propTypes = {
   passwordValue: PropTypes.string,
+  config: PropTypes.object,
+  tenant: PropTypes.string,
 };
 
 export default PasswordRequirementsList;

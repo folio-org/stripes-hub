@@ -15,6 +15,7 @@ import styles from './PasswordNotChanged.module.css';
 class PasswordNotChanged extends Component {
   static propTypes = {
     errors: PropTypes.arrayOf(PropTypes.object),
+    branding: PropTypes.object,
   };
 
   static defaultProps = {

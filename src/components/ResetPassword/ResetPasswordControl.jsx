@@ -15,6 +15,7 @@ class ResetPasswordControl extends Component {
     location: PropTypes.shape({
       query: PropTypes.string,
       search: PropTypes.string.isRequired,
+      pathname: PropTypes.string.isRequired,
     }),
     config: PropTypes.object.isRequired,
     branding: PropTypes.object.isRequired
