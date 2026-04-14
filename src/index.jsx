@@ -14,21 +14,27 @@ const config = configuration.config || {};
 const branding = configuration.branding || {};
 const path = globalThis.location.pathname;
 const locale = config.locale || navigator.language || 'en-US';
-const translations = loadTranslations(locale);
-const reactQueryClient = createReactQueryClient();
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-const Component = isValidConfig(config) ?
-  <Router branding={branding} config={config} path={path} />
-  :
-  <ConfigError branding={branding} config={config} />
+// Initialize the app asynchronously to allow translations to load
+const initApp = async () => {
+  const translations = await loadTranslations(locale);
+  const reactQueryClient = createReactQueryClient();
 
-root.render(
-  <React.StrictMode>
-    <QueryClientProvider client={reactQueryClient}>
-      <IntlProvider locale={locale} messages={translations} >
-        {Component}
-      </IntlProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
-);
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  const Component = isValidConfig(config) ?
+    <Router branding={branding} config={config} path={path} />
+    :
+    <ConfigError branding={branding} config={config} />
+
+  root.render(
+    <React.StrictMode>
+      <QueryClientProvider client={reactQueryClient}>
+        <IntlProvider locale={locale} messages={translations} >
+          {Component}
+        </IntlProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
+  );
+};
+
+initApp();
