@@ -5,6 +5,7 @@ import StripesHub from './StripesHub';
 import OidcLanding from './OidcLanding';
 import ForgotPassword from './ForgotPassword';
 import ForgotUsername from './ForgotUsername';
+import ResetPasswordControl from './components/ResetPassword/ResetPasswordControl';
 import { urlPaths } from './constants';
 
 /**
@@ -12,19 +13,25 @@ import { urlPaths } from './constants';
  *
  * @param {*} config the configuration object.
  * @param {*} branding the branding configuration object.
- * @param {*} path the current path name.
+ * @param {*} location the location object from globalThis.
  * @returns the landing page component to render.
  */
-const Router = ({ config, branding, path }) => {
-  const props = { config, branding };
+const Router = ({ config, branding, location }) => {
+  const props = { config, branding, location };
 
-  switch (path) {
+  // split path into parts and remove leading empty string
+  const urlParts = location.pathname.split('/').slice(1); 
+  const route = urlParts?.length > 0 ? urlParts[0] : '';
+
+  switch (route) {
     case urlPaths.AUTHN_LOGIN:
       return <AuthnLogin {...props} />;
     case urlPaths.FORGOT_PASSWORD:
       return <ForgotPassword {...props} />;
     case urlPaths.FORGOT_USERNAME:
       return <ForgotUsername {...props} />;
+    case urlPaths.RESET_PASSWORD:
+      return <ResetPasswordControl {...props} />;
     case urlPaths.OIDC_LANDING:
       return <OidcLanding {...props} />;
     default:
@@ -46,7 +53,9 @@ Router.propTypes = {
       src: PropTypes.string,
     }),
   }),
-  path: PropTypes.string.isRequired,
+  location: PropTypes.shape({
+    pathname: PropTypes.string.isRequired,
+  }).isRequired,
 };
 
 export default Router;

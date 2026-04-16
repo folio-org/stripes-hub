@@ -130,7 +130,9 @@ const UNAUTHORIZED_PATH = 'unauthorized_path';
 export const removeUnauthorizedPathFromSession = () => sessionStorage.removeItem(UNAUTHORIZED_PATH);
 export const setUnauthorizedPathToSession = (pathname) => {
   const path = pathname ?? `${globalThis.location.pathname}${globalThis.location.search}`;
-  if (!path.startsWith(urlPaths.LOGOUT) && !path.startsWith(urlPaths.AUTHN_LOGIN)) {
+  const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
+
+  if (!normalizedPath.startsWith(urlPaths.LOGOUT) && !normalizedPath.startsWith(urlPaths.AUTHN_LOGIN)) {
     sessionStorage.setItem(UNAUTHORIZED_PATH, path);
   }
 };
