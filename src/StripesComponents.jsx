@@ -63,6 +63,21 @@ Headline.propTypes = {
   children: PropTypes.node,
 }
 
+export const InfoPopover = ({ children }) => <div>{children}</div>;
+InfoPopover.propTypes = {
+  children: PropTypes.node,
+}
+
+export const Layout = ({ children }) => <div>{children}</div>;
+Layout.propTypes = {
+  children: PropTypes.node,
+}
+
+export const MessageBanner = ({ children }) => <h1>{children}</h1>;
+MessageBanner.propTypes = {
+  children: PropTypes.node,
+}
+
 export const OrganizationLogo = ({ branding }) => <img src={branding.logo.src} alt={branding.logo.alt} width="300px" />;
 OrganizationLogo.propTypes = {
   branding: PropTypes.shape({
@@ -71,6 +86,11 @@ OrganizationLogo.propTypes = {
       alt: PropTypes.string,
     })
   })
+}
+
+export const PasswordStrength = ({ children }) => <div>{children}</div>;
+PasswordStrength.propTypes = {
+  children: PropTypes.node,
 }
 
 export const Row = ({ center, children }) => {

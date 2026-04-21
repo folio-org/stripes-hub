@@ -12,7 +12,7 @@ import configuration from '../config.yaml';
 
 const config = configuration.config || {};
 const branding = configuration.branding || {};
-const path = globalThis.location.pathname;
+const location = globalThis.location;
 const locale = config.locale || navigator.language || 'en-US';
 
 // Initialize the app asynchronously to allow translations to load
@@ -22,7 +22,7 @@ const initApp = async () => {
 
   const root = ReactDOM.createRoot(document.getElementById('root'));
   const Component = isValidConfig(config) ?
-    <Router branding={branding} config={config} path={path} />
+    <Router branding={branding} config={config} location={location} />
     :
     <ConfigError branding={branding} config={config} />
 
