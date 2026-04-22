@@ -6,7 +6,7 @@ const translationModules = import.meta.glob('../translations/stripes-hub/*.json'
 
 Object.entries(translationModules).forEach(([path, module]) => {
   // Extract filename from path (e.g., '../translations/stripes-hub/en_US.json' -> 'en_US')
-  const filename = path.split('/').pop().replace('.json', '');
+  const filename = path.split('/').pop().replaceAll('.json', '');
   // Convert filename to locale format (e.g., 'en_US' -> 'en-US')
   const locale = filename.replace(/_/g, '-');
   messages[locale] = module.default;
