@@ -14,7 +14,7 @@ const config = configuration.config || {};
 const branding = configuration.branding || {};
 const location = globalThis.location;
 const locale = config.locale || navigator.language || 'en-US';
-const translations = loadTranslations(locale);
+const translations = await loadTranslations(locale);
 const reactQueryClient = createReactQueryClient();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
