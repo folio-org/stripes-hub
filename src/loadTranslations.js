@@ -2,7 +2,7 @@ const DEFAULT_LOCALE = 'en-US';
 
 export const messages = {};
 
-const translationsLoadedPromise = typeof globalThis.window !== 'undefined' //NOSONOR
+const translationsLoadedPromise = typeof globalThis.window !== 'undefined' //NOSONAR
   ? import('./loadTranslations.vite.js')
     .then((viteModule) => {
       Object.assign(messages, viteModule.messages);
