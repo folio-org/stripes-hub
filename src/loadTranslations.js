@@ -6,7 +6,7 @@ export const messages = {};
 let translationsLoadedPromise = null;
 
 // Conditionally load translations based on environment
-if (typeof globalThis.window !== 'undefined') {
+if (globalThis.window !== 'undefined') {
   // In browser/Vite environment, load translations asynchronously
   translationsLoadedPromise = (async () => {
     try {
