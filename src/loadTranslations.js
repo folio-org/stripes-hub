@@ -2,16 +2,15 @@ const DEFAULT_LOCALE = 'en-US';
 
 export const messages = {};
 
-// Conditionally load translations based on environment
-if (globalThis.window !== 'undefined') {
-  // In browser/Vite environment, load translations before this module resolves.
-  try {
-    const viteModule = await import('./loadTranslations.vite.js');
-    Object.assign(messages, viteModule.messages);
-  } catch (e) {
-    console.warn('Failed to load translations from vite module:', e);
-  }
-}
+const translationsLoadedPromise = typeof globalThis.window !== 'undefined' //NOSONOR
+  ? import('./loadTranslations.vite.js')
+    .then((viteModule) => {
+      Object.assign(messages, viteModule.messages);
+    })
+    .catch((e) => {
+      console.warn('Failed to load translations from vite module:', e);
+    })
+  : Promise.resolve();
 // In Node.js/Jest environment, translations will be injected by tests
 
 /**
@@ -21,6 +20,8 @@ if (globalThis.window !== 'undefined') {
  * @returns translations for the specified locale or default locale if not found.
  */
 export const loadTranslations = async (locale) => {
+  await translationsLoadedPromise;
+
   let translations = messages[locale] || messages[DEFAULT_LOCALE] || {};
 
   return Object.keys(translations).reduce((acc, key) => {

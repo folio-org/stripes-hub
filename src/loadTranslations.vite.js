@@ -8,6 +8,6 @@ Object.entries(translationModules).forEach(([path, module]) => {
   // Extract filename from path (e.g., '../translations/stripes-hub/en_US.json' -> 'en_US')
   const filename = path.split('/').pop().replaceAll('.json', '');
   // Convert filename to locale format (e.g., 'en_US' -> 'en-US')
-  const locale = filename.replace(/_/g, '-');
+  const locale = filename.replaceAll(/_/g, '-');
   messages[locale] = module.default;
 });
