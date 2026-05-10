@@ -574,7 +574,7 @@ export const processSession = async (tenant, resp, ssoToken) => {
     const userBySelfRef = new UserBySelfReference(json);
     const token = resp.headers.get('X-Okapi-Token') || json.access_token || ssoToken;
     await createSession(tenant, token, userBySelfRef);
-    return userBySelfRef;
+    return json;
   } else {
     // handleLoginError will dispatch setAuthError, then resolve to undefined
     return handleLoginError(resp);
