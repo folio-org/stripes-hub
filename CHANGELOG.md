@@ -4,3 +4,4 @@
 
 * Initial application.
 * Added copyleft license for `lightningcss` in README. Refs STHUB-37.
+* Generate module descriptor. Refs STHUB-36.
