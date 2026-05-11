@@ -21,7 +21,6 @@
     "okapiInterfaces": {
       "discoveries": "2.1",
       "entitlements": "1.1",
-      "login": "7.3",
       "users-keycloak": "1.0"
     }
   },

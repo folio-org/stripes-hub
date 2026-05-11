@@ -59,10 +59,9 @@ export const isValidEmailOrPhoneNumber = (input) => {
 const useForgotUsername = ({ config, tenant }) => {
   const [didMutate, setDidMutate] = useState(false);
   const [isError, setIsError] = useState(false);
-  const pathPrefix = config.authnUrl ? 'users-keycloak' : 'bl-users';
 
   const mutation = useMutation({
-    mutationFn: (id) => fetch(`${config.gatewayUrl}/${pathPrefix}/forgotten/username`, {
+    mutationFn: (id) => fetch(`${config.gatewayUrl}/users-keycloak/forgotten/username`, {
       "headers": {
         "accept": "application/json",
         "content-type": "application/json",

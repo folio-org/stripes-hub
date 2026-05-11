@@ -12,10 +12,9 @@ import { useMutation } from 'react-query';
  */
 const useForgotPassword = ({ config, tenant }) => {
   const [didMutate, setDidMutate] = useState(false);
-  const pathPrefix = config.authnUrl ? 'users-keycloak' : 'bl-users';
 
   const mutation = useMutation({
-    mutationFn: (id) => fetch(`${config.gatewayUrl}/${pathPrefix}/forgotten/password`, {
+    mutationFn: (id) => fetch(`${config.gatewayUrl}/users-keycloak/forgotten/password`, {
       "headers": {
         "accept": "application/json",
         "content-type": "application/json",
