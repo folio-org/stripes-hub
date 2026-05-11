@@ -2,6 +2,7 @@ import localforage from 'localforage';
 import isObject from 'lodash/isObject';
 
 import { defaultErrors, urlPaths } from './constants';
+import UserBySelfReference from './userBySelfReference';
 
 /** name for the session key in local storage */
 export const SESSION_NAME = 'okapiSess';
@@ -564,15 +565,15 @@ export const createSession = async (tenant, token, data) => {
   * @param {string} tenant
   * @param {Response} resp HTTP response
   * @param {string} ssoToken token from SSO login, if any
-  * @param {object} config
   *
   * @returns {Promise} resolving to login response body or undefined on error
   */
 export const processSession = async (tenant, resp, ssoToken) => {
   if (resp.ok) {
     const json = await resp.json();
+    const userBySelfRef = new UserBySelfReference(json);
     const token = resp.headers.get('X-Okapi-Token') || json.access_token || ssoToken;
-    await createSession(tenant, token, json);
+    await createSession(tenant, token, userBySelfRef);
     return json;
   } else {
     // handleLoginError will dispatch setAuthError, then resolve to undefined
