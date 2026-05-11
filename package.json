@@ -14,7 +14,6 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "build-mod-descriptor": "stripes mod descriptor --full --strict | jq '.[]' > module-descriptor.json ",
     "lint": "eslint ./src",
     "test": "jest --ci --coverage --colors"
   },
