@@ -21,6 +21,7 @@ reins to Stripes. The basic steps are:
   attempting to make an API call to _self if so, or manage the handoff to/from
   the authentication provider, on the return exchanging its one-time-code for
   cookies and making the API call to _self
+* store response from _self in localstorage.
 * make an API call to retrieve the tenant's entitlement information
 * make an API call to retrieve discovery details for entitled modules,
   including stripes itself
