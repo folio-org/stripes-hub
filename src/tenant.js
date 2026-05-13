@@ -1,9 +1,8 @@
 
-const optionalString = (source, field) => {
-  const value = source[field];
+const optionalString = (value) => {
   if (value === undefined || value === null) return undefined;
   if (typeof value !== 'string') {
-    throw new TypeError(`${field} must be a string`);
+    throw new TypeError(`${value} must be a string`);
   }
 
   return value;
@@ -11,7 +10,7 @@ const optionalString = (source, field) => {
 
 export default class Tenant {
   constructor(name, clientId) {
-    this.name = optionalString(name, 'name');
-    this.clientId = optionalString(clientId, 'clientId');
+    this.name = optionalString(name);
+    this.clientId = optionalString(clientId);
   }
 }
