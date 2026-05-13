@@ -2,6 +2,7 @@ import localforage from 'localforage';
 import isObject from 'lodash/isObject';
 
 import { defaultErrors, urlPaths } from './constants';
+import Tenant from './tenant';
 import UserBySelfReference from './userBySelfReference';
 
 /** name for the session key in local storage */
@@ -115,7 +116,8 @@ export const getCurrentTenant = () => {
  * @param {string} clientId the client ID
  */
 export const storeCurrentTenant = (name, clientId) => {
-  localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ name, clientId }));
+  const tenant = new Tenant(name, clientId);
+  localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify(tenant));
 };
 
 /**
