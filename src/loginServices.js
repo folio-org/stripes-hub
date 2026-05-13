@@ -2,7 +2,6 @@ import localforage from 'localforage';
 import isObject from 'lodash/isObject';
 
 import { defaultErrors, urlPaths } from './constants';
-import Tenant from './tenant';
 import UserBySelfReference from './userBySelfReference';
 
 /** name for the session key in local storage */
@@ -10,6 +9,17 @@ export const SESSION_NAME = 'okapiSess';
 
 /** key for storing tenant info in local storage */
 export const TENANT_LOCAL_STORAGE_KEY = 'tenant';
+
+const STORAGE_SAFE_IDENTIFIER_CHARS = /[^A-Za-z0-9._:~-]/g;
+
+const sanitizeStorageValue = (value) => {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'string') {
+    throw new TypeError(`${value} must be a string`);
+  }
+
+  return value.normalize('NFKC').replace(STORAGE_SAFE_IDENTIFIER_CHARS, '');
+};
 
 /**
  * getHeaders
@@ -116,7 +126,7 @@ export const getCurrentTenant = () => {
  * @param {string} clientId the client ID
  */
 export const storeCurrentTenant = (name, clientId) => {
-  const tenant = new Tenant(name, clientId);
+  const tenant = { name: sanitizeStorageValue(name), clientId: sanitizeStorageValue(clientId) };
   localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify(tenant));
 };
 
