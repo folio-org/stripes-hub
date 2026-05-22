@@ -1,10 +1,5 @@
 import { loadTranslations, messages } from './loadTranslations';
 
-// Mock the vite module to prevent it from being loaded in tests
-jest.mock('./loadTranslations.vite.js', () => ({
-  messages: {},
-}), { virtual: true });
-
 describe('loadTranslations', () => {
   // Setup test translations before running tests
   beforeAll(() => {

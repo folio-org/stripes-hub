@@ -2,7 +2,6 @@ import {
   useState,
   useEffect,
 } from 'react';
-import PropTypes from 'prop-types';
 
 import { IntlProvider } from 'react-intl';
 import { QueryClientProvider } from 'react-query';
@@ -26,7 +25,7 @@ const App = () => {
     :
     <ConfigError branding={branding} config={config} />
 
-  const [translations, setTranslations] = useState([]);
+  const [translations, setTranslations] = useState({});
 
   useEffect(() => {
     loadTranslations(locale).then((msgs) => setTranslations(msgs));
