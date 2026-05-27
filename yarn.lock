@@ -1988,7 +1988,7 @@
     jest-location-mock "^1.0.9"
     jsdom "^22.1.0"
 
-"@folio/stripes-testing@^5.1.0":
+"@folio/stripes-testing@^5.0.0":
   version "5.0.1"
   resolved "https://repository.folio.org/repository/npm-folio/@folio/stripes-testing/-/stripes-testing-5.0.1.tgz#e3c2daba44361fad6f901a377ecc819786d1a5f6"
   integrity sha512-9lfcIO3qzKMqSHZ7o5bO9Hs9TYKl8SP7jqmyoPZqmOf3+5jmWQL9CPs5ym7nqSqUmgOfNVCeZeK6Tb8M38KOYQ==
