@@ -2,12 +2,24 @@ import localforage from 'localforage';
 import isObject from 'lodash/isObject';
 
 import { defaultErrors, urlPaths } from './constants';
+import UserBySelfReference from './userBySelfReference';
 
 /** name for the session key in local storage */
 export const SESSION_NAME = 'okapiSess';
 
 /** key for storing tenant info in local storage */
 export const TENANT_LOCAL_STORAGE_KEY = 'tenant';
+
+const STORAGE_SAFE_IDENTIFIER_CHARS = /[^A-Za-z0-9._:~-]/g;
+
+const sanitizeStorageValue = (value) => {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'string') {
+    throw new TypeError(`${value} must be a string`);
+  }
+
+  return value.normalize('NFKC').replace(STORAGE_SAFE_IDENTIFIER_CHARS, '');
+};
 
 /**
  * getHeaders
@@ -114,7 +126,8 @@ export const getCurrentTenant = () => {
  * @param {string} clientId the client ID
  */
 export const storeCurrentTenant = (name, clientId) => {
-  localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify({ name, clientId }));
+  const tenant = { name: sanitizeStorageValue(name), clientId: sanitizeStorageValue(clientId) };
+  localStorage.setItem(TENANT_LOCAL_STORAGE_KEY, JSON.stringify(tenant));
 };
 
 /**
@@ -564,15 +577,15 @@ export const createSession = async (tenant, token, data) => {
   * @param {string} tenant
   * @param {Response} resp HTTP response
   * @param {string} ssoToken token from SSO login, if any
-  * @param {object} config
   *
   * @returns {Promise} resolving to login response body or undefined on error
   */
 export const processSession = async (tenant, resp, ssoToken) => {
   if (resp.ok) {
     const json = await resp.json();
+    const userBySelfRef = new UserBySelfReference(json);
     const token = resp.headers.get('X-Okapi-Token') || json.access_token || ssoToken;
-    await createSession(tenant, token, json);
+    await createSession(tenant, token, userBySelfRef);
     return json;
   } else {
     // handleLoginError will dispatch setAuthError, then resolve to undefined

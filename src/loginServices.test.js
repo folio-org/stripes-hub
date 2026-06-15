@@ -201,6 +201,15 @@ describe('loginServices', () => {
       storeCurrentTenant(name, clientId);
       expect(localStorage.getItem(TENANT_LOCAL_STORAGE_KEY)).toBe(JSON.stringify({ name, clientId }));
     });
+
+    it('sanitizes tenant data before storing it in localStorage', () => {
+      storeCurrentTenant('test<script>alert(1)</script>', 'client-123"\n&bad');
+
+      expect(localStorage.getItem(TENANT_LOCAL_STORAGE_KEY)).toBe(JSON.stringify({
+        name: 'testscriptalert1script',
+        clientId: 'client-123bad',
+      }));
+    });
   });
 
   describe('unauthorized path functions', () => {

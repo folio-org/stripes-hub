@@ -1,6 +1,6 @@
 {
   "name": "@folio/stripes-hub",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Orchestrate UI modules in a module-federation setup",
   "license": "Apache-2.0",
   "repository": {
@@ -21,7 +21,6 @@
     "okapiInterfaces": {
       "discoveries": "2.1",
       "entitlements": "1.1",
-      "login": "7.3",
       "users-keycloak": "1.0"
     }
   },
