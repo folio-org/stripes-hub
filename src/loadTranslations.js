@@ -8,7 +8,10 @@ export const messages = {};
  */
 const translationsLoadedPromise = () => {
   return new Promise((resolve) => {
-    const messages = {};
+    if (Object.keys(messages).length) {
+      resolve(messages);
+      return;
+    }
 
     // Dynamically import all translation JSON files from the translations folder
     const translationModules = import.meta.glob('../translations/stripes-hub/*.json', { eager: true });
