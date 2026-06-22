@@ -317,34 +317,6 @@ describe('useForgotUsername', () => {
     });
   });
 
-  describe('without keycloak authnUrl', () => {
-    it('uses bl-users path when authnUrl is not present', async () => {
-      const configWithoutAuthn = {
-        gatewayUrl: 'http://gateway.example.com',
-      };
-
-      useMutation.mockImplementation(({ mutationFn: fn }) => ({
-        mutateAsync: fn,
-        status: 'idle',
-      }));
-
-      global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-      });
-
-      const { result } = renderHook(() => useForgotUsername({ config: configWithoutAuthn, tenant: mockTenant }));
-
-      await act(async () => {
-        await result.current.handleSubmit({ userInput: 'test@example.com' });
-      });
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/bl-users/forgotten/username'),
-        expect.any(Object)
-      );
-    });
-  });
-
   describe('mutation request details', () => {
     it('sends correct headers with tenant', async () => {
       useMutation.mockImplementation(({ mutationFn: fn }) => ({

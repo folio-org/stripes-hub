@@ -5,6 +5,8 @@ Copyright (C) 2016-2026 The Open Library Foundation
 This software is distributed under the terms of the Apache License,
 Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
 
+This software uses a copyleft (MPL-2.0) licensed software library: [lightningcss](https://github.com/parcel-bundler/lightningcss)
+
 ## Introduction
 
 stripes-hub orchestrates UI modules in a [module federation](https://webpack.js.org/concepts/module-federation/)
@@ -19,6 +21,7 @@ reins to Stripes. The basic steps are:
   attempting to make an API call to _self if so, or manage the handoff to/from
   the authentication provider, on the return exchanging its one-time-code for
   cookies and making the API call to _self
+* store response from _self in localstorage.
 * make an API call to retrieve the tenant's entitlement information
 * make an API call to retrieve discovery details for entitled modules,
   including stripes itself

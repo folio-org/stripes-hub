@@ -1,0 +1,23 @@
+{
+  "id": "folio_stripes-hub-1.0.0",
+  "name": "Orchestrate UI modules in a module-federation setup",
+  "permissionSets": [],
+  "requires": [
+    {
+      "id": "discoveries",
+      "version": "2.1"
+    },
+    {
+      "id": "entitlements",
+      "version": "1.1"
+    },
+    {
+      "id": "users-keycloak",
+      "version": "1.0"
+    }
+  ],
+  "optional": [],
+  "metadata": {
+    "stripes": {}
+  }
+}
