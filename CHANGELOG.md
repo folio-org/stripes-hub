@@ -1,5 +1,9 @@
 # Change history for stripes-hub
 
+## IN PROGRESS
+
+* Use canonical `favicon.png`. Refs STHUB-33.
+
 ## [1.1.0](https://github.com/folio-org/stripes-hub/releases/tag/v1.1.0) (2026-05-15)
 [Full Changelog](https://github.com/folio-org/ui-users/stripes-hub/v1.0.0...v1.1.0)
 
