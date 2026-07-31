@@ -7,8 +7,11 @@ config:
       clientId: diku-application
 
 branding:
+  # favicon is not configurable via config.yaml; it is hardcoded to
+  # /tenant-assets/favicon.png where /tenant-assets is located in /public. while
+  # you may edit index.html to choose a different path, this is uncommon.
+  # note that the path is relative to /public.
   logo:
     # path inside the ./public directory
     src: /tenant-assets/opentown-libraries-logo.png
     alt: Opentown Libraries
-
